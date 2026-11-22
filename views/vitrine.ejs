@@ -16,13 +16,15 @@
 <form method="get" action="/" class="vitrine-busca">
   <input type="search" name="q" value="<%= busca %>" placeholder="Buscar por nome ou marca" maxlength="80" aria-label="Buscar por nome ou marca"
          data-busca-lista data-url="/api/produtos" autocomplete="off">
-  <select name="marca" aria-label="Filtrar por marca">
+  <%# Marca e ordem filtram assim que são escolhidas (data-envia-ao-mudar; veja public/javascripts/envia-ao-mudar.js).
+      Sem JavaScript, o botão "Buscar" continua fazendo o mesmo. %>
+  <select name="marca" aria-label="Filtrar por marca" data-envia-ao-mudar>
     <option value="">Todas as marcas</option>
     <% marcas.forEach(function (m) { %>
       <option value="<%= m %>"<%= m === marca ? ' selected' : '' %>><%= m %></option>
     <% }) %>
   </select>
-  <select name="ordem" aria-label="Ordenar por">
+  <select name="ordem" aria-label="Ordenar por" data-envia-ao-mudar>
     <option value="nome"<%= ordem === 'nome' ? ' selected' : '' %>>Nome (A-Z)</option>
     <option value="menor-preco"<%= ordem === 'menor-preco' ? ' selected' : '' %>>Menor preço</option>
     <option value="maior-preco"<%= ordem === 'maior-preco' ? ' selected' : '' %>>Maior preço</option>
