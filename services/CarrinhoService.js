@@ -94,7 +94,8 @@ class CarrinhoService {
       subtotal: carrinho.subtotal(),
       desconto: carrinho.desconto(estrategia),
       total: carrinho.total(estrategia),
-      temDesconto: estrategia.percentual() > 0 // a tela decide o aviso por aqui, nao pelo papel
+      temDesconto: estrategia.percentual() > 0, // a tela decide o aviso por aqui, nao pelo papel
+        percentualTexto: `${Math.round(estrategia.percentual() * 100)}%` // texto pronto (ex.: "5%"): a view nao faz conta
     };
   }
 

@@ -1,4 +1,9 @@
 <%# Topo comum: cabeçalho, menu e aviso de uma exibição. Use com include('partials/topo', {titulo}). %>
+<%#
+  Valores padrao: a pagina de erro pode ser desenhada ANTES do middleware que preenche usuario, mostrarCarrinho e aviso
+  (por exemplo, quando a sessao falha). Com `locals.` a variavel que nao existe vira o padrao em vez de quebrar a pagina.
+%>
+<% const usuario = locals.usuario || null; const mostrarCarrinho = locals.mostrarCarrinho !== false; const aviso = locals.aviso || null; %>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>

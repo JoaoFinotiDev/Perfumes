@@ -3,6 +3,7 @@
  * Telas e ações de login, cadastro de cliente e logout.
  */
 const { ErroDeValidacao } = require('../utils/erros');
+const { NOME_COOKIE } = require('../config/sessao');
 
 class AuthController {
   /** @param {AuthService} authService */
@@ -46,7 +47,11 @@ class AuthController {
 
   /** POST /logout */
   logout(req, res) {
-    req.session.destroy(() => res.redirect('/'));
+    // Apaga a sessao no servidor E o cookie no navegador (senao ele guardaria um id morto).
+    req.session.destroy(() => {
+      res.clearCookie(NOME_COOKIE);
+      res.redirect('/');
+    });
   }
 
   /** Troca o id da sessão (evita fixação de sessão) e guarda o usuário. Mantém o carrinho. */

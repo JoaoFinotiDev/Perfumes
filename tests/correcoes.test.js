@@ -5,6 +5,9 @@
  */
 const test = require('node:test');
 const assert = require('node:assert');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 const v = require('../utils/validacao');
 const { resolverSegredo, SEGREDO_DE_EXEMPLO } = require('../config/segredo');
 const Perfume = require('../domain/Perfume');
@@ -26,10 +29,17 @@ test('SESSION_SECRET: em producao vazio ou de exemplo falha; em desenvolvimento 
   assert.strictEqual(resolverSegredo({ NODE_ENV: 'production', SESSION_SECRET: 'um-segredo-de-verdade' }, avisar), 'um-segredo-de-verdade');
   assert.strictEqual(avisos.length, 0);
 
-  assert.strictEqual(resolverSegredo({ SESSION_SECRET: SEGREDO_DE_EXEMPLO }, avisar), SEGREDO_DE_EXEMPLO); // dev: avisa e segue
-  assert.strictEqual(avisos.length, 1);
-  assert.ok(resolverSegredo({}, avisar).length >= 32); // dev vazio: segredo aleatorio so desta execucao
-  assert.strictEqual(avisos.length, 2);
+  // dev: segredo vazio ou igual ao exemplo usa o segredo fixo guardado em arquivo
+  // (aqui um arquivo temporario, para nao mexer no .segredo-dev real)
+  const arquivo = path.join(os.tmpdir(), `segredo-dev-${process.pid}-${Date.now()}`);
+  try {
+    const doExemplo = resolverSegredo({ SESSION_SECRET: SEGREDO_DE_EXEMPLO }, avisar, arquivo);
+    assert.notStrictEqual(doExemplo, SEGREDO_DE_EXEMPLO);
+    assert.ok(doExemplo.length >= 32);
+    assert.strictEqual(avisos.length, 2); // aviso do exemplo + aviso de arquivo criado
+    assert.strictEqual(resolverSegredo({}, avisar, arquivo), doExemplo); // vazio: o mesmo segredo fixo
+    assert.strictEqual(avisos.length, 3);
+  } finally { fs.rmSync(arquivo, { force: true }); }
 });
 
 test('a venda baixa o estoque na ordem do id (produto e depois variacao), seja qual for a ordem do carrinho', async () => {

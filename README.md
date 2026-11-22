@@ -22,7 +22,7 @@ npm start
 
 **Antes de publicar:** (1) a senha inicial do admin (`admin` / `admin`, criada pelo `script.sql`) é pública: troque-a no primeiro acesso; (2) preencha `SESSION_SECRET` no `.env` com um texto longo e aleatório. Com `NODE_ENV=production`, o app não sobe se ele estiver vazio ou igual ao texto de exemplo; em desenvolvimento só mostra um aviso no console.
 
-Para desenvolver, use `npm run dev`: o nodemon reinicia o servidor sozinho a cada arquivo salvo.
+Para desenvolver, use `npm run dev`: o nodemon reinicia o servidor sozinho só quando muda código do servidor (`.js` fora de `public/` e `.json`). Mudar `.ejs` ou arquivos de `public/` (CSS, JS do navegador, imagens) não reinicia: basta recarregar a página, porque as views são relidas a cada requisição em desenvolvimento e o `public/` é servido como arquivo estático. Como a sessão fica no MySQL, o reinício não tira ninguém do login.
 
 Abra http://localhost:3000. Testes: `npm test` (regras, sem banco) e, com o servidor no ar, `npm run e2e`.
 
@@ -82,7 +82,8 @@ Este é um trabalho acadêmico; estes pontos ficam para uma versão de produçã
 - **CSRF**: os formulários não têm token. A proteção é só o cookie de sessão com `sameSite: 'lax'` (o navegador não envia o cookie em POST vindo de outro site). Para produção, adicionar um token por formulário.
 - **Sem limite de tentativas de login**: dá para tentar muitas senhas seguidas. Para produção, limitar por IP/usuário (ex.: `express-rate-limit`) e bloquear temporariamente.
 - **Carrinho consulta o banco por item**: ao abrir o carrinho, cada linha faz uma consulta (preço e estoque sempre vêm do banco, para ninguém forçar um preço). Funciona bem para carrinhos pequenos; para muitos itens, trocar por uma única consulta com `IN (...)`.
-- A sessão fica na memória do servidor (reiniciar desloga todos); para produção, usar um store em banco.
+- A sessão (login) fica na tabela `sessoes` do MySQL (pacote `express-mysql-session`, `config/sessao.js`): reiniciar o servidor não desloga ninguém. O login dura 8 horas; "Sair" apaga a sessão do banco. Se a tabela não existir, em desenvolvimento o app avisa no console e usa a memória (o login cai ao reiniciar); rode a migração 003.
+- Em desenvolvimento, sem `SESSION_SECRET` no `.env`, o app cria um segredo fixo no arquivo `.segredo-dev` (fora do git). Em produção o `SESSION_SECRET` continua obrigatório.
 
 ## Gerenciar produtos (Vendedor)
 
@@ -97,6 +98,12 @@ Menu **Gerenciar produtos** (`/vendedor/produtos`), para Vendedor e Admin:
 - A descrição aceita até 5000 caracteres (as descrições importadas passam de 1000).
 
 ### Banco já existente: migração
+
+Sessões no MySQL (`migracoes/003-sessoes.sql`, só cria a tabela `sessoes` e pode repetir):
+
+```bash
+mysql -u root -p < migracoes/003-sessoes.sql
+```
 
 Variações, SKU e pontos (`migracoes/002-variacoes-sku-pontos.sql`, só adiciona e pode repetir; o `script.sql` novo já cria tudo):
 
