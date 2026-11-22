@@ -69,6 +69,9 @@ class PerfumeService {
         precoFinal,
         temDesconto: precoFinal < p.preco,
         percentual,
+        // Quantidade em estoque, para o card mostrar "10 em estoque".
+        // Nunca negativa: se vier algo estranho do banco, mostra 0.
+        estoque: Math.max(0, p.estoque),
         esgotado: p.estoque <= 0
       };
     });

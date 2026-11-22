@@ -96,6 +96,8 @@ main:has(.vitrine-grade) { max-width: 1200px; }
 .preco-antigo { color: #888; font-size: 0.85em; }
 .preco-final { color: var(--cor-principal); font-size: 1.2em; }
 .esgotado { margin: 0; color: var(--cor-promocao); font-weight: bold; font-size: 0.9em; }
+/* Quantidade em estoque no card: texto pequeno e discreto, abaixo do preço. */
+.estoque { margin: 0; color: #666; font-size: 0.85em; }
 .card-corpo form { margin-top: auto; }
 .card-botao { width: 100%; }
 button:disabled { background: #bbb; cursor: not-allowed; }
