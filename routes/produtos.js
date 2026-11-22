@@ -18,5 +18,6 @@ router.get('/vendedor/produtos', ligar(c.gestaoProdutos, 'listar'));
 router.get('/vendedor/produtos/:id/editar', ligar(c.gestaoProdutos, 'formEditar'));
 router.post('/vendedor/produtos/:id/editar', ligar(c.gestaoProdutos, 'salvar'));
 router.post('/vendedor/produtos/:id/visibilidade', ligar(c.gestaoProdutos, 'definirVisibilidade'));
+router.post('/vendedor/produtos/:id/estoque', ligar(c.gestaoProdutos, 'definirEstoque'));
 
 module.exports = router;

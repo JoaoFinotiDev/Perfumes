@@ -87,6 +87,12 @@ function conferir(nome, ok, extra = '') {
   conferir('cliente finaliza compra simulada', r.status === 302 && r.local === '/');
   r = await visitante('/carrinho/finalizar', { metodo: 'POST', corpo: { forma: 'pix' } });
   conferir('visitante não finaliza compra', r.status === 302 && r.local === '/login');
+  r = await visitante('/carrinho/adicionar', { metodo: 'POST', corpo: { perfumeId: '1' } });
+  conferir('visitante que adiciona ao carrinho vai para o login', r.status === 302 && r.local === '/login');
+  r = await admin('/carrinho');
+  conferir('admin NÃO usa o carrinho (403)', r.status === 403);
+  r = await visitante('/api/produtos?todos=1');
+  conferir('API de produtos: visitante não pede ocultos (403)', r.status === 403);
 
   // Vendedor
   r = await vendedor('/login', { metodo: 'POST', corpo: { usuario: 'vend' + id, senha: 'senha123' } });

@@ -1,6 +1,7 @@
 <%# Gerenciar produtos (Vendedor/Admin): lista com busca, botão Editar e mostrar/ocultar na vitrine. A view só MOSTRA. %>
 <%- include('partials/topo', { titulo: 'Gerenciar produtos' }) %>
 <h1>Gerenciar produtos</h1>
+<% if (erro) { %><p class="erro"><%= erro %></p><% } %>
 <p class="dica">Produto oculto não aparece na vitrine nem pode ser comprado pelo site, mas continua na tela "Abrir venda".</p>
 
 <form method="get" action="/vendedor/produtos" class="busca">
@@ -10,7 +11,7 @@
 
 <table>
   <thead>
-    <tr><th>Foto</th><th>ID</th><th>Nome</th><th>Marca</th><th>Preço</th><th>Estoque</th><th>Na vitrine</th><th>Ações</th></tr>
+    <tr><th>Foto</th><th>ID</th><th>Nome</th><th>Marca</th><th>Preço</th><th>Estoque (editar)</th><th>Na vitrine</th><th>Ações</th></tr>
   </thead>
   <tbody>
   <% perfumes.forEach(function (p) { %>
@@ -20,7 +21,22 @@
       <td><%= p.nome %></td>
       <td><%= p.marca %></td>
       <td><%= moeda(p.preco) %></td>
-      <td><%= p.estoque %></td>
+      <td>
+        <%# Estoque rápido (POST): campo numérico + Salvar, e -1 / +1 que enviam o valor já calculado.
+            O servidor valida de novo (inteiro >= 0). Sem JS tudo funciona, pois são formulários comuns. %>
+        <form method="post" action="/vendedor/produtos/<%= p.id %>/estoque" class="inline estoque-form">
+          <input type="hidden" name="q" value="<%= busca %>">
+          <input type="number" name="estoque" value="<%= p.estoque %>" min="0" step="1" required class="estoque-campo" aria-label="Estoque de <%= p.nome %>">
+          <button type="submit">Salvar</button>
+        </form>
+        <% [-1, 1].forEach(function (passo) { %>
+        <form method="post" action="/vendedor/produtos/<%= p.id %>/estoque" class="inline">
+          <input type="hidden" name="q" value="<%= busca %>">
+          <input type="hidden" name="estoque" value="<%= Math.max(0, p.estoque + passo) %>">
+          <button type="submit" aria-label="<%= passo < 0 ? 'Tirar' : 'Pôr' %> 1 do estoque de <%= p.nome %>"<%= passo < 0 && p.estoque <= 0 ? ' disabled' : '' %>><%= passo < 0 ? '-1' : '+1' %></button>
+        </form>
+        <% }) %>
+      </td>
       <td><%= p.visivel ? 'Sim' : 'Não' %></td>
       <td>
         <a href="/vendedor/produtos/<%= p.id %>/editar">Editar</a>

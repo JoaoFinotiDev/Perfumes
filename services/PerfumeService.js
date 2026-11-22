@@ -4,6 +4,10 @@
  */
 const { ErroDeValidacao, ErroDePermissao } = require('../utils/erros');
 const v = require('../utils/validacao');
+const moeda = require('../utils/moeda');
+
+// Máximo de produtos na lista suspensa de busca (o resto aparece ao digitar mais letras).
+const LIMITE_LISTA = 50;
 
 // Ordenações aceitas na vitrine (as mesmas chaves do PerfumeRepository).
 const ORDENS_VALIDAS = ['nome', 'menor-preco', 'maior-preco'];
@@ -76,6 +80,27 @@ class PerfumeService {
       };
     });
     return { cards, marcas, busca, marca, ordem };
+  }
+
+  /**
+   * Dados enxutos para a lista suspensa de busca (JSON). Devolve no máximo LIMITE_LISTA produtos,
+   * já com o preço formatado, para o navegador só mostrar. Só inclui ocultos se o chamador pedir
+   * (quem chama é responsável por checar a permissão; veja CatalogoController.buscarJson).
+   * @param {string} busca texto digitado (nome ou marca; maiúsculas e acentos não importam: collation do banco)
+   * @param {{incluirOcultos?: boolean}} opcoes
+   * @param {object|null} usuario quem está logado (o preço vem da estratégia dele)
+   */
+  async buscarParaLista(busca = '', { incluirOcultos = false } = {}, usuario = null) {
+    const perfumes = await this.perfumes.listar(String(busca).trim().slice(0, 80), {
+      apenasVisiveis: !incluirOcultos, limite: LIMITE_LISTA
+    });
+    return perfumes.map((p) => ({
+      id: p.id,
+      nome: p.nome,
+      marca: p.marca,
+      precoTexto: moeda(p.precoPara(usuario)),
+      fotoUrl: urlDeImagemSegura(p.fotoUrl)
+    }));
   }
 
   /** Busca por id (ou null). */
@@ -151,6 +176,21 @@ class PerfumeService {
       if (erro.code === 'ER_DUP_ENTRY') throw new ErroDeValidacao('Já existe um produto com esse código de barras.');
       throw erro;
     }
+    return true;
+  }
+
+  /**
+   * Troca SÓ o estoque (atalho da lista "Gerenciar produtos", sem abrir a edição).
+   * Valida no servidor: inteiro maior ou igual a 0 (senão ErroDeValidacao, que vira 400).
+   * @param {number} id produto
+   * @param {*} valor texto vindo do formulário (não confiável)
+   * @param {Usuario} usuario quem está mexendo (precisa de podeGerenciar)
+   * @returns {Promise<boolean>} false se o produto não existe
+   */
+  async atualizarEstoque(id, valor, usuario) {
+    const produto = await this.buscarParaGestao(id, usuario);
+    if (!produto) return false;
+    await this.perfumes.atualizarEstoque(produto.id, v.inteiro(valor, 'Estoque'));
     return true;
   }
 

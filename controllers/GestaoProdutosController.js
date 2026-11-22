@@ -14,9 +14,34 @@ class GestaoProdutosController {
 
   /** GET /vendedor/produtos: lista TODOS os produtos (inclusive ocultos), com busca por nome ou marca. */
   async listar(req, res) {
-    const busca = String(req.query.q || '').trim().slice(0, 80);
+    await this._mostrarLista(req, res, null);
+  }
+
+  /** Monta a tela da lista (com uma mensagem de erro opcional, usada quando o estoque é inválido). */
+  async _mostrarLista(req, res, erro) {
+    const busca = String((req.body && req.body.q) || req.query.q || '').trim().slice(0, 80);
     const perfumes = await this.perfumes.listar(busca, { incluirOcultos: true });
-    res.render('produtos', { perfumes, busca });
+    res.render('produtos', { perfumes, busca, erro });
+  }
+
+  /**
+   * POST /vendedor/produtos/:id/estoque: troca só o estoque, sem abrir a edição.
+   * Valor inválido (não inteiro ou negativo) mostra a lista de novo com o erro e status 400.
+   */
+  async definirEstoque(req, res) {
+    await this._proteger(res, async () => {
+      try {
+        const achou = await this.perfumes.atualizarEstoque(req.params.id, req.body.estoque, req.usuario);
+        if (!achou) return this._naoEncontrado(res);
+        req.session.aviso = 'Estoque atualizado';
+        const q = String(req.body.q || '').trim().slice(0, 80);
+        res.redirect('/vendedor/produtos' + (q ? `?q=${encodeURIComponent(q)}` : ''));
+      } catch (erro) {
+        if (!(erro instanceof ErroDeValidacao)) throw erro;
+        res.status(400);
+        await this._mostrarLista(req, res, erro.message);
+      }
+    });
   }
 
   /** GET /vendedor/produtos/:id/editar: mostra o formulário já preenchido com o produto. */
