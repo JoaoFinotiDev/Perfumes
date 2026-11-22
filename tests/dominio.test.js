@@ -108,6 +108,7 @@ test('PerfumeService.vitrine monta cards com desconto, foto segura e esgotado', 
   assert.strictEqual(comCliente.cards[0].fotoUrl, null);
   assert.strictEqual(comCliente.cards[1].fotoUrl, 'https://x.com/a.jpg');
   assert.strictEqual(comCliente.cards[1].esgotado, true);
+  assert.strictEqual(comCliente.cards[1].estoque, 0); // esgotado mostra 0, nunca negativo
   const visitante = await servico.vitrine({}, null);
   assert.strictEqual(visitante.cards[0].precoFinal, 100);
   assert.strictEqual(visitante.cards[0].temDesconto, false);

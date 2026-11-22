@@ -52,7 +52,9 @@
           <strong class="preco-final"><%= moeda(p.preco) %></strong>
         <% } %>
       </p>
-      <% if (p.esgotado) { %><p class="esgotado">Esgotado</p><% } %>
+      <%# Estoque: com unidades, mostra o número exato ("1 em estoque" / "10 em estoque"); sem unidades, "Esgotado". %>
+      <% if (p.esgotado) { %><p class="esgotado">Esgotado</p>
+      <% } else { %><p class="estoque"><%= p.estoque %> em estoque</p><% } %>
       <%# Mesmo POST do catálogo em tabela. Esgotado: botão desativado. %>
       <form method="post" action="/carrinho/adicionar">
         <input type="hidden" name="perfumeId" value="<%= p.id %>">
