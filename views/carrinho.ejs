@@ -1,0 +1,45 @@
+<%# Carrinho do site. Pagamento simulado. O desconto vem do usuário logado. %>
+<%- include('partials/topo', { titulo: 'Carrinho' }) %>
+<h1>Carrinho</h1>
+<% if (erro) { %><p class="erro"><%= erro %></p><% } %>
+<% const estrategia = usuario ? usuario.estrategiaDesconto() : undefined; %>
+<% if (carrinho.estaVazio()) { %>
+  <p>Seu carrinho está vazio. <a href="/itens">Ver catálogo</a></p>
+<% } else { %>
+  <table>
+    <thead><tr><th>Produto</th><th>Qtd</th><th>Preço unit.</th><th>Subtotal</th><th></th></tr></thead>
+    <tbody>
+    <% carrinho.itens.forEach(function (i) { const unit = i.perfume.precoPara(usuario); %>
+      <tr>
+        <td><%= i.perfume.nome %> - <%= i.perfume.marca %></td>
+        <td><%= i.quantidade %></td>
+        <td><%= moeda(unit) %></td>
+        <td><%= moeda(unit * i.quantidade) %></td>
+        <td>
+          <form method="post" action="/carrinho/remover" class="inline">
+            <input type="hidden" name="perfumeId" value="<%= i.perfume.id %>">
+            <button type="submit" class="link">Remover</button>
+          </form>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  <p>Subtotal: <%= moeda(carrinho.subtotal()) %></p>
+  <% if (carrinho.desconto(estrategia) > 0) { %><p>Desconto de cliente (5%): -<%= moeda(carrinho.desconto(estrategia)) %></p><% } %>
+  <p class="total">Total: <%= moeda(carrinho.total(estrategia)) %></p>
+
+  <% if (usuario && usuario.papel === 'cliente') { %>
+    <form method="post" action="/carrinho/finalizar" class="form">
+      <label>Forma de pagamento (simulado)
+        <select name="forma" required>
+          <% Object.keys(formas).forEach(function (k) { %><option value="<%= k %>"><%= formas[k] %></option><% }) %>
+        </select>
+      </label>
+      <button type="submit">Finalizar compra</button>
+    </form>
+  <% } else { %>
+    <p>Para finalizar, <a href="/login">entre</a> ou <a href="/cadastro">cadastre-se</a> como cliente (e ganhe 5%).</p>
+  <% } %>
+<% } %>
+<%- include('partials/rodape') %>

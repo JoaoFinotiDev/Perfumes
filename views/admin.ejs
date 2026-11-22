@@ -1,0 +1,20 @@
+<%# Tela do admin: cria vendedores e lista os existentes. %>
+<%- include('partials/topo', { titulo: 'Vendedores' }) %>
+<h1>Vendedores</h1>
+<% if (erro) { %><p class="erro"><%= erro %></p><% } %>
+<form method="post" action="/admin/vendedores" class="form">
+  <label>Nome <input name="nome" value="<%= form.nome || '' %>" required maxlength="100"></label>
+  <label>Usuário <input name="usuario" value="<%= form.usuario || '' %>" required maxlength="30"></label>
+  <label>Senha (mínimo 6) <input type="password" name="senha" required minlength="6" maxlength="72"></label>
+  <button type="submit">Criar vendedor</button>
+</form>
+<table>
+  <thead><tr><th>ID</th><th>Nome</th><th>Usuário</th></tr></thead>
+  <tbody>
+  <% vendedores.forEach(function (v) { %>
+    <tr><td><%= v.id %></td><td><%= v.nome %></td><td><%= v.usuario %></td></tr>
+  <% }) %>
+  <% if (!vendedores.length) { %><tr><td colspan="3">Nenhum vendedor ainda.</td></tr><% } %>
+  </tbody>
+</table>
+<%- include('partials/rodape') %>

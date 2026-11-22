@@ -1,0 +1,11 @@
+<%# Tela de login (cliente, vendedor e admin usam a mesma). %>
+<%- include('partials/topo', { titulo: 'Entrar' }) %>
+<h1>Entrar</h1>
+<% if (erro) { %><p class="erro"><%= erro %></p><% } %>
+<form method="post" action="/login" class="form">
+  <label>Usuário <input name="usuario" value="<%= form.usuario || '' %>" required autofocus></label>
+  <label>Senha <input type="password" name="senha" required></label>
+  <button type="submit">Entrar</button>
+</form>
+<p>Ainda não tem conta? <a href="/cadastro">Cadastre-se como cliente</a> e ganhe 5% de desconto.</p>
+<%- include('partials/rodape') %>

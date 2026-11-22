@@ -1,0 +1,60 @@
+<%# Catálogo: busca, tabela de perfumes e (para vendedor) formulário de novo anúncio. %>
+<%- include('partials/topo', { titulo: 'Catálogo' }) %>
+<h1>Catálogo de perfumes</h1>
+<% if (usuario && usuario.papel === 'cliente') { %><p class="destaque">Você tem 5% de desconto em todos os preços.</p><% } %>
+
+<form method="get" action="/itens" class="busca">
+  <input name="q" value="<%= busca %>" placeholder="Buscar por nome ou marca" maxlength="80">
+  <button type="submit">Buscar</button>
+</form>
+
+<table>
+  <thead>
+    <tr><th>Foto</th><th>ID</th><th>Nome</th><th>Marca</th><th>Preço</th><th>Estoque</th><th>Código de barras</th><th>Descrição</th><th></th></tr>
+  </thead>
+  <tbody>
+  <% perfumes.forEach(function (p) { const final = p.precoPara(usuario); %>
+    <tr>
+      <td><% if (p.fotoUrl) { %><img src="<%= p.fotoUrl %>" alt="<%= p.nome %>" class="foto"><% } %></td>
+      <td><%= p.id %></td>
+      <td><%= p.nome %></td>
+      <td><%= p.marca %></td>
+      <td>
+        <% if (final < p.preco) { %><s><%= moeda(p.preco) %></s> <strong><%= moeda(final) %></strong>
+        <% } else { %><%= moeda(p.preco) %><% } %>
+      </td>
+      <td><%= p.estoque %></td>
+      <td><%= p.codigoBarras || '-' %></td>
+      <td><%= p.descricao || '' %></td>
+      <td>
+        <% if (p.estoque > 0) { %>
+        <form method="post" action="/carrinho/adicionar" class="inline">
+          <input type="hidden" name="perfumeId" value="<%= p.id %>">
+          <button type="submit">Adicionar</button>
+        </form>
+        <% } else { %>Esgotado<% } %>
+      </td>
+    </tr>
+  <% }) %>
+  <% if (!perfumes.length) { %><tr><td colspan="9">Nenhum perfume encontrado.</td></tr><% } %>
+  </tbody>
+</table>
+
+<% if (usuario && usuario.papel === 'vendedor') { %>
+  <h2>Novo anúncio</h2>
+  <p class="dica">Digite ou bipe o código de barras e aperte Enter: nome, marca e foto são preenchidos se forem encontrados.</p>
+  <% if (erro) { %><p class="erro"><%= erro %></p><% } %>
+  <form method="post" action="/itens" class="form" id="form-produto">
+    <label>Código de barras (opcional) <input name="codigo_barras" id="codigo_barras" value="<%= form.codigo_barras || '' %>" maxlength="14" inputmode="numeric"></label>
+    <span id="status-busca" class="dica"></span>
+    <label>Nome <input name="nome" id="nome" value="<%= form.nome || '' %>" required maxlength="120"></label>
+    <label>Marca <input name="marca" id="marca" value="<%= form.marca || '' %>" required maxlength="80"></label>
+    <label>Preço (R$) <input name="preco" value="<%= form.preco || '' %>" required inputmode="decimal"></label>
+    <label>Estoque <input name="estoque" type="number" min="0" value="<%= form.estoque || '' %>" required></label>
+    <label>Descrição <textarea name="descricao" maxlength="1000"><%= form.descricao || '' %></textarea></label>
+    <label>Foto (URL, opcional) <input name="foto_url" id="foto_url" value="<%= form.foto_url || '' %>" maxlength="500"></label>
+    <button type="submit">Criar anúncio</button>
+  </form>
+  <script src="/javascripts/cadastro-produto.js"></script>
+<% } %>
+<%- include('partials/rodape') %>

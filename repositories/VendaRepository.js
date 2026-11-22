@@ -1,0 +1,52 @@
+/**
+ * repositories/VendaRepository.js
+ * Grava vendas. Tudo acontece em UMA transação: ou grava a venda inteira
+ * e baixa o estoque, ou não grava nada.
+ */
+const { ErroDeValidacao } = require('../utils/erros');
+
+class VendaRepository {
+  /** @param {object} db pool do mysql2 */
+  constructor(db) {
+    this.db = db;
+  }
+
+  /**
+   * Grava a venda, os itens e baixa o estoque.
+   * @param {Venda} venda objeto de domínio já calculado
+   * @returns {Promise<number>} id da venda criada
+   */
+  async registrar(venda) {
+    const conexao = await this.db.getConnection();
+    try {
+      await conexao.beginTransaction();
+      const [r] = await conexao.query(
+        `INSERT INTO vendas (cliente_id, vendedor_id, forma_pagamento, subtotal, desconto, total)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [venda.cliente ? venda.cliente.id : null, venda.vendedor ? venda.vendedor.id : null,
+         venda.forma, venda.subtotal, venda.desconto, venda.total]);
+
+      for (const { perfume, quantidade } of venda.itens) {
+        // Só baixa se ainda houver estoque (evita estoque negativo em compras ao mesmo tempo).
+        const [baixa] = await conexao.query(
+          'UPDATE perfumes SET estoque = estoque - ? WHERE id = ? AND estoque >= ?',
+          [quantidade, perfume.id, quantidade]);
+        if (baixa.affectedRows === 0) {
+          throw new ErroDeValidacao(`Estoque insuficiente de "${perfume.nome}".`);
+        }
+        await conexao.query(
+          'INSERT INTO venda_itens (venda_id, perfume_id, quantidade, preco_unitario) VALUES (?, ?, ?, ?)',
+          [r.insertId, perfume.id, quantidade, perfume.preco]);
+      }
+      await conexao.commit();
+      return r.insertId;
+    } catch (erro) {
+      await conexao.rollback(); // desfaz tudo se algo falhar
+      throw erro;
+    } finally {
+      conexao.release();
+    }
+  }
+}
+
+module.exports = VendaRepository;

@@ -1,0 +1,84 @@
+<%# Tela "Abrir venda" do vendedor: cliente opcional, busca, código de barras e pagamento. %>
+<%- include('partials/topo', { titulo: 'Abrir venda' }) %>
+<h1>Abrir venda</h1>
+<% if (erro) { %><p class="erro"><%= erro %></p><% } %>
+
+<h2>1. Cliente (opcional)</h2>
+<form method="post" action="/vendedor/venda/cliente" class="inline-form">
+  <select name="clienteId">
+    <option value="0">Sem cliente (preço cheio)</option>
+    <% clientes.forEach(function (c) { %>
+      <option value="<%= c.id %>" <%= cliente && cliente.id === c.id ? 'selected' : '' %>><%= c.nome %> (<%= c.usuario %>)</option>
+    <% }) %>
+  </select>
+  <button type="submit">Aplicar</button>
+</form>
+<% if (cliente) { %><p class="destaque">Cliente: <%= cliente.nome %> - desconto de 5% aplicado.</p><% } %>
+
+<h2>2. Adicionar produto</h2>
+<form method="post" action="/vendedor/venda/codigo" class="inline-form">
+  <label>Código de barras <input name="codigo" id="codigo" autofocus autocomplete="off" inputmode="numeric" maxlength="14" placeholder="Bipe aqui e Enter"></label>
+  <button type="submit">Adicionar</button>
+</form>
+<form method="get" action="/vendedor/venda" class="inline-form">
+  <label>Buscar por nome ou marca <input name="q" value="<%= busca %>" maxlength="80"></label>
+  <button type="submit">Buscar</button>
+</form>
+<% if (busca) { %>
+  <table>
+    <thead><tr><th>Nome</th><th>Marca</th><th>Preço</th><th>Estoque</th><th></th></tr></thead>
+    <tbody>
+    <% resultados.forEach(function (p) { %>
+      <tr>
+        <td><%= p.nome %></td><td><%= p.marca %></td>
+        <td><%= moeda(p.precoPara(cliente)) %></td><td><%= p.estoque %></td>
+        <td>
+          <form method="post" action="/vendedor/venda/adicionar" class="inline">
+            <input type="hidden" name="perfumeId" value="<%= p.id %>">
+            <button type="submit">Adicionar</button>
+          </form>
+        </td>
+      </tr>
+    <% }) %>
+    <% if (!resultados.length) { %><tr><td colspan="5">Nenhum produto encontrado.</td></tr><% } %>
+    </tbody>
+  </table>
+<% } %>
+
+<h2>3. Itens da venda</h2>
+<% const estrategia = cliente ? cliente.estrategiaDesconto() : undefined; %>
+<% if (carrinho.estaVazio()) { %>
+  <p>Nenhum item ainda.</p>
+<% } else { %>
+  <table>
+    <thead><tr><th>Produto</th><th>Qtd</th><th>Preço unit.</th><th>Subtotal</th><th></th></tr></thead>
+    <tbody>
+    <% carrinho.itens.forEach(function (i) { const unit = i.perfume.precoPara(cliente); %>
+      <tr>
+        <td><%= i.perfume.nome %> - <%= i.perfume.marca %></td>
+        <td><%= i.quantidade %></td>
+        <td><%= moeda(unit) %></td>
+        <td><%= moeda(unit * i.quantidade) %></td>
+        <td>
+          <form method="post" action="/vendedor/venda/remover" class="inline">
+            <input type="hidden" name="perfumeId" value="<%= i.perfume.id %>">
+            <button type="submit" class="link">Remover</button>
+          </form>
+        </td>
+      </tr>
+    <% }) %>
+    </tbody>
+  </table>
+  <p>Subtotal: <%= moeda(carrinho.subtotal()) %></p>
+  <% if (carrinho.desconto(estrategia) > 0) { %><p>Desconto: -<%= moeda(carrinho.desconto(estrategia)) %></p><% } %>
+  <p class="total">Total: <%= moeda(carrinho.total(estrategia)) %></p>
+
+  <h2>4. Pagamento (simulado)</h2>
+  <form method="post" action="/vendedor/venda/finalizar" class="inline-form">
+    <select name="forma" required>
+      <% Object.keys(formas).forEach(function (k) { %><option value="<%= k %>"><%= formas[k] %></option><% }) %>
+    </select>
+    <button type="submit">Finalizar venda</button>
+  </form>
+<% } %>
+<%- include('partials/rodape') %>

@@ -1,0 +1,30 @@
+<%# Topo comum: cabeçalho, menu e aviso de uma exibição. Use com include('partials/topo', {titulo}). %>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= titulo %> - Loja de Perfumes</title>
+  <link rel="stylesheet" href="/stylesheets/style.css">
+</head>
+<body>
+<header class="topo">
+  <a class="logo" href="/itens">Loja de Perfumes</a>
+  <nav>
+    <a href="/itens">Catálogo</a>
+    <a href="/carrinho">Carrinho</a>
+    <% if (usuario && usuario.papel === 'vendedor') { %><a href="/vendedor/venda">Abrir venda</a><% } %>
+    <% if (usuario && usuario.papel === 'admin') { %><a href="/admin">Vendedores</a><% } %>
+    <% if (usuario) { %>
+      <form action="/logout" method="post" class="inline">
+        <span class="quem"><%= usuario.nome %> (<%= usuario.papel %>)</span>
+        <button type="submit" class="link">Sair</button>
+      </form>
+    <% } else { %>
+      <a href="/login">Entrar</a>
+      <a href="/cadastro">Cadastrar</a>
+    <% } %>
+  </nav>
+</header>
+<main>
+<% if (aviso) { %><p class="aviso"><%= aviso %></p><% } %>

@@ -1,0 +1,36 @@
+/**
+ * domain/Desconto.js
+ * Estratégias de desconto (padrão Strategy).
+ * Cada papel de usuário escolhe a sua estratégia. Para criar um novo desconto
+ * basta criar uma nova classe, sem mexer nas existentes (aberto/fechado - SOLID).
+ */
+
+/** Arredonda para 2 casas decimais (centavos). */
+function arredondar(valor) {
+  return Math.round((valor + Number.EPSILON) * 100) / 100;
+}
+
+/** Classe base: define o contrato "aplicar(valor)". */
+class EstrategiaDesconto {
+  /** Percentual de desconto (0.05 = 5%). */
+  percentual() {
+    throw new Error('Implemente percentual() na subclasse.');
+  }
+
+  /** Devolve o valor já com desconto. */
+  aplicar(valor) {
+    return arredondar(valor * (1 - this.percentual()));
+  }
+}
+
+/** Sem desconto (visitante, vendedor, admin ou venda sem cliente). */
+class SemDesconto extends EstrategiaDesconto {
+  percentual() { return 0; }
+}
+
+/** Desconto do cliente cadastrado: 5% em todo o site. */
+class DescontoCliente extends EstrategiaDesconto {
+  percentual() { return 0.05; }
+}
+
+module.exports = { arredondar, EstrategiaDesconto, SemDesconto, DescontoCliente };
