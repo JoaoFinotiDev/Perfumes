@@ -68,10 +68,10 @@ test('cadeia: usa o segundo buscador e ignora falhas do primeiro', async () => {
 
 test('cadeia: o segundo buscador completa os campos que o primeiro deixou vazios', async () => {
   const semMarca = { buscar: async () => ({ nome: 'Perfume X', marca: '', descricao: '', foto: 'f.jpg' }) };
-  const comMarca = { buscar: async () => ({ nome: 'Outro nome', marca: 'Natura', descricao: 'Eau de parfum', foto: '' }) };
+  const comMarca = { buscar: async () => ({ nome: 'Outro nome', marca: 'Outra Marca', descricao: 'Eau de parfum', foto: '' }) };
   assert.deepStrictEqual(
     await new BuscadorEmCadeia([semMarca, comMarca]).buscar('1'),
-    { nome: 'Perfume X', marca: 'Natura', descricao: 'Eau de parfum', foto: 'f.jpg' } // o nome do primeiro é mantido
+    { nome: 'Perfume X', marca: 'Outra Marca', descricao: 'Eau de parfum', foto: 'f.jpg' } // o nome do primeiro é mantido
   );
 });
 

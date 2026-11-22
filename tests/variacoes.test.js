@@ -112,8 +112,8 @@ test('variação inativa não pode ser escolhida; sem nenhuma ativa o produto vo
 test('pontos: só a marca Queen Semijoias guarda; as outras viram null', () => {
   assert.strictEqual(new Perfume({ id: 1, nome: 'a', marca: 'Queen Semijoias', preco: 1, pontos: 300 }).pontos, 300);
   assert.strictEqual(new Perfume({ id: 1, nome: 'a', marca: ' queen semijoias ', preco: 1, pontos: 300 }).pontos, 300);
-  assert.strictEqual(new Perfume({ id: 1, nome: 'a', marca: 'Natura', preco: 1, pontos: 300 }).pontos, null);
-  assert.strictEqual(Perfume.aceitaPontos('Natura'), false);
+  assert.strictEqual(new Perfume({ id: 1, nome: 'a', marca: 'Outra Marca', preco: 1, pontos: 300 }).pontos, null);
+  assert.strictEqual(Perfume.aceitaPontos('Outra Marca'), false);
 });
 
 // ---------- Carrinho (domínio) ----------
@@ -231,9 +231,9 @@ test('pontos: Queen guarda; outra marca ignora o valor enviado; trocar a marca z
   const servico = new PerfumeService(repo);
   await servico.atualizar(2, { ...formulario, sku: '2001', pontos: '750' }, vendedor);
   assert.strictEqual(repo.lista[1].pontos, 750);
-  await servico.atualizar(1, { ...formulario, marca: 'Natura', pontos: '999' }, vendedor);
+  await servico.atualizar(1, { ...formulario, marca: 'Outra Marca', pontos: '999' }, vendedor);
   assert.strictEqual(repo.lista[0].pontos, null);
-  await servico.atualizar(2, { ...formulario, marca: 'Natura', sku: '2001', pontos: '750' }, vendedor); // saiu de Queen
+  await servico.atualizar(2, { ...formulario, marca: 'Outra Marca', sku: '2001', pontos: '750' }, vendedor); // saiu de Queen
   assert.strictEqual(repo.lista[1].pontos, null);
   await assert.rejects(() => servico.atualizar(2, { ...formulario, pontos: '-3' }, vendedor), ErroDeValidacao); // Queen: inteiro >= 0
 });

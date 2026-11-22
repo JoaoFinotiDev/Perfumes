@@ -84,7 +84,9 @@ INSERT IGNORE INTO usuarios (usuario, nome, senha_hash, papel) VALUES
 
 -- Perfumes de exemplo (INSERT IGNORE evita duplicar se o script rodar de novo).
 INSERT IGNORE INTO perfumes (nome, marca, preco, estoque, descricao, codigo_barras, foto_url) VALUES
-  ('Malbec Tradicional', 'O Boticário', 189.90, 15, 'Amadeirado e marcante, 100 ml.', '7891033000011', NULL),
-  ('Floratta Rose', 'O Boticário', 129.90, 20, 'Floral suave, 75 ml.', '7891033000028', NULL),
-  ('Kaiak Aventura', 'Natura', 119.50, 12, 'Fresco e aquático, 100 ml.', '7891033000035', NULL),
-  ('Essencial Exclusivo', 'Natura', 259.00, 8, 'Amadeirado intenso, 100 ml.', '7891033000042', NULL);
+-- São produtos fictícios da própria loja (marcas "Lojinha Chic" e "Chic Essence"), só para exemplo.
+-- Os códigos de barras começam com 2, faixa reservada para uso interno (não pertence a nenhuma empresa).
+  ('Âmbar Noturno', 'Lojinha Chic', 189.90, 15, 'Amadeirado e marcante, 100 ml.', '2000000000011', NULL),
+  ('Body Splash Rosa Chic', 'Lojinha Chic', 129.90, 20, 'Floral suave, 75 ml.', '2000000000028', NULL),
+  ('Colônia Brisa do Mar', 'Chic Essence', 119.50, 12, 'Fresco e aquático, 100 ml.', '2000000000035', NULL),
+  ('Madeira Nobre', 'Chic Essence', 259.00, 8, 'Amadeirado intenso, 100 ml.', '2000000000042', NULL);
