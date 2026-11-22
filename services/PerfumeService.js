@@ -6,6 +6,7 @@ const { ErroDeValidacao, ErroDePermissao } = require('../utils/erros');
 const v = require('../utils/validacao');
 const moeda = require('../utils/moeda');
 const Perfume = require('../domain/Perfume');
+const Paginacao = require('../domain/Paginacao');
 
 // Máximo de produtos na lista suspensa de busca (o resto aparece ao digitar mais letras).
 const LIMITE_LISTA = 50;
@@ -47,24 +48,54 @@ class PerfumeService {
 
   /**
    * Monta os dados da vitrine (cards). Toda a conta fica aqui; a view só mostra.
-   * @param {{busca?: string, marca?: string, ordem?: string}} filtros vindos da URL (não confiáveis)
+   * A paginação é feita no banco: primeiro conta (COUNT) com os mesmos filtros, depois busca só a página (LIMIT/OFFSET).
+   * @param {{busca?: string, marca?: string, ordem?: string, pagina?: *, porPagina?: *}} filtros vindos da URL (não confiáveis)
    * @param {object|null} usuario quem está logado (o desconto vem da estratégia dele)
-   * @returns {Promise<{cards: object[], marcas: string[], busca: string, marca: string, ordem: string}>}
+   * @returns {Promise<{cards: object[], marcas: string[], busca: string, marca: string, ordem: string,
+   *   paginacao: Paginacao, links: object}>}
    */
   async vitrine(filtros = {}, usuario = null) {
     const busca = String(filtros.busca || '').trim().slice(0, 80);
     const marca = String(filtros.marca || '').trim().slice(0, 80);
     // Ordem fora da lista vira "nome" (a mesma lista fechada existe no repositório).
     const ordem = ORDENS_VALIDAS.includes(filtros.ordem) ? filtros.ordem : 'nome';
+    // A vitrine só mostra produtos que o Vendedor deixou visíveis (inclusive nas marcas do filtro).
+    const consulta = { marca, apenasVisiveis: true };
+    // Precisa do total ANTES de listar: é ele que decide a última página e o offset.
+    const total = await this.perfumes.contar(busca, consulta);
+    const paginacao = new Paginacao(total, filtros.pagina, filtros.porPagina);
     const [perfumes, marcas] = await Promise.all([
-      // A vitrine só mostra produtos que o Vendedor deixou visíveis (inclusive nas marcas do filtro).
-      this.perfumes.listar(busca, { marca, ordem, apenasVisiveis: true }),
+      this.perfumes.listar(busca, { ...consulta, ordem, limite: paginacao.porPagina, offset: paginacao.offset }),
       this.perfumes.listarMarcas({ apenasVisiveis: true })
     ]);
     // Percentual de desconto de quem compra, ex.: 5. Zero para visitante, vendedor e admin.
     const percentual = usuario ? Math.round(usuario.estrategiaDesconto().percentual() * 100) : 0;
     const cards = perfumes.map((p) => this._cartao(p, usuario, percentual));
-    return { cards, marcas, busca, marca, ordem };
+    return { cards, marcas, busca, marca, ordem, paginacao, links: this._links(paginacao, { busca, marca, ordem }) };
+  }
+
+  /**
+   * Endereços da paginação já prontos (a view só mostra). Cada link guarda busca, marca, ordem e porPagina.
+   * Valores padrão (30 por página, página 1) ficam fora da URL para ela ficar curta.
+   * `q` e `marca` passam por URLSearchParams, que escapa o texto (nada do usuário vai cru para o href).
+   */
+  _links(paginacao, { busca, marca, ordem }) {
+    const href = (pagina) => {
+      const params = new URLSearchParams();
+      if (busca) params.set('q', busca);
+      if (marca) params.set('marca', marca);
+      if (ordem !== 'nome') params.set('ordem', ordem);
+      if (paginacao.porPagina !== Paginacao.POR_PAGINA_PADRAO) params.set('porPagina', paginacao.porPagina);
+      if (pagina > 1) params.set('pagina', pagina);
+      const texto = params.toString();
+      return texto ? `/?${texto}` : '/';
+    };
+    return {
+      anterior: paginacao.temAnterior ? href(paginacao.pagina - 1) : null,
+      proxima: paginacao.temProxima ? href(paginacao.pagina + 1) : null,
+      // null na janela = reticências.
+      paginas: paginacao.janela().map((n) => (n === null ? null : { numero: n, href: href(n), atual: n === paginacao.pagina }))
+    };
   }
 
   /**

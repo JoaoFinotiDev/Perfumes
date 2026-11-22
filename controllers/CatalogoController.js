@@ -11,10 +11,16 @@ class CatalogoController {
     this.perfumes = perfumeService;
   }
 
-  /** GET /: vitrine em cards. Lê busca (q), marca e ordem da URL e entrega tudo pronto para a view. */
+  /**
+   * GET /: vitrine em cards. Lê busca (q), marca, ordem, pagina e porPagina da URL
+   * (o service valida tudo) e entrega tudo pronto para a view.
+   */
   async vitrine(req, res) {
     const dados = await this.perfumes.vitrine(
-      { busca: req.query.q, marca: req.query.marca, ordem: req.query.ordem },
+      {
+        busca: req.query.q, marca: req.query.marca, ordem: req.query.ordem,
+        pagina: req.query.pagina, porPagina: req.query.porPagina
+      },
       req.usuario
     );
     res.render('vitrine', { ...dados, temDesconto: this._temDesconto(req) });

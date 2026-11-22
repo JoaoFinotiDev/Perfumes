@@ -27,12 +27,22 @@
     <option value="menor-preco"<%= ordem === 'menor-preco' ? ' selected' : '' %>>Menor preço</option>
     <option value="maior-preco"<%= ordem === 'maior-preco' ? ' selected' : '' %>>Maior preço</option>
   </select>
+  <%# Quantos produtos por página. O form não envia "pagina", então mudar busca, marca, ordem ou isto volta à página 1. %>
+  <label class="vitrine-por-pagina">Mostrar:
+    <select name="porPagina" data-envia-ao-mudar>
+      <% [30, 50, 100].forEach(function (n) { %>
+        <option value="<%= n %>"<%= n === paginacao.porPagina ? ' selected' : '' %>><%= n %></option>
+      <% }) %>
+    </select>
+  </label>
   <button type="submit">Buscar</button>
 </form>
 
 <% if (!cards.length) { %>
   <p class="dica">Nenhum perfume encontrado.</p>
 <% } else { %>
+<%# Faixa da página atual (os números vêm prontos de domain/Paginacao.js). %>
+<p class="dica vitrine-faixa">Mostrando <%= paginacao.inicio %>-<%= paginacao.fim %> de <%= paginacao.total %> produto<%= paginacao.total === 1 ? '' : 's' %></p>
 <ul class="vitrine-grade">
   <% cards.forEach(function (p) { %>
   <li class="card<%= p.esgotado ? ' card-esgotado' : '' %>">
@@ -56,8 +66,21 @@
   </li>
   <% }) %>
 </ul>
+<%# Controles só embaixo (em cima já há busca, filtros e a faixa; repetir deixaria a página poluída). %>
+<% if (paginacao.totalPaginas > 1) { %>
+<nav class="paginacao" aria-label="Paginação">
+  <% if (links.anterior) { %><a href="<%= links.anterior %>" rel="prev">Anterior</a><% } else { %><span class="paginacao-desativado">Anterior</span><% } %>
+  <% links.paginas.forEach(function (item) { %>
+    <% if (!item) { %><span class="paginacao-reticencias" aria-hidden="true">…</span>
+    <% } else if (item.atual) { %><a href="<%= item.href %>" class="paginacao-atual" aria-current="page"><%= item.numero %></a>
+    <% } else { %><a href="<%= item.href %>" aria-label="Página <%= item.numero %>"><%= item.numero %></a><% } %>
+  <% }) %>
+  <% if (links.proxima) { %><a href="<%= links.proxima %>" rel="next">Próxima</a><% } else { %><span class="paginacao-desativado">Próxima</span><% } %>
+</nav>
+<% } %>
 <% } %>
 <%# Busca em lista suspensa com pesquisa gradual (melhoria: sem JS, o formulário acima continua funcionando). %>
 <script src="/javascripts/busca-lista.js"></script>
 <script src="/javascripts/comprar.js"></script>
+<script src="/javascripts/envia-ao-mudar.js"></script>
 <%- include('partials/rodape') %>
