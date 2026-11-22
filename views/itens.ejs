@@ -4,12 +4,16 @@
 <%# temDesconto vem do controller (pergunta a estratégia de desconto de quem está logado). %>
 <% if (percentualDesconto) { %><p class="destaque">Você tem <%= percentualDesconto %>% de desconto em todos os preços.</p><% } %>
 
+<%# Atalho para o formulário do fim da página (a tabela pode ser longa). Só o Vendedor anuncia. %>
+<% if (usuario && usuario.ehVendedor()) { %><p><a href="#novo-anuncio" class="botao-link botao-pequeno">+ Novo anúncio</a></p><% } %>
+
 <form method="get" action="/itens" class="busca">
   <input name="q" value="<%= busca %>" placeholder="Buscar por nome ou marca" maxlength="80">
   <button type="submit">Buscar</button>
 </form>
 
-<table>
+<%# Caixa com rolagem lateral: no celular a tabela rola dentro dela, sem alargar a página (style.css). %>
+<div class="tabela-rolagem"><table>
   <thead>
     <tr><th>Foto</th><th>ID</th><th>SKU</th><th>Nome</th><th>Marca</th><th>Pontos</th><th>Preço</th><th>Estoque</th><th>Código de barras</th><th>Descrição</th><th>Na vitrine</th></tr>
   </thead>
@@ -44,24 +48,25 @@
   <% if (!perfumes.length) { %><tr><td colspan="11">Nenhum perfume encontrado.</td></tr><% } %>
   </tbody>
 </table>
+</div>
 
 <%# Formulário de anúncio (POST /itens): só aparece para o Vendedor. A rota também barra os outros. %>
 <% if (usuario && usuario.ehVendedor()) { %>
-  <h2>Novo anúncio</h2>
+  <h2 id="novo-anuncio">Novo anúncio</h2>
   <p class="dica">Digite ou bipe o código de barras e aperte Enter: nome, marca e foto são preenchidos se forem encontrados.</p>
-  <% if (erro) { %><p class="erro"><%= erro %></p><% } %>
+  <% if (erro) { %><p class="erro" role="alert"><%= erro %></p><% } %>
   <form method="post" action="/itens" class="form" id="form-produto">
-    <label>Código de barras (opcional) <input name="codigo_barras" id="codigo_barras" value="<%= form.codigo_barras || '' %>" maxlength="14" inputmode="numeric"></label>
+    <label>Código de barras (opcional) <input name="codigo_barras" id="codigo_barras" value="<%= form.codigo_barras || '' %>" maxlength="14" inputmode="numeric" autocomplete="off" placeholder="8 a 14 números"></label>
     <span id="status-busca" class="dica"></span>
     <label>Nome <input name="nome" id="nome" value="<%= form.nome || '' %>" required maxlength="120"></label>
     <label>Marca <input name="marca" id="marca" value="<%= form.marca || '' %>" required maxlength="80"></label>
-    <label>Preço (R$) <input name="preco" value="<%= form.preco || '' %>" required inputmode="decimal"></label>
+    <label>Preço (R$) <input name="preco" value="<%= form.preco || '' %>" required inputmode="decimal" placeholder="Ex.: 129,90" autocomplete="off"></label>
     <label>Estoque <input name="estoque" type="number" min="0" value="<%= form.estoque || '' %>" required></label>
     <label>Descrição <textarea name="descricao" id="descricao" maxlength="5000"><%= form.descricao || '' %></textarea></label>
-    <label>SKU (opcional, único) <input name="sku" value="<%= form.sku || '' %>" maxlength="40"></label>
+    <label>SKU (opcional, único) <input name="sku" value="<%= form.sku || '' %>" maxlength="40" autocomplete="off" placeholder="Código interno da loja"></label>
     <%# Pontos: o campo só aparece para a marca Queen Semijoias (o JS mostra/esconde ao digitar a marca; o servidor ignora nas outras). %>
     <label data-pontos data-marca-pontos="<%= marcaComPontos %>"<%= aceitaPontos(form.marca) ? '' : ' hidden' %>>Pontos (opcional) <input name="pontos" type="number" min="0" step="1" value="<%= form.pontos || '' %>"></label>
-    <label>Foto (URL, opcional) <input name="foto_url" id="foto_url" value="<%= form.foto_url || '' %>" maxlength="500"></label>
+    <label>Foto (URL, opcional) <input type="url" placeholder="https://..." autocomplete="off" name="foto_url" id="foto_url" value="<%= form.foto_url || '' %>" maxlength="500"></label>
     <button type="submit">Criar anúncio</button>
   </form>
   <script src="/javascripts/cadastro-produto.js"></script>

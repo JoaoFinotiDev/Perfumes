@@ -3,7 +3,7 @@
   Valores padrão: a página de erro pode ser desenhada ANTES do middleware que preenche usuario, mostrarCarrinho e aviso
   (por exemplo, quando a sessão falha). Com `locals.` a variável que não existe vira o padrão em vez de quebrar a página.
 %>
-<% const usuario = locals.usuario || null; const mostrarCarrinho = locals.mostrarCarrinho !== false; const aviso = locals.aviso || null; %>
+<% const usuario = locals.usuario || null; const mostrarCarrinho = locals.mostrarCarrinho !== false; const aviso = locals.aviso || null; const avisoErro = Boolean(locals.avisoErro); %>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -44,4 +44,6 @@
   </nav>
 </header>
 <main>
-<% if (aviso) { %><p class="aviso"><%= aviso %></p><% } %>
+<%# Aviso de uma exibição. Erro: caixa vermelha e role="alert" (o leitor de tela avisa na hora).
+    Sucesso: caixa verde e role="status" (lido sem interromper). O tipo vem de utils/aviso.js. %>
+<% if (aviso) { %><p class="<%= avisoErro ? 'erro' : 'aviso' %>" role="<%= avisoErro ? 'alert' : 'status' %>"><%= aviso %></p><% } %>

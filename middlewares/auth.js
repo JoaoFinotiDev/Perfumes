@@ -9,6 +9,7 @@
 const { criarUsuario, PAPEIS } = require('../domain/Usuario');
 const { DescontoCliente } = require('../domain/Desconto');
 const moeda = require('../utils/moeda'); // formata dinheiro (R$ 12,50) para as views
+const { avisarErro } = require('../utils/aviso');
 
 /**
  * Roda em toda requisição: recria o usuário de domínio a partir da sessão
@@ -28,8 +29,11 @@ function carregarUsuario(req, res, next) {
   // Desconto que um Cliente ganha (para o convite "cadastre-se e ganhe 5%"). Vem da própria regra, não de um texto fixo.
   res.locals.percentualCliente = new DescontoCliente().emPorcento();
   // Aviso de uma única exibição ("flash"): mostra uma vez e apaga da sessão.
+  // avisoErro diz se é erro (caixa vermelha) ou sucesso (verde); veja utils/aviso.js.
   res.locals.aviso = req.session.aviso || null;
+  res.locals.avisoErro = Boolean(req.session.avisoErro);
   delete req.session.aviso;
+  delete req.session.avisoErro;
   next();
 }
 
@@ -41,7 +45,7 @@ function carregarUsuario(req, res, next) {
 function criarBarreira(avisoSemLogin, papeis) {
   return (req, res, next) => {
     if (!req.usuario) {
-      req.session.aviso = avisoSemLogin;
+      avisarErro(req.session, avisoSemLogin); // barrado: aviso em vermelho na tela de login
       return res.redirect('/login');
     }
     if (!req.usuario.temPapel(...papeis)) {

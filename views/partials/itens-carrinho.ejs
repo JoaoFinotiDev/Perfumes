@@ -4,7 +4,8 @@
   acaoRemover (endereço do POST do botão "Remover").
   A view só MOSTRA: preço unitário, subtotal de cada linha e os totais já vêm calculados.
 %>
-<table>
+<%# Caixa com rolagem lateral: no celular a tabela rola dentro dela, sem alargar a página (style.css). %>
+<div class="tabela-rolagem"><table>
   <thead><tr><th>Produto</th><th>Qtd</th><th>Preço unit.</th><th>Subtotal</th><th></th></tr></thead>
   <tbody>
   <% resumo.linhas.forEach(function (linha) { %>
@@ -24,6 +25,7 @@
   <% }) %>
   </tbody>
 </table>
+</div>
 <p>Subtotal: <%= moeda(resumo.subtotal) %></p>
 <% if (resumo.temDesconto) { %><p>Desconto de cliente (<%= resumo.percentualTexto %>): -<%= moeda(resumo.desconto) %></p><% } %>
 <p class="total">Total: <%= moeda(resumo.total) %></p>

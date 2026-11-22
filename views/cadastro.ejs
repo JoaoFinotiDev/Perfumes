@@ -1,11 +1,15 @@
 <%# Cadastro de cliente (o cliente se cadastra sozinho). %>
 <%- include('partials/topo', { titulo: 'Cadastro' }) %>
 <h1>Cadastro de cliente</h1>
-<% if (erro) { %><p class="erro"><%= erro %></p><% } %>
+<% if (erro) { %><p class="erro" role="alert"><%= erro %></p><% } %>
 <form method="post" action="/cadastro" class="form">
-  <label>Nome <input name="nome" value="<%= form.nome || '' %>" required maxlength="100"></label>
-  <label>Usuário <input name="usuario" value="<%= form.usuario || '' %>" required maxlength="30"></label>
-  <label>Senha (mínimo 6) <input type="password" name="senha" required minlength="6" maxlength="72"></label>
+  <%# Dicas: cada campo aponta para o seu texto de ajuda (aria-describedby), que o leitor de tela lê junto.
+      autocomplete="new-password": o navegador pode sugerir uma senha forte (é uma conta nova). %>
+  <label>Nome <input name="nome" value="<%= form.nome || '' %>" required maxlength="100" autocomplete="name"></label>
+  <label>Usuário <input name="usuario" value="<%= form.usuario || '' %>" required maxlength="30" autocomplete="username" autocapitalize="none" spellcheck="false" aria-describedby="dica-usuario"></label>
+  <small id="dica-usuario" class="dica">Até 30 caracteres, sem espaços. É com ele que se entra no site.</small>
+  <label>Senha <input type="password" name="senha" required minlength="6" maxlength="72" autocomplete="new-password" aria-describedby="dica-senha"></label>
+  <small id="dica-senha" class="dica">Mínimo de 6 caracteres.</small>
   <button type="submit">Criar conta</button>
 </form>
 <%- include('partials/rodape') %>

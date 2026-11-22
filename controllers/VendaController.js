@@ -5,6 +5,7 @@
  */
 const { FORMAS_DE_PAGAMENTO } = require('../domain/Venda');
 const { ErroDeValidacao } = require('../utils/erros');
+const { avisarErro } = require('../utils/aviso');
 const moeda = require('../utils/moeda');
 
 const { CARRINHOS } = require('../services/CarrinhoService');
@@ -68,7 +69,7 @@ class VendaController {
   async bipar(req, res) {
     const perfume = await this.perfumes.buscarPorCodigo(req.body.codigo);
     if (!perfume) {
-      req.session.aviso = 'Produto não encontrado';
+      avisarErro(req.session, 'Produto não encontrado');
       return res.redirect('/vendedor/venda');
     }
     await this._tentar(req, res, () => this.carrinhos.adicionarPerfume(req.session, CHAVE, perfume, BALCAO));
@@ -110,7 +111,7 @@ class VendaController {
       await acao();
     } catch (erro) {
       if (!(erro instanceof ErroDeValidacao)) throw erro;
-      req.session.aviso = erro.message;
+      avisarErro(req.session, erro.message); // erro de validação vira caixa vermelha na tela
     }
     res.redirect('/vendedor/venda');
   }
