@@ -115,7 +115,13 @@ main:has(.vitrine-grade) { max-width: 1200px; }
    Assim todos os cards da linha têm a mesma altura e os botões ficam alinhados.
    visibility: hidden esconde o selo da tela e do leitor de tela, mas mantém o lugar dele. */
 .card .aviso-estoque { min-height: 1.4em; box-sizing: content-box; }
-.card .aviso-estoque[hidden] { display: block; visibility: hidden; }
+/* "!important" aqui é necessário: no fim deste arquivo existe a regra geral "[hidden] { display: none !important }",
+   que esconderia o selo de vez e tiraria o espaço dele. Só no card trocamos por "invisível, mas ocupando lugar". */
+.card .aviso-estoque[hidden] { display: block !important; visibility: hidden; }
+/* O bloco de compra (preço, selo, chips, quantidade e botão) fica preso ao FUNDO do card.
+   O .card-corpo é uma coluna flex; margin-top: auto empurra este bloco para baixo,
+   então os botões de todos os cards da mesma linha terminam na mesma altura. */
+.card .produto-compra { margin-top: auto; display: flex; flex-direction: column; gap: 4px; }
 .card-corpo form { margin-top: auto; }
 .card-botao { width: 100%; }
 button:disabled { background: #bbb; cursor: not-allowed; }
