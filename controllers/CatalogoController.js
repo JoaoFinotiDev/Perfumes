@@ -30,7 +30,9 @@ class CatalogoController {
       },
       req.usuario
     );
-    res.render('vitrine', dados);
+    // 13. Título da aba muda com a busca (ex.: "Busca: rosa - Lojinha Chic"), para achar a aba certa.
+    const titulo = dados.busca ? `Busca: ${dados.busca}` : (dados.marca || 'Vitrine');
+    res.render('vitrine', { ...dados, titulo });
   }
 
   /**
@@ -42,7 +44,9 @@ class CatalogoController {
     if (!p) {
       return res.status(404).render('erro', { titulo: 'Produto não encontrado', mensagem: 'Esse produto não existe.' });
     }
-    res.render('produto', { p });
+    // Descrição curta do produto para o cartão do link (Open Graph): até 160 letras, numa linha só.
+    const descricaoPagina = p.descricao ? p.descricao.replace(/\s+/g, ' ').trim().slice(0, 160) : null;
+    res.render('produto', { p, descricaoPagina });
   }
 
   /**

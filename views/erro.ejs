@@ -2,5 +2,7 @@
 <%- include('partials/topo', { titulo }) %>
 <h1><%= titulo %></h1>
 <p><%= mensagem %></p>
-<p><a href="/">Voltar à vitrine</a></p>
+<%# Saída clara em qualquer erro (404, 403, 500): um botão de volta para a vitrine. %>
+<p><a href="/" class="botao-link botao-grande">Voltar à vitrine</a></p>
+<p class="dica">Ou use a busca da vitrine para achar o perfume que você procura.</p>
 <%- include('partials/rodape') %>

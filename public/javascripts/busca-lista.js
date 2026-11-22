@@ -113,7 +113,9 @@
     foto.alt = ''; // decorativa: o nome já está no texto ao lado
     foto.width = 40;
     foto.height = 40;
-    foto.src = p.fotoUrl || SEM_FOTO;
+    foto.loading = 'lazy'; // só baixa a foto quando a linha aparece na lista (rolagem)
+      foto.decoding = 'async'; // decodifica sem travar a digitação
+      foto.src = p.fotoUrl || SEM_FOTO;
     foto.onerror = function () { foto.onerror = null; foto.src = SEM_FOTO; };
 
     var texto = document.createElement('span');

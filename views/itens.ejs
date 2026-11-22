@@ -20,7 +20,7 @@
   <tbody>
   <% perfumes.forEach(function (p) { const final = p.precoPara(usuario); %>
     <tr>
-      <td><% if (p.fotoUrl) { %><img src="<%= p.fotoUrl %>" alt="<%= p.nome %>" class="foto"><% } %></td>
+      <td><% if (p.fotoUrl) { %><img src="<%= p.fotoUrl %>" alt="<%= p.nome %>" class="foto" loading="lazy" decoding="async"><% } %></td>
       <td><%= p.id %></td>
       <td><%= p.sku || '-' %></td>
       <td><a href="/produto/<%= p.id %>"><%= p.nome %></a><% if (p.temVariacoes()) { %> <span class="dica">(<%= p.variacoesAtivas.length %> opções)</span><% } %></td>

@@ -8,8 +8,9 @@
   <label>Nome <input name="nome" value="<%= form.nome || '' %>" required maxlength="100" autocomplete="name"></label>
   <label>Usuário <input name="usuario" value="<%= form.usuario || '' %>" required maxlength="30" autocomplete="username" autocapitalize="none" spellcheck="false" aria-describedby="dica-usuario"></label>
   <small id="dica-usuario" class="dica">Até 30 caracteres, sem espaços. É com ele que se entra no site.</small>
-  <label>Senha <input type="password" name="senha" required minlength="6" maxlength="72" autocomplete="new-password" aria-describedby="dica-senha"></label>
+  <label>Senha <input type="password" name="senha" required minlength="6" maxlength="72" autocomplete="new-password" aria-describedby="dica-senha" data-mostrar-senha></label>
   <small id="dica-senha" class="dica">Mínimo de 6 caracteres.</small>
   <button type="submit">Criar conta</button>
 </form>
+<script src="/javascripts/mostrar-senha.js"></script>
 <%- include('partials/rodape') %>

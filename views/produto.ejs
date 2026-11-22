@@ -6,8 +6,16 @@
 <% if (percentualDesconto) { %><p class="destaque">Você tem <%= percentualDesconto %>% de desconto em todos os preços.</p><% } %>
 <article class="produto-pagina">
   <div class="produto-foto">
-    <img src="<%= p.fotoUrl || '/images/sem-foto.svg' %>" alt="<%= p.nome %>"
-         onerror="this.onerror=null;this.src='/images/sem-foto.svg';">
+    <%# Foto grande: é a principal da página, então NÃO é lazy (aparece logo); decoding="async" não trava a página.
+        Com foto: o link abre a foto inteira (funciona sem JS); o JS (zoom-foto.js) troca por uma janela com zoom. %>
+    <% if (p.fotoUrl) { %>
+      <a href="<%= p.fotoUrl %>" class="foto-zoom" data-zoom aria-label="Ampliar a foto de <%= p.nome %>">
+        <img src="<%= p.fotoUrl %>" alt="<%= p.nome %>" decoding="async" fetchpriority="high"
+             onerror="this.onerror=null;this.src='/images/sem-foto.svg';">
+      </a>
+    <% } else { %>
+      <img src="/images/sem-foto.svg" alt="<%= p.nome %>" decoding="async">
+    <% } %>
   </div>
   <div class="produto-info">
     <span class="card-marca"><%= p.marca %></span>
@@ -22,4 +30,5 @@
   </div>
 </article>
 <script src="/javascripts/comprar.js"></script>
+<script src="/javascripts/zoom-foto.js"></script>
 <%- include('partials/rodape') %>

@@ -10,8 +10,28 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><%= titulo %> - Lojinha Chic</title>
-  <%# Favicon: o mesmo logo redondo da loja aparece na aba do navegador. %>
-  <link rel="icon" href="/images/logo.jpg">
+  <%# Favicon: o mesmo logo redondo da loja aparece na aba do navegador (e no atalho da tela inicial do celular). %>
+  <link rel="icon" type="image/jpeg" href="/images/logo.jpg">
+  <link rel="apple-touch-icon" href="/images/logo.jpg">
+  <%#
+    Open Graph e Twitter: o "cartão" que aparece quando o link é colado no LinkedIn, WhatsApp, X...
+    Título = o da tela; descrição = a da página (locals.descricaoPagina) ou a padrão da loja; imagem = o logo.
+    Essas redes exigem endereço COMPLETO (https://...): urlDoSite vem do middleware (SITE_URL do .env ou o próprio pedido).
+  %>
+  <% const descricaoPagina = locals.descricaoPagina || 'Lojinha Chic: perfumes, body splash e semijoias com todo o charme. Compre online com 5% de desconto para clientes cadastrados.'; %>
+  <% const urlDoSite = locals.urlDoSite || ''; %>
+  <meta name="description" content="<%= descricaoPagina %>">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Lojinha Chic">
+  <meta property="og:title" content="<%= titulo %> - Lojinha Chic">
+  <meta property="og:description" content="<%= descricaoPagina %>">
+  <meta property="og:image" content="<%= urlDoSite %>/images/logo.jpg">
+  <meta property="og:url" content="<%= urlDoSite %><%= locals.caminhoAtual || '/' %>">
+  <meta property="og:locale" content="pt_BR">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="<%= titulo %> - Lojinha Chic">
+  <meta name="twitter:description" content="<%= descricaoPagina %>">
+  <meta name="twitter:image" content="<%= urlDoSite %>/images/logo.jpg">
   <link rel="stylesheet" href="/stylesheets/style.css">
 </head>
 <body>
