@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node ./bin/www",
     "dev": "nodemon --ext js,ejs,json,css --ignore tests/ ./bin/www",
-    "test": "node --test tests/dominio.test.js tests/importar-mawwal.test.js tests/gestao-produtos.test.js tests/carrinho-busca-estoque.test.js",
+    "test": "node --test tests/dominio.test.js tests/importar-mawwal.test.js tests/gestao-produtos.test.js tests/carrinho-busca-estoque.test.js tests/variacoes.test.js",
     "e2e": "node tests/e2e.js",
     "importar:mawwal": "node scripts/importar-mawwal.js"
   },

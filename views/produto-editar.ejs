@@ -6,8 +6,13 @@
 <form method="post" action="/vendedor/produtos/<%= produto.id %>/editar" class="form">
   <label>Nome <input name="nome" value="<%= form.nome || '' %>" required maxlength="120"></label>
   <label>Marca <input name="marca" value="<%= form.marca || '' %>" required maxlength="80"></label>
-  <label>Preço (R$) <input name="preco" value="<%= form.preco || '' %>" required inputmode="decimal"></label>
-  <label>Estoque <input name="estoque" type="number" min="0" value="<%= form.estoque === undefined ? '' : form.estoque %>" required></label>
+  <%# Com variações ativas, preço e estoque do produto vêm delas (menor preço e soma): aqui só leitura. %>
+  <% const comVariacoes = produto.temVariacoes(); %>
+  <label>Preço (R$)<%= comVariacoes ? ' (menor preço das variações)' : '' %> <input name="preco" value="<%= form.preco || '' %>" required inputmode="decimal"<%= comVariacoes ? ' readonly' : '' %>></label>
+  <label>Estoque<%= comVariacoes ? ' (soma das variações)' : '' %> <input name="estoque" type="number" min="0" value="<%= form.estoque === undefined ? '' : form.estoque %>" required<%= comVariacoes ? ' readonly' : '' %>></label>
+  <label>SKU (opcional, único) <input name="sku" value="<%= form.sku || '' %>" maxlength="40"></label>
+  <%# Pontos: só aparece para a marca Queen Semijoias (o JS mostra/esconde ao mudar a marca; o servidor ignora nas outras e grava NULL). %>
+  <label data-pontos data-marca-pontos="<%= marcaComPontos %>"<%= aceitaPontos(form.marca) ? '' : ' hidden' %>>Pontos (opcional) <input name="pontos" type="number" min="0" step="1" value="<%= form.pontos === undefined || form.pontos === null ? '' : form.pontos %>"></label>
   <label>Descrição <textarea name="descricao" maxlength="5000"><%= form.descricao || '' %></textarea></label>
   <%# O leitor de código de barras digita os números e aperta Enter. O script abaixo impede que esse Enter envie o formulário. %>
   <label>Código de barras (opcional, único) <input name="codigo_barras" id="codigo_barras" value="<%= form.codigo_barras || '' %>" maxlength="14" inputmode="numeric" autocomplete="off"></label>
@@ -16,5 +21,27 @@
   <button type="submit">Salvar</button>
   <a href="/vendedor/produtos">Cancelar</a>
 </form>
+<%# Variações (opcionais). Cada linha é um formulário próprio (fora do formulário do produto). %>
+<h2>Variações</h2>
+<p class="dica">Opcionais (ex.: tamanho, cor). Com variações ativas, o cliente escolhe uma e o preço e o estoque vêm dela; o produto mostra "a partir de" o menor preço e a soma dos estoques.</p>
+<% produto.variacoes.forEach(function (x) { %>
+  <form method="post" action="/vendedor/produtos/<%= produto.id %>/variacoes/<%= x.id %>" class="variacao-linha">
+    <label>Descrição <input name="descricao" value="<%= x.descricao %>" required maxlength="80"></label>
+    <label>Preço (R$) <input name="preco" value="<%= x.preco %>" required inputmode="decimal"></label>
+    <label>Estoque <input name="estoque" type="number" min="0" step="1" value="<%= x.estoque %>" required></label>
+    <label><input type="checkbox" name="ativo"<%= x.ativo ? ' checked' : '' %>> Ativa</label>
+    <button type="submit">Salvar variação</button>
+  </form>
+  <form method="post" action="/vendedor/produtos/<%= produto.id %>/variacoes/<%= x.id %>/remover" class="variacao-linha">
+    <button type="submit" aria-label="Remover a variação <%= x.descricao %>">Remover</button>
+  </form>
+<% }) %>
+<form method="post" action="/vendedor/produtos/<%= produto.id %>/variacoes" class="variacao-linha">
+  <label>Nova variação <input name="descricao" required maxlength="80" placeholder="Ex.: Ouro"></label>
+  <label>Preço (R$) <input name="preco" required inputmode="decimal"></label>
+  <label>Estoque <input name="estoque" type="number" min="0" step="1" value="0" required></label>
+  <button type="submit">Adicionar variação</button>
+</form>
 <script src="/javascripts/editar-produto.js"></script>
+<script src="/javascripts/pontos-por-marca.js"></script>
 <%- include('partials/rodape') %>

@@ -57,7 +57,9 @@ class VendaController {
   /** POST /vendedor/venda/adicionar: adiciona um produto achado pela busca. */
   async adicionar(req, res) {
     await this._tentar(req, res, () =>
-      this.carrinhos.adicionar(req.session, CHAVE, Number(req.body.perfumeId), BALCAO));
+      // Produto com variações: a tela pede a variação (variacaoId) antes de adicionar.
+      this.carrinhos.adicionar(req.session, CHAVE, Number(req.body.perfumeId),
+        { ...BALCAO, variacaoId: req.body.variacaoId, quantidade: req.body.quantidade }));
   }
 
   /** POST /vendedor/venda/codigo: leitor de código de barras (age como teclado + Enter). */
@@ -72,7 +74,7 @@ class VendaController {
 
   /** POST /vendedor/venda/remover */
   async remover(req, res) {
-    await this.carrinhos.remover(req.session, CHAVE, req.body.perfumeId, BALCAO);
+    await this.carrinhos.remover(req.session, CHAVE, req.body.perfumeId, { ...BALCAO, variacaoId: req.body.variacaoId });
     res.redirect('/vendedor/venda');
   }
 

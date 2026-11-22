@@ -16,6 +16,9 @@ router.get('/', ligar(c.catalogo, 'vitrine')); // vitrine em cards (home)
 router.get('/itens', exigirPapel('vendedor', 'admin'), ligar(c.catalogo, 'listar'));
 router.post('/itens', exigirPapel('vendedor'), ligar(c.catalogo, 'criar'));
 
+// Página do produto (pública; produto oculto só para quem gerencia produtos).
+router.get('/produto/:id', ligar(c.catalogo, 'produto'));
+
 // Login, cadastro de cliente e logout.
 router.get('/login', ligar(c.auth, 'formLogin'));
 router.post('/login', ligar(c.auth, 'login'));

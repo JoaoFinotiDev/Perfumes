@@ -84,11 +84,48 @@ class GestaoProdutosController {
     });
   }
 
+  /** POST /vendedor/produtos/:id/variacoes: adiciona uma variação (descrição, preço, estoque). */
+  async adicionarVariacao(req, res) {
+    await this._acaoDeVariacao(req, res, 'Variação adicionada.',
+      () => this.perfumes.adicionarVariacao(req.params.id, req.body, req.usuario));
+  }
+
+  /** POST /vendedor/produtos/:id/variacoes/:variacaoId: edita descrição, preço, estoque e "ativa". */
+  async atualizarVariacao(req, res) {
+    await this._acaoDeVariacao(req, res, 'Variação atualizada.',
+      () => this.perfumes.atualizarVariacao(req.params.id, req.params.variacaoId, req.body, req.usuario));
+  }
+
+  /** POST /vendedor/produtos/:id/variacoes/:variacaoId/remover: apaga a variação. */
+  async removerVariacao(req, res) {
+    await this._acaoDeVariacao(req, res, 'Variação removida.',
+      () => this.perfumes.removerVariacao(req.params.id, req.params.variacaoId, req.usuario));
+  }
+
+  /**
+   * Roda uma ação sobre variações: sucesso volta para a edição com um aviso; dado inválido mostra a edição
+   * de novo com o erro (400); produto ou variação inexistente é 404; sem permissão é 403.
+   */
+  async _acaoDeVariacao(req, res, aviso, acao) {
+    await this._proteger(res, async () => {
+      try {
+        if (!(await acao())) return this._naoEncontrado(res);
+        req.session.aviso = aviso;
+        res.redirect(`/vendedor/produtos/${Number(req.params.id)}/editar`);
+      } catch (erro) {
+        if (!(erro instanceof ErroDeValidacao)) throw erro;
+        const produto = await this.perfumes.buscarParaGestao(req.params.id, req.usuario);
+        res.status(400).render('produto-editar', { produto, form: this._formDoProduto(produto), erro: erro.message });
+      }
+    });
+  }
+
   /** Dados do produto no formato dos campos do formulário (nomes iguais aos do HTML). */
   _formDoProduto(p) {
     return {
       nome: p.nome, marca: p.marca, preco: p.preco, estoque: p.estoque, descricao: p.descricao || '',
-      codigo_barras: p.codigoBarras || '', foto_url: p.fotoUrl || '', visivel: p.visivel
+      codigo_barras: p.codigoBarras || '', foto_url: p.fotoUrl || '', visivel: p.visivel,
+      sku: p.sku || '', pontos: p.pontos === null ? '' : p.pontos
     };
   }
 

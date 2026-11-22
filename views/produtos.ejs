@@ -18,10 +18,18 @@
     <tr>
       <td><% if (p.fotoUrl) { %><img src="<%= p.fotoUrl %>" alt="<%= p.nome %>" class="foto"><% } %></td>
       <td><%= p.id %></td>
-      <td><%= p.nome %></td>
+      <td>
+        <a href="/produto/<%= p.id %>"><%= p.nome %></a>
+        <%# SKU e pontos pequenos, quando houver (pontos só existem na marca Queen Semijoias). %>
+        <% if (p.sku || p.pontos !== null) { %><br><small class="dica"><%= p.sku ? 'SKU ' + p.sku : '' %><%= p.sku && p.pontos !== null ? ' · ' : '' %><%= p.pontos !== null ? p.pontos + ' pontos' : '' %></small><% } %>
+      </td>
       <td><%= p.marca %></td>
       <td><%= moeda(p.preco) %></td>
       <td>
+        <% if (p.temVariacoes()) { %>
+        <%# Produto com variações: mostra o total (soma) e leva para a edição, onde cada variação tem o seu estoque. %>
+        <%= p.estoqueDe() %> (total)<br><a href="/vendedor/produtos/<%= p.id %>/editar">editar variações</a>
+        <% } else { %>
         <%# Estoque rápido (POST): campo numérico + Salvar, e -1 / +1 que enviam o valor já calculado.
             O servidor valida de novo (inteiro >= 0). Sem JS tudo funciona, pois são formulários comuns. %>
         <form method="post" action="/vendedor/produtos/<%= p.id %>/estoque" class="inline estoque-form">
@@ -36,6 +44,7 @@
           <button type="submit" aria-label="<%= passo < 0 ? 'Tirar' : 'Pôr' %> 1 do estoque de <%= p.nome %>"<%= passo < 0 && p.estoque <= 0 ? ' disabled' : '' %>><%= passo < 0 ? '-1' : '+1' %></button>
         </form>
         <% }) %>
+        <% } %>
       </td>
       <td><%= p.visivel ? 'Sim' : 'Não' %></td>
       <td>

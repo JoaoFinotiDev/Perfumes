@@ -9,6 +9,7 @@ const path = require('path');
 const logger = require('morgan');
 const session = require('express-session');
 const { carregarUsuario } = require('./middlewares/auth');
+const Perfume = require('./domain/Perfume');
 
 if (!process.env.SESSION_SECRET) {
   throw new Error('Defina SESSION_SECRET no arquivo .env (veja o .env.example).');
@@ -19,6 +20,10 @@ const app = express();
 // Motor de views: EJS (escapa o texto de <%= %> automaticamente).
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
+
+// A regra "só a marca Queen Semijoias tem pontos" mora em Perfume; as views só perguntam.
+app.locals.marcaComPontos = Perfume.MARCA_COM_PONTOS;
+app.locals.aceitaPontos = Perfume.aceitaPontos;
 
 app.use(logger('dev'));
 app.use(express.urlencoded({ extended: false })); // lê formulários HTML

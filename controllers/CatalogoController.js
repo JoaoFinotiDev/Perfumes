@@ -21,6 +21,18 @@ class CatalogoController {
   }
 
   /**
+   * GET /produto/:id: página do produto (foto grande, descrição, SKU, pontos, seletor de variação, adicionar).
+   * Visitante e Cliente só abrem produtos visíveis; quem gerencia produtos abre todos. Senão: 404.
+   */
+  async produto(req, res) {
+    const p = await this.perfumes.paginaDoProduto(req.params.id, req.usuario);
+    if (!p) {
+      return res.status(404).render('erro', { titulo: 'Produto não encontrado', mensagem: 'Esse produto não existe.' });
+    }
+    res.render('produto', { p, temDesconto: this._temDesconto(req) });
+  }
+
+  /**
    * GET /itens: tabela do catálogo com TODOS os produtos (inclusive ocultos da vitrine).
    * A rota só deixa entrar Vendedor e Admin (exigirPapel); Cliente e visitante usam a vitrine (/).
    */

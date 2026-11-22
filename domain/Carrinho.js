@@ -1,15 +1,62 @@
 /**
  * domain/Carrinho.js
  * Carrinho de compras (serve para o site e para a tela de venda do vendedor).
- * Guarda os itens (perfume + quantidade) e calcula os totais.
+ * Guarda os itens (perfume + variação opcional + quantidade) e calcula os totais.
  */
 const { SemDesconto, arredondar } = require('./Desconto');
 const { ErroDeValidacao } = require('../utils/erros');
 
+/**
+ * Uma linha do carrinho. Se o produto tem variação, a linha é daquela variação
+ * (o mesmo produto em duas variações vira duas linhas).
+ */
+class ItemDeCarrinho {
+  /**
+   * @param {Perfume} perfume
+   * @param {Variacao|null} variacao null quando o produto não tem variações
+   * @param {number} quantidade
+   */
+  constructor(perfume, variacao, quantidade) {
+    this.perfume = perfume;
+    this.variacao = variacao;
+    this.quantidade = quantidade;
+  }
+
+  /** Chave da linha na sessão e nos formulários: "7" (sem variação) ou "7:12" (produto 7, variação 12). */
+  get chave() {
+    return Carrinho.chave(this.perfume.id, this.variacao ? this.variacao.id : null);
+  }
+
+  /** Nome mostrado nas telas: "Produto - Variação" ou só "Produto". */
+  get nome() {
+    return this.variacao ? `${this.perfume.nome} - ${this.variacao.descricao}` : this.perfume.nome;
+  }
+
+  /** Preço unitário cheio (sem desconto). */
+  get preco() {
+    return this.perfume.precoBase(this.variacao);
+  }
+
+  /** Preço unitário para o comprador (o desconto vem dele). */
+  precoPara(usuario) {
+    return this.perfume.precoPara(usuario, this.variacao);
+  }
+
+  /** Estoque disponível desta linha (da variação, se houver). */
+  get estoque() {
+    return this.perfume.estoqueDe(this.variacao);
+  }
+}
+
 class Carrinho {
   constructor() {
-    /** @type {Map<number, {perfume: object, quantidade: number}>} */
+    /** @type {Map<string, ItemDeCarrinho>} */
     this._itens = new Map();
+  }
+
+  /** Monta a chave de uma linha: id do produto, e ":idDaVariacao" quando houver. */
+  static chave(perfumeId, variacaoId = null) {
+    return variacaoId ? `${perfumeId}:${variacaoId}` : String(perfumeId);
   }
 
   /** Lista dos itens do carrinho. */
@@ -22,30 +69,39 @@ class Carrinho {
     return this._itens.size === 0;
   }
 
-  /** Soma `quantidade` do perfume, sem passar do estoque. */
-  adicionar(perfume, quantidade = 1) {
-    const atual = this._itens.has(perfume.id) ? this._itens.get(perfume.id).quantidade : 0;
-    const nova = atual + quantidade;
-    if (!perfume.temEstoque(nova)) {
-      throw new ErroDeValidacao(`Estoque insuficiente de "${perfume.nome}" (restam ${perfume.estoque}).`);
+  /**
+   * Soma `quantidade` do perfume (da variação escolhida), sem passar do estoque.
+   * Produto com variações EXIGE uma variação; produto sem variações não aceita uma.
+   */
+  adicionar(perfume, quantidade = 1, variacao = null) {
+    if (perfume.temVariacoes() && !variacao) {
+      throw new ErroDeValidacao(`Escolha uma opção de "${perfume.nome}" antes de adicionar.`);
     }
-    this._itens.set(perfume.id, { perfume, quantidade: nova });
+    if (!perfume.temVariacoes() && variacao) variacao = null; // variação que deixou de existir é ignorada
+    const chave = Carrinho.chave(perfume.id, variacao && variacao.id);
+    const atual = this._itens.has(chave) ? this._itens.get(chave).quantidade : 0;
+    const nova = atual + quantidade;
+    const item = new ItemDeCarrinho(perfume, variacao, nova);
+    if (!perfume.temEstoque(nova, variacao)) {
+      throw new ErroDeValidacao(`Estoque insuficiente de "${item.nome}": só temos ${item.estoque} em estoque.`);
+    }
+    this._itens.set(chave, item);
   }
 
-  /** Tira o perfume do carrinho. */
-  remover(perfumeId) {
-    this._itens.delete(perfumeId);
+  /** Tira a linha do carrinho (pela chave: veja Carrinho.chave). */
+  remover(chave) {
+    this._itens.delete(String(chave));
   }
 
   /** Soma a preço cheio, sem desconto. */
   subtotal() {
-    return arredondar(this.itens.reduce((s, i) => s + i.perfume.preco * i.quantidade, 0));
+    return arredondar(this.itens.reduce((s, i) => s + i.preco * i.quantidade, 0));
   }
 
   /** Total com o desconto da estratégia (preço unitário com desconto x quantidade). */
   total(estrategia = new SemDesconto()) {
     return arredondar(
-      this.itens.reduce((s, i) => s + estrategia.aplicar(i.perfume.preco) * i.quantidade, 0)
+      this.itens.reduce((s, i) => s + estrategia.aplicar(i.preco) * i.quantidade, 0)
     );
   }
 
@@ -54,12 +110,14 @@ class Carrinho {
     return arredondar(this.subtotal() - this.total(estrategia));
   }
 
-  /** Forma simples para guardar na sessão: { idDoPerfume: quantidade }. */
+  /** Forma simples para guardar na sessão: { chaveDaLinha: quantidade }. */
   paraSessao() {
     const dados = {};
-    this._itens.forEach((item, id) => { dados[id] = item.quantidade; });
+    this._itens.forEach((item, chave) => { dados[chave] = item.quantidade; });
     return dados;
   }
 }
+
+Carrinho.ItemDeCarrinho = ItemDeCarrinho;
 
 module.exports = Carrinho;

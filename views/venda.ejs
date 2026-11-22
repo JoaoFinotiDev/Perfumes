@@ -37,10 +37,22 @@
     <% resultados.forEach(function (p) { %>
       <tr>
         <td><%= p.nome %></td><td><%= p.marca %></td>
-        <td><%= moeda(p.precoPara(cliente)) %></td><td><%= p.estoque %></td>
+        <td><%= p.temVariacoes() ? 'a partir de ' : '' %><%= moeda(p.precoPara(cliente)) %></td><td><%= p.estoqueDe() %></td>
         <td>
           <form method="post" action="/vendedor/venda/adicionar" class="inline">
             <input type="hidden" name="perfumeId" value="<%= p.id %>">
+            <%# Produto com variações: pede a variação (e o preço dela) antes de adicionar. %>
+            <% if (p.temVariacoes()) { %>
+              <label>Opção
+                <select name="variacaoId" required aria-label="Opção de <%= p.nome %>">
+                  <option value="">Escolha...</option>
+                  <% p.variacoesAtivas.forEach(function (x) { %>
+                    <option value="<%= x.id %>"<%= x.estoque <= 0 ? ' disabled' : '' %>><%= x.descricao %> - <%= moeda(p.precoPara(cliente, x)) %> (<%= x.estoque <= 0 ? 'esgotado' : x.estoque + ' em estoque' %>)</option>
+                  <% }) %>
+                </select>
+              </label>
+            <% } %>
+            <input type="number" name="quantidade" value="1" min="1" step="1" class="estoque-campo" aria-label="Quantidade de <%= p.nome %>">
             <button type="submit">Adicionar</button>
           </form>
         </td>
@@ -58,15 +70,16 @@
   <table>
     <thead><tr><th>Produto</th><th>Qtd</th><th>Preço unit.</th><th>Subtotal</th><th></th></tr></thead>
     <tbody>
-    <% carrinho.itens.forEach(function (i) { const unit = i.perfume.precoPara(cliente); %>
+    <% carrinho.itens.forEach(function (i) { const unit = i.precoPara(cliente); %>
       <tr>
-        <td><%= i.perfume.nome %> - <%= i.perfume.marca %></td>
+        <td><%= i.nome %> - <%= i.perfume.marca %></td>
         <td><%= i.quantidade %></td>
         <td><%= moeda(unit) %></td>
         <td><%= moeda(unit * i.quantidade) %></td>
         <td>
           <form method="post" action="/vendedor/venda/remover" class="inline">
             <input type="hidden" name="perfumeId" value="<%= i.perfume.id %>">
+            <input type="hidden" name="variacaoId" value="<%= i.variacao ? i.variacao.id : '' %>">
             <button type="submit" class="link">Remover</button>
           </form>
         </td>

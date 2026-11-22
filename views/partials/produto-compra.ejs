@@ -1,0 +1,56 @@
+<%#
+  Bloco "preço + estoque + comprar", usado no card da vitrine (ctx = 'card') e na página do produto (ctx = 'pagina').
+  Entrada: p (dados prontos do PerfumeService: preço, estoque, variações...) e ctx.
+  A view só MOSTRA: nenhuma conta aqui. Sem JS, o <select> e o campo de quantidade vão no POST normalmente.
+  O JS (public/javascripts/comprar.js) troca preço e estoque ao escolher outra variação e ajusta o "max" da quantidade.
+  Escolha simples: já vem selecionada a PRIMEIRA variação com estoque (se todas esgotaram, nenhuma pode ser escolhida e o botão fica desativado).
+%>
+<%
+  const idp = 'p' + p.id + '-' + ctx;
+  const inicial = p.temVariacoes ? (p.variacoes.find(function (x) { return !x.esgotada; }) || null) : null;
+  // Valores mostrados antes de qualquer JS: os da variação já selecionada, ou os do produto.
+  const precoCheio = inicial ? inicial.preco : p.preco;
+  const precoFinal = inicial ? inicial.precoFinal : p.precoFinal;
+  const estoqueAtual = p.temVariacoes ? (inicial ? inicial.estoque : 0) : p.estoque;
+%>
+<div class="produto-compra" data-produto>
+  <p class="card-preco">
+    <s class="preco-antigo" data-preco-antigo<%= precoFinal < precoCheio ? '' : ' hidden' %>><%= moeda(precoCheio) %></s>
+    <strong class="preco-final" data-preco-final><%= moeda(precoFinal) %></strong>
+  </p>
+  <% if (p.temVariacoes) { %>
+    <p class="dica">a partir de <%= moeda(p.precoFinal) %> &middot; <%= p.opcoes %> opç<%= p.opcoes === 1 ? 'ão' : 'ões' %></p>
+  <% } %>
+  <% if (estoqueAtual <= 0) { %><p class="esgotado" data-estoque-texto>Esgotado</p>
+  <% } else { %><p class="estoque" data-estoque-texto><%= estoqueAtual %> em estoque</p><% } %>
+
+  <%# Só visitante e Cliente compram pelo site (mostrarCarrinho). Visitante é levado ao login ao enviar. %>
+  <% if (mostrarCarrinho) { %>
+  <form method="post" action="/carrinho/adicionar" class="comprar" data-comprar>
+    <input type="hidden" name="perfumeId" value="<%= p.id %>">
+    <% if (p.temVariacoes) { %>
+      <label for="<%= idp %>-var">Opção</label>
+      <select name="variacaoId" id="<%= idp %>-var" required data-variacao>
+        <% p.variacoes.forEach(function (x) { %>
+          <option value="<%= x.id %>"
+                  data-preco="<%= moeda(x.preco) %>" data-final="<%= moeda(x.precoFinal) %>" data-estoque="<%= x.estoque %>"
+                  <%= inicial && inicial.id === x.id ? ' selected' : '' %><%= x.esgotada ? ' disabled' : '' %>><%= x.descricao %><%= x.esgotada ? ' (esgotado)' : '' %></option>
+        <% }) %>
+      </select>
+    <% } %>
+    <%# Quantidade e botão LADO A LADO, na mesma linha (veja .comprar-linha no style.css). O rótulo "Quantidade" fica
+        invisível na tela (classe so-leitor), mas continua lido pelos leitores de tela. %>
+    <div class="comprar-linha">
+      <div class="quantidade">
+        <label for="<%= idp %>-qtd" class="so-leitor">Quantidade</label>
+        <%# Os botões - e + só funcionam com JS: nascem escondidos e o script os mostra. %>
+        <button type="button" class="qtd-botao" data-menos hidden aria-label="Diminuir quantidade">-</button>
+        <input type="number" name="quantidade" id="<%= idp %>-qtd" value="1" min="1" max="<%= Math.max(1, estoqueAtual) %>" step="1" inputmode="numeric" required>
+        <button type="button" class="qtd-botao" data-mais hidden aria-label="Aumentar quantidade">+</button>
+      </div>
+      <%# No card estreito o texto é curto ("Adicionar"); o title e o aria-label guardam o texto completo. %>
+      <button type="submit" class="card-botao comprar-botao" data-enviar title="Adicionar ao carrinho"<%= estoqueAtual <= 0 ? ' disabled' : '' %>><%= ctx === 'card' ? 'Adicionar' : 'Adicionar ao carrinho' %></button>
+    </div>
+  </form>
+  <% } %>
+</div>

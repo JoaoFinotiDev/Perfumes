@@ -9,6 +9,7 @@
  *     servidor a lista filtrada em GET /api/produtos?q=... (rota LOCAL, lê só o banco da loja).
  *  3. Escolher um produto (clique ou Enter):
  *       - se o campo tem `data-acao-post` (Abrir venda), envia um POST com perfumeId (adiciona à venda);
+         produto COM variações volta para a tela filtrada pelo nome, onde se escolhe a variação;
  *       - senão (vitrine), abre a vitrine filtrada por aquele nome: "/?q=<nome>". É o jeito mais simples
  *         e sempre funciona, mesmo que o card esteja fora do filtro atual.
  *  4. Teclado: setas sobem/descem, Enter escolhe, Esc fecha. Clicar fora também fecha.
@@ -152,7 +153,7 @@
         var nome = document.createElement('strong');
         nome.textContent = p.nome;
         var marca = document.createElement('small');
-        marca.textContent = p.marca;
+        marca.textContent = p.sku ? p.marca + ' · SKU ' + p.sku : p.marca; // a busca também acha pelo SKU
         texto.appendChild(nome);
         texto.appendChild(marca);
 
@@ -198,7 +199,11 @@
     function escolher(i) {
       var p = dados[i];
       if (!p) return;
-      if (acaoPost) {
+      if (acaoPost && p.temVariacoes) {
+        // Produto com variações: precisa escolher a variação antes. A tela de venda lista o produto
+        // (busca por nome) com o seletor de variação ao lado do botão "Adicionar".
+        window.location.href = window.location.pathname + '?q=' + encodeURIComponent(p.nome);
+      } else if (acaoPost) {
         var form = document.createElement('form');
         form.method = 'post';
         form.action = acaoPost;

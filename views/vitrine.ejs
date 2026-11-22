@@ -38,31 +38,20 @@
   <li class="card<%= p.esgotado ? ' card-esgotado' : '' %>">
     <div class="card-imagem">
       <%# Sem foto (ou foto que falhar ao carregar): troca por um desenho local, sem serviço externo. %>
-      <img src="<%= p.fotoUrl || '/images/sem-foto.svg' %>" alt="<%= p.nome %>" loading="lazy"
-           onerror="this.onerror=null;this.src='/images/sem-foto.svg';">
+      <%# A foto e o nome abrem a página do produto. O seletor e o botão ficam FORA destes links (o card inteiro NÃO é um link). %>
+      <a href="/produto/<%= p.id %>" aria-label="Abrir <%= p.nome %>">
+        <img src="<%= p.fotoUrl || '/images/sem-foto.svg' %>" alt="<%= p.nome %>" loading="lazy"
+             onerror="this.onerror=null;this.src='/images/sem-foto.svg';">
+      </a>
       <% if (p.temDesconto) { %><span class="selo">-<%= p.percentual %>%</span><% } %>
     </div>
     <div class="card-corpo">
       <span class="card-marca"><%= p.marca %></span>
-      <h2 class="card-nome" title="<%= p.nome %>"><%= p.nome %></h2>
-      <p class="card-preco">
-        <% if (p.temDesconto) { %>
-          <s class="preco-antigo"><%= moeda(p.preco) %></s>
-          <strong class="preco-final"><%= moeda(p.precoFinal) %></strong>
-        <% } else { %>
-          <strong class="preco-final"><%= moeda(p.preco) %></strong>
-        <% } %>
-      </p>
-      <%# Estoque: com unidades, mostra o número exato ("1 em estoque" / "10 em estoque"); sem unidades, "Esgotado". %>
-      <% if (p.esgotado) { %><p class="esgotado">Esgotado</p>
-      <% } else { %><p class="estoque"><%= p.estoque %> em estoque</p><% } %>
-      <%# Só visitante e Cliente veem o botão (mostrarCarrinho); visitante é levado ao login ao clicar. Esgotado: desativado. %>
-      <% if (mostrarCarrinho) { %>
-      <form method="post" action="/carrinho/adicionar">
-        <input type="hidden" name="perfumeId" value="<%= p.id %>">
-        <button type="submit" class="card-botao"<%= p.esgotado ? ' disabled' : '' %>>Adicionar ao carrinho</button>
-      </form>
-      <% } %>
+      <h2 class="card-nome" title="<%= p.nome %>"><a href="/produto/<%= p.id %>"><%= p.nome %></a></h2>
+      <%# SKU e pontos pequenos, quando houver (pontos só vêm preenchidos para a marca Queen Semijoias). %>
+      <% if (p.sku || p.pontos !== null) { %><p class="dica"><%= p.sku ? 'SKU ' + p.sku : '' %><%= p.sku && p.pontos !== null ? ' · ' : '' %><%= p.pontos !== null ? p.pontos + ' pontos' : '' %></p><% } %>
+      <%# Preço, estoque, seletor de variação e quantidade (bloco compartilhado com a página do produto). %>
+      <%- include('partials/produto-compra', { p: p, ctx: 'card' }) %>
     </div>
   </li>
   <% }) %>
@@ -70,4 +59,5 @@
 <% } %>
 <%# Busca em lista suspensa com pesquisa gradual (melhoria: sem JS, o formulário acima continua funcionando). %>
 <script src="/javascripts/busca-lista.js"></script>
+<script src="/javascripts/comprar.js"></script>
 <%- include('partials/rodape') %>

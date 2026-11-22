@@ -8,15 +8,16 @@
   <table>
     <thead><tr><th>Produto</th><th>Qtd</th><th>Preço unit.</th><th>Subtotal</th><th></th></tr></thead>
     <tbody>
-    <% carrinho.itens.forEach(function (i) { const unit = i.perfume.precoPara(usuario); %>
+    <% carrinho.itens.forEach(function (i) { const unit = i.precoPara(usuario); %>
       <tr>
-        <td><%= i.perfume.nome %> - <%= i.perfume.marca %></td>
+        <td><%= i.nome %> - <%= i.perfume.marca %></td>
         <td><%= i.quantidade %></td>
         <td><%= moeda(unit) %></td>
         <td><%= moeda(unit * i.quantidade) %></td>
         <td>
           <form method="post" action="/carrinho/remover" class="inline">
             <input type="hidden" name="perfumeId" value="<%= i.perfume.id %>">
+            <input type="hidden" name="variacaoId" value="<%= i.variacao ? i.variacao.id : '' %>">
             <button type="submit" class="link">Remover</button>
           </form>
         </td>

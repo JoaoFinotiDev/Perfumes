@@ -139,3 +139,44 @@ button:disabled { background: #bbb; cursor: not-allowed; }
 
 /* Estoque rápido na lista "Gerenciar produtos": campo estreito ao lado dos botões Salvar, -1 e +1. */
 .estoque-campo { width: 5em; }
+
+/* Card e página do produto: seletor de variação e quantidade (public/javascripts/comprar.js). */
+.card-nome a, .card-imagem a { color: inherit; text-decoration: none; }
+.card-nome a:hover, .card-nome a:focus-visible { text-decoration: underline; }
+.card-imagem a { display: block; }
+.comprar { display: flex; flex-direction: column; gap: 4px; margin-top: var(--espaco-1); }
+.comprar label { font-size: 0.8em; color: #555; }
+.comprar select { width: 100%; box-sizing: border-box; }
+/*
+ * Quantidade + "Adicionar" LADO A LADO, na mesma linha, compactos (card da vitrine e página do produto).
+ *  - .comprar-linha: flex sem quebra, espaço pequeno e tudo alinhado ao centro.
+ *  - .quantidade: ~92px no total = botão "-" (26px) + campo (36px) + botão "+" (26px) + 2 espaços de 2px; altura 32px.
+ *  - .comprar-botao: ocupa o resto da linha (flex: 1), fonte menor e padding menor.
+ * A área de toque fica com pelo menos 26-32px e o foco continua visível (outline rosa abaixo).
+ */
+.comprar-linha { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; }
+.quantidade { display: flex; align-items: center; gap: 2px; flex: none; }
+.qtd-botao, .quantidade input[type="number"] { height: 32px; box-sizing: border-box; padding: 0; }
+.qtd-botao { width: 26px; min-width: 26px; font-size: 1em; line-height: 1; }
+.quantidade input[type="number"] {
+  width: 36px; text-align: center; font-size: 0.9em;
+  -moz-appearance: textfield; appearance: textfield; /* tira as setinhas nativas (Firefox e padrão) */
+}
+.quantidade input[type="number"]::-webkit-outer-spin-button,
+.quantidade input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; } /* idem no Chrome/Safari */
+.comprar-botao { flex: 1; width: auto; min-width: 0; height: 32px; padding: 0 8px; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Foco visível para quem navega pelo teclado. */
+.comprar-botao:focus-visible, .qtd-botao:focus-visible, .quantidade input:focus-visible, .comprar select:focus-visible { outline: 3px solid #f0a8d6; outline-offset: 2px; }
+/* Texto só para leitor de tela (o rótulo "Quantidade" fica invisível, mas continua lido). */
+.so-leitor { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.produto-pagina { display: flex; flex-wrap: wrap; gap: var(--espaco-2, 16px); align-items: flex-start; }
+.produto-foto { flex: 1 1 280px; max-width: 480px; background: var(--cor-fundo-imagem); border-radius: var(--raio); overflow: hidden; }
+.produto-foto img { width: 100%; height: auto; display: block; }
+.produto-info { flex: 1 1 280px; max-width: 520px; }
+.produto-info .comprar { max-width: 320px; }
+.produto-descricao { white-space: pre-line; }
+
+/* O atributo hidden precisa vencer regras como ".form label { display: flex }". */
+[hidden] { display: none !important; }
+.variacao-linha { display: flex; gap: var(--espaco-1, 8px); align-items: flex-end; flex-wrap: wrap; margin: 6px 0; }
+.variacao-linha label { display: flex; flex-direction: column; font-size: 0.85em; }
