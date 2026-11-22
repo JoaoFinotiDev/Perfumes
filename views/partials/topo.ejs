@@ -13,6 +13,7 @@
   <nav>
     <a href="/itens">Catálogo</a>
     <a href="/carrinho">Carrinho</a>
+    <%# Estes links so MOSTRAM o menu certo para cada papel. Quem barra de verdade e o middleware exigirPapel. %>
     <% if (usuario && usuario.papel === 'vendedor') { %><a href="/vendedor/venda">Abrir venda</a><% } %>
     <% if (usuario && usuario.papel === 'admin') { %><a href="/admin">Vendedores</a><% } %>
     <% if (usuario) { %>

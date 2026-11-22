@@ -4,6 +4,7 @@
  * O pagamento é SIMULADO: só registramos a forma escolhida.
  */
 const { Venda } = require('../domain/Venda');
+const { ErroDeValidacao, EstoqueInsuficienteError } = require('../utils/erros');
 
 class VendaService {
   /** @param {VendaRepository} vendas */
@@ -21,7 +22,13 @@ class VendaService {
    */
   async finalizar(dados) {
     const venda = new Venda(dados); // valida carrinho e forma, calcula totais
-    venda.id = await this.vendas.registrar(venda);
+    try {
+      venda.id = await this.vendas.registrar(venda);
+    } catch (erro) {
+      // Estoque acabou entre a tela e a gravacao: vira mensagem amigavel para o usuario.
+      if (erro instanceof EstoqueInsuficienteError) throw new ErroDeValidacao(erro.message);
+      throw erro;
+    }
     return venda;
   }
 }

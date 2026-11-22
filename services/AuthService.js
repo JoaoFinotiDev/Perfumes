@@ -17,7 +17,12 @@ class AuthService {
     this.usuarios = usuarios;
   }
 
-  /** Confere usuário e senha. Devolve o Usuario de domínio ou lança erro. */
+  /**
+   * Confere usuário e senha. Devolve o Usuario de domínio ou lança erro.
+   * A senha nunca é guardada pura: o banco tem só o "hash" (um embaralhado sem volta),
+   * e o bcrypt compara a senha digitada com ele.
+   * A mensagem de erro é igual para usuário errado e senha errada (não revela qual foi).
+   */
   async entrar(usuario, senha) {
     const linha = await this.usuarios.buscarLinhaPorUsuario(String(usuario || '').trim().toLowerCase());
     const confere = await bcrypt.compare(String(senha || ''), linha ? linha.senha_hash : HASH_FALSO);

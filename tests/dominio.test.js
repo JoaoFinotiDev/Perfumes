@@ -21,6 +21,30 @@ test('cliente paga 5% a menos; vendedor e visitante pagam cheio', () => {
   assert.strictEqual(perfume.precoPara(null), 100);
 });
 
+// Arredondamento em centavos: 9.595 e 123.405 caem em "meio centavo" e devem subir.
+test('arredondar sobe o meio centavo corretamente', () => {
+  const { arredondar } = require('../domain/Desconto');
+  assert.strictEqual(arredondar(9.595), 9.6);
+  assert.strictEqual(arredondar(123.405), 123.41);
+});
+
+// Id que nao e inteiro positivo nao vai ao banco: devolve null.
+test('PerfumeService.buscarPorId devolve null para id invalido', () => {
+  const PerfumeService = require('../services/PerfumeService');
+  const servico = new PerfumeService({ buscarPorId: () => { throw new Error('nao devia consultar'); } });
+  ['abc', '', 0, -3, 1.5, NaN].forEach((id) => assert.strictEqual(servico.buscarPorId(id), null));
+});
+
+// O repositorio lanca erro proprio; o service troca por ErroDeValidacao (mensagem para o usuario).
+test('VendaService converte EstoqueInsuficienteError em ErroDeValidacao', async () => {
+  const VendaService = require('../services/VendaService');
+  const { ErroDeValidacao, EstoqueInsuficienteError } = require('../utils/erros');
+  const servico = new VendaService({ registrar: async () => { throw new EstoqueInsuficienteError('X'); } });
+  const c = new Carrinho();
+  c.adicionar(perfume, 1);
+  await assert.rejects(() => servico.finalizar({ carrinho: c, forma: 'pix' }), ErroDeValidacao);
+});
+
 test('carrinho não passa do estoque', () => {
   const c = new Carrinho();
   c.adicionar(perfume, 3);
@@ -38,6 +62,25 @@ test('venda com cliente aplica 5%, sem cliente é preço cheio', () => {
 test('cadeia: usa o segundo buscador e ignora falhas do primeiro', async () => {
   const quebrado = { buscar: async () => { throw new Error('rede'); } };
   const bom = { buscar: async () => ({ nome: 'A', marca: 'B', foto: '' }) };
-  assert.deepStrictEqual(await new BuscadorEmCadeia([quebrado, bom]).buscar('1'), { nome: 'A', marca: 'B', foto: '' });
+  assert.deepStrictEqual(await new BuscadorEmCadeia([quebrado, bom]).buscar('1'), { nome: 'A', marca: 'B', descricao: '', foto: '' });
   assert.strictEqual(await new BuscadorEmCadeia([quebrado]).buscar('1'), null);
+});
+
+test('cadeia: o segundo buscador completa os campos que o primeiro deixou vazios', async () => {
+  const semMarca = { buscar: async () => ({ nome: 'Perfume X', marca: '', descricao: '', foto: 'f.jpg' }) };
+  const comMarca = { buscar: async () => ({ nome: 'Outro nome', marca: 'Natura', descricao: 'Eau de parfum', foto: '' }) };
+  assert.deepStrictEqual(
+    await new BuscadorEmCadeia([semMarca, comMarca]).buscar('1'),
+    { nome: 'Perfume X', marca: 'Natura', descricao: 'Eau de parfum', foto: 'f.jpg' } // o nome do primeiro é mantido
+  );
+});
+
+test('cache: o mesmo código só chama a API uma vez, mesmo ao mesmo tempo', async () => {
+  const BuscadorComCache = require('../buscadores/BuscadorComCache');
+  let chamadas = 0;
+  const contador = { buscar: async () => { chamadas++; return { nome: 'A', marca: '', descricao: '', foto: '' }; } };
+  const cache = new BuscadorComCache(contador);
+  await Promise.all([cache.buscar('123'), cache.buscar('123')]); // duas ao mesmo tempo
+  await cache.buscar('123'); // e mais uma depois
+  assert.strictEqual(chamadas, 1);
 });

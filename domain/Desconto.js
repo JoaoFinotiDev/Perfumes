@@ -1,13 +1,16 @@
 /**
  * domain/Desconto.js
- * Estratégias de desconto (padrão Strategy).
+ * Estratégias de desconto (padrão Strategy: cada regra de desconto vira uma
+ * classe pequena, e quem calcula só chama "aplicar" sem saber qual regra é).
  * Cada papel de usuário escolhe a sua estratégia. Para criar um novo desconto
  * basta criar uma nova classe, sem mexer nas existentes (aberto/fechado - SOLID).
  */
 
 /** Arredonda para 2 casas decimais (centavos). */
 function arredondar(valor) {
-  return Math.round((valor + Number.EPSILON) * 100) / 100;
+  // Primeiro em 4 casas (tira o ruido do ponto flutuante, ex.: 9.595 vira 959.5 centavos),
+  // depois em centavos inteiros (meio centavo sobe).
+  return Math.round(Math.round(valor * 10000) / 100) / 100;
 }
 
 /** Classe base: define o contrato "aplicar(valor)". */

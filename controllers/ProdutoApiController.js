@@ -13,7 +13,7 @@ class ProdutoApiController {
     this.buscador = buscador;
   }
 
-  /** GET /api/produto-por-codigo/:codigo -> { encontrado, nome, marca, foto } */
+  /** GET /api/produto-por-codigo/:codigo -> { encontrado, nome, marca, descricao, foto } */
   async porCodigo(req, res) {
     try {
       const codigo = v.codigoDeBarras(req.params.codigo, { opcional: false });

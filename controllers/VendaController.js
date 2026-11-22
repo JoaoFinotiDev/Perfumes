@@ -5,6 +5,7 @@
  */
 const { FORMAS_DE_PAGAMENTO } = require('../domain/Venda');
 const { ErroDeValidacao } = require('../utils/erros');
+const moeda = require('../utils/moeda');
 
 const CHAVE = 'venda'; // nome do carrinho da venda na sessão
 
@@ -34,6 +35,8 @@ class VendaController {
     const cliente = await this._clienteAtual(req);
     res.render('venda', {
       carrinho, cliente, busca, erro,
+      // Subtotal, desconto e total saem prontos daqui; a view so mostra.
+      resumo: this.carrinhos.resumir(carrinho, cliente),
       clientes: await this.auth.listarClientes(),
       resultados: busca ? await this.perfumes.listar(busca) : [],
       formas: FORMAS_DE_PAGAMENTO
@@ -80,7 +83,7 @@ class VendaController {
       });
       this.carrinhos.limpar(req.session, CHAVE);
       delete req.session.vendaClienteId;
-      req.session.aviso = `Venda #${venda.id} finalizada. Total: ${Number(venda.total).toFixed(2)} (pagamento simulado).`;
+      req.session.aviso = `Venda #${venda.id} finalizada. Total: ${moeda(venda.total)} (pagamento simulado).`; // mesmo formato das telas: R$ 12,50
       res.redirect('/vendedor/venda');
     } catch (erro) {
       if (!(erro instanceof ErroDeValidacao)) throw erro;

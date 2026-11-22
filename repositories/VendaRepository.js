@@ -1,9 +1,10 @@
 /**
  * repositories/VendaRepository.js
- * Grava vendas. Tudo acontece em UMA transação: ou grava a venda inteira
+ * Grava vendas. Transação = um pacote "tudo ou nada" do banco.
+ * Tudo acontece em UMA transação: ou grava a venda inteira
  * e baixa o estoque, ou não grava nada.
  */
-const { ErroDeValidacao } = require('../utils/erros');
+const { EstoqueInsuficienteError } = require('../utils/erros');
 
 class VendaRepository {
   /** @param {object} db pool do mysql2 */
@@ -32,7 +33,7 @@ class VendaRepository {
           'UPDATE perfumes SET estoque = estoque - ? WHERE id = ? AND estoque >= ?',
           [quantidade, perfume.id, quantidade]);
         if (baixa.affectedRows === 0) {
-          throw new ErroDeValidacao(`Estoque insuficiente de "${perfume.nome}".`);
+          throw new EstoqueInsuficienteError(perfume.nome); // o service converte para erro de validacao
         }
         await conexao.query(
           'INSERT INTO venda_itens (venda_id, perfume_id, quantidade, preco_unitario) VALUES (?, ?, ?, ?)',

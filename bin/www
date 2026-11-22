@@ -1,28 +1,34 @@
 #!/usr/bin/env node
 
 /**
- * Module dependencies.
+ * bin/www
+ * Ponto de partida do servidor (npm start). O app.js só monta o Express;
+ * aqui a gente abre a porta e fica ouvindo as requisições.
+ */
+
+/**
+ * Dependências do arquivo.
  */
 
 var app = require('../app');
-var debug = require('debug')('loja-perfumes:server');
+var debug = require('debug')('loja-perfumes:server'); // mensagens de depuração (aparecem com DEBUG=loja-perfumes:*)
 var http = require('http');
 
 /**
- * Get port from environment and store in Express.
+ * Pega a porta do ambiente (PORT no .env) ou usa 3000, e guarda no Express.
  */
 
 var port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
 /**
- * Create HTTP server.
+ * Cria o servidor HTTP.
  */
 
 var server = http.createServer(app);
 
 /**
- * Listen on provided port, on all network interfaces.
+ * Começa a ouvir na porta escolhida, em todas as interfaces de rede.
  */
 
 server.listen(port);
@@ -30,19 +36,19 @@ server.on('error', onError);
 server.on('listening', onListening);
 
 /**
- * Normalize a port into a number, string, or false.
+ * Converte o valor da porta em número, nome de pipe ou false (inválido).
  */
 
 function normalizePort(val) {
   var port = parseInt(val, 10);
 
   if (isNaN(port)) {
-    // named pipe
+    // não é número: pode ser um "named pipe" (canal nomeado do sistema)
     return val;
   }
 
   if (port >= 0) {
-    // port number
+    // número de porta válido
     return port;
   }
 
@@ -50,7 +56,7 @@ function normalizePort(val) {
 }
 
 /**
- * Event listener for HTTP server "error" event.
+ * Trata o evento "error" do servidor (por exemplo, porta já ocupada).
  */
 
 function onError(error) {
@@ -62,14 +68,14 @@ function onError(error) {
     ? 'Pipe ' + port
     : 'Port ' + port;
 
-  // handle specific listen errors with friendly messages
+  // mostra mensagens amigáveis para os erros mais comuns ao abrir a porta
   switch (error.code) {
     case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
+      console.error(bind + ' requires elevated privileges'); // precisa de permissão de administrador
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
+      console.error(bind + ' is already in use'); // outra aplicação já usa esta porta
       process.exit(1);
       break;
     default:
@@ -78,7 +84,7 @@ function onError(error) {
 }
 
 /**
- * Event listener for HTTP server "listening" event.
+ * Trata o evento "listening": o servidor abriu a porta com sucesso.
  */
 
 function onListening() {

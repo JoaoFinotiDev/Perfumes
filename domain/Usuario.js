@@ -25,6 +25,11 @@ class Usuario {
     return new SemDesconto();
   }
 
+  /** Pode finalizar compra pelo site? Só o Cliente (as subclasses mudam isso). */
+  podeComprar() {
+    return false;
+  }
+
   /** Dados mínimos guardados na sessão (nunca a senha). */
   paraSessao() {
     return { id: this.id, usuario: this.usuario, nome: this.nome, papel: this.papel };
@@ -35,6 +40,7 @@ class Usuario {
 class Cliente extends Usuario {
   get papel() { return 'cliente'; }
   estrategiaDesconto() { return new DescontoCliente(); }
+  podeComprar() { return true; }
 }
 
 /** Vendedor: cria anúncios e abre vendas. */

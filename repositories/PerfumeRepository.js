@@ -16,6 +16,7 @@ class PerfumeRepository {
     let sql = 'SELECT * FROM perfumes';
     const params = [];
     if (busca) {
+      // Os "?" são preenchidos pelo driver, o que impede SQL injection (texto malicioso virar comando).
       sql += ' WHERE nome LIKE ? OR marca LIKE ?';
       const termo = `%${busca}%`;
       params.push(termo, termo);

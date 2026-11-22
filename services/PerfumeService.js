@@ -18,7 +18,10 @@ class PerfumeService {
 
   /** Busca por id (ou null). */
   buscarPorId(id) {
-    return this.perfumes.buscarPorId(Number(id));
+    const numero = Number(id);
+    // Id que nao e inteiro positivo nao existe: devolve null (vira "Produto nao encontrado").
+    if (!Number.isInteger(numero) || numero <= 0) return null;
+    return this.perfumes.buscarPorId(numero);
   }
 
   /** Busca pelo código de barras SOMENTE no banco local (ou null). */

@@ -18,13 +18,15 @@ cp .env.example .env               # no Windows: copy .env.example .env  (e pree
 npm start
 ```
 
+Para desenvolver, use `npm run dev`: o nodemon reinicia o servidor sozinho a cada arquivo salvo.
+
 Abra http://localhost:3000. Testes: `npm test` (regras, sem banco) e, com o servidor no ar, `npm run e2e`.
 
 ## Acessos
 
-- Admin inicial: usuário `admin`, senha `admin` (cria os Vendedores em "Vendedores").
+- Admin: usuário `admin` (cria os Vendedores em "Vendedores"). O admin inicial é criado pelo `script.sql`; troque a senha antes de publicar.
 - Cliente: cadastra-se sozinho em "Cadastrar" e ganha 5% de desconto.
-- Vendedor: cria anúncios no Catálogo e usa "Abrir venda". O pagamento é apenas simulado.
+- Vendedor: cria anúncios no Catálogo e usa "Abrir venda". O formulário de `POST /itens` (novo anúncio) só aparece depois de entrar como Vendedor. O pagamento é apenas simulado.
 
 ## Código de barras
 

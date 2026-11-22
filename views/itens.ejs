@@ -1,7 +1,8 @@
 <%# Catálogo: busca, tabela de perfumes e (para vendedor) formulário de novo anúncio. %>
 <%- include('partials/topo', { titulo: 'Catálogo' }) %>
 <h1>Catálogo de perfumes</h1>
-<% if (usuario && usuario.papel === 'cliente') { %><p class="destaque">Você tem 5% de desconto em todos os preços.</p><% } %>
+<%# temDesconto vem do controller (pergunta a estrategia de desconto de quem esta logado). %>
+<% if (temDesconto) { %><p class="destaque">Você tem 5% de desconto em todos os preços.</p><% } %>
 
 <form method="get" action="/itens" class="busca">
   <input name="q" value="<%= busca %>" placeholder="Buscar por nome ou marca" maxlength="80">
@@ -40,6 +41,7 @@
   </tbody>
 </table>
 
+<%# Formulario de anuncio (POST /itens): so aparece para o Vendedor. A rota tambem barra os outros. %>
 <% if (usuario && usuario.papel === 'vendedor') { %>
   <h2>Novo anúncio</h2>
   <p class="dica">Digite ou bipe o código de barras e aperte Enter: nome, marca e foto são preenchidos se forem encontrados.</p>
@@ -51,7 +53,7 @@
     <label>Marca <input name="marca" id="marca" value="<%= form.marca || '' %>" required maxlength="80"></label>
     <label>Preço (R$) <input name="preco" value="<%= form.preco || '' %>" required inputmode="decimal"></label>
     <label>Estoque <input name="estoque" type="number" min="0" value="<%= form.estoque || '' %>" required></label>
-    <label>Descrição <textarea name="descricao" maxlength="1000"><%= form.descricao || '' %></textarea></label>
+    <label>Descrição <textarea name="descricao" id="descricao" maxlength="1000"><%= form.descricao || '' %></textarea></label>
     <label>Foto (URL, opcional) <input name="foto_url" id="foto_url" value="<%= form.foto_url || '' %>" maxlength="500"></label>
     <button type="submit">Criar anúncio</button>
   </form>

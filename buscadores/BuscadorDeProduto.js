@@ -8,7 +8,7 @@ class BuscadorDeProduto {
   /**
    * Busca os dados do produto.
    * @param {string} codigo código de barras (só dígitos)
-   * @returns {Promise<{nome:string, marca:string, foto:string}|null>}
+   * @returns {Promise<{nome:string, marca:string, descricao:string, foto:string}|null>}
    *          null quando não encontra ou quando a busca falha
    */
   async buscar(codigo) { // eslint-disable-line no-unused-vars

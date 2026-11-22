@@ -6,6 +6,7 @@
  * são sempre lidos do banco (o usuário não consegue forçar um preço).
  */
 const Carrinho = require('../domain/Carrinho');
+const { SemDesconto } = require('../domain/Desconto');
 const { ErroDeValidacao } = require('../utils/erros');
 
 class CarrinhoService {
@@ -45,6 +46,23 @@ class CarrinhoService {
     const carrinho = await this.carregar(sessao, chave);
     carrinho.remover(Number(perfumeId));
     sessao[chave] = carrinho.paraSessao();
+  }
+
+  /**
+   * Calcula os valores que a tela mostra, para a view so exibir (sem fazer conta).
+   * O desconto vem do comprador: cada papel tem a sua estrategia (Cliente 5%, os outros 0).
+   * @param {Carrinho} carrinho carrinho ja carregado
+   * @param {Usuario|null} comprador quem paga (null = preco cheio)
+   * @returns {{subtotal:number, desconto:number, total:number, temDesconto:boolean}}
+   */
+  resumir(carrinho, comprador) {
+    const estrategia = comprador ? comprador.estrategiaDesconto() : new SemDesconto();
+    return {
+      subtotal: carrinho.subtotal(),
+      desconto: carrinho.desconto(estrategia),
+      total: carrinho.total(estrategia),
+      temDesconto: estrategia.percentual() > 0 // a tela decide o aviso por aqui, nao pelo papel
+    };
   }
 
   /** Esvazia o carrinho. */

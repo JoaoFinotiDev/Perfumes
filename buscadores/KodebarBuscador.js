@@ -14,6 +14,7 @@ class KodebarBuscador extends BuscadorDeProduto {
     this.urlBase = 'https://kodebar.korvensistemas.com.br';
   }
 
+  /** Consulta o Kodebar. Devolve {nome, marca, descricao, foto} ou null se nao achar ou falhar. */
   async buscar(codigo) {
     if (!this.token) return null; // sem token: passa a vez para o próximo buscador
     try {
@@ -25,7 +26,8 @@ class KodebarBuscador extends BuscadorDeProduto {
       if (!resposta.ok) return null; // 404 = não achou; 401/429 = token ou limite
       const dados = await resposta.json();
       if (!dados.nome) return null;
-      return { nome: dados.nome, marca: dados.marca || '', foto: dados.thumbnail || '' };
+      // O Kodebar não tem campo de descrição: ela fica vazia para outro buscador completar.
+      return { nome: dados.nome, marca: dados.marca || '', descricao: '', foto: dados.thumbnail || '' };
     } catch (erro) {
       return null; // falha de rede nunca quebra o cadastro
     }
