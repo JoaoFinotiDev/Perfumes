@@ -43,6 +43,21 @@ class Perfume {
     return String(marca || '').trim().toLowerCase() === MARCA_COM_PONTOS.toLowerCase();
   }
 
+  /**
+   * Aviso de estoque mostrado no card e na página do produto (a regra mora AQUI, não na view nem no JS).
+   *  - estoque 0 (ou menos)        -> "Esgotado"
+   *  - de 1 até 5                  -> "Últimas N" (selo discreto de urgência)
+   *  - mais de 5                   -> nada (não polui o card)
+   * @param {number} estoque estoque da variação escolhida (ou do produto, quando não há variações)
+   * @returns {{tipo: ''|'ultimas'|'esgotado', texto: string}} tipo vazio = não mostrar nada
+   */
+  static avisoDeEstoque(estoque) {
+    const n = Number(estoque);
+    if (!(n > 0)) return { tipo: 'esgotado', texto: 'Esgotado' };
+    if (n <= Perfume.LIMITE_ULTIMAS) return { tipo: 'ultimas', texto: `Últimas ${n}` };
+    return { tipo: '', texto: '' };
+  }
+
   /** Este produto aceita pontos? (depende da marca) */
   aceitaPontos() {
     return Perfume.aceitaPontos(this.marca);
@@ -97,5 +112,7 @@ class Perfume {
 }
 
 Perfume.MARCA_COM_PONTOS = MARCA_COM_PONTOS;
+// Até este estoque (e acima de zero) aparece o selo "Últimas N".
+Perfume.LIMITE_ULTIMAS = 5;
 
 module.exports = Perfume;

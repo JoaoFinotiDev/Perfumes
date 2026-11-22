@@ -64,14 +64,14 @@ footer { text-align: center; color: #777; padding: 20px; font-size: 0.85em; }
 .paginacao .paginacao-reticencias { border: 0; background: none; }
 .paginacao a:focus-visible { outline: 3px solid #f0a8d6; outline-offset: 2px; }
 
-/* Grade responsiva: 1 coluna no celular; no desktop cabem 4-5 cards (colunas de no mínimo 190px). */
+/* Grade responsiva: 2 colunas no celular (até 600px); acima disso cabem 4-5 cards (colunas de no mínimo 210px). */
 .vitrine-grade {
   list-style: none; margin: 0; padding: 0;
   display: grid; gap: var(--espaco-2);
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-@media (min-width: 480px) {
-  .vitrine-grade { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+@media (min-width: 601px) {
+  .vitrine-grade { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
 }
 /* Na vitrine a página pode ser mais larga que o resto do site. */
 main:has(.vitrine-grade) { max-width: 1200px; }
@@ -104,11 +104,13 @@ main:has(.vitrine-grade) { max-width: 1200px; }
   min-height: 2.6em;
 }
 .card-preco { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--espaco-1); }
-.preco-antigo { color: #888; font-size: 0.85em; }
-.preco-final { color: var(--cor-principal); font-size: 1.2em; }
-.esgotado { margin: 0; color: var(--cor-promocao); font-weight: bold; font-size: 0.9em; }
-/* Quantidade em estoque no card: texto pequeno e discreto, abaixo do preço. */
-.estoque { margin: 0; color: #666; font-size: 0.85em; }
+/* Preço em destaque: o final é grande, em negrito e na cor principal; o antigo é pequeno e riscado ao lado. */
+.preco-antigo { color: #888; font-size: 0.8rem; }
+.preco-final { color: var(--cor-principal); font-size: 1.35rem; font-weight: 700; line-height: 1.2; }
+/* Selo de estoque: pequeno e discreto. "Últimas N" em amarelo claro; "Esgotado" em vermelho. */
+.aviso-estoque { margin: 4px 0 0; width: fit-content; font-size: 0.75rem; font-weight: bold; padding: 2px 8px; border-radius: 999px; }
+.aviso-ultimas { background: #fff3cd; color: #7a5a00; }
+.aviso-esgotado { background: #fdecea; color: var(--cor-promocao); }
 .card-corpo form { margin-top: auto; }
 .card-botao { width: 100%; }
 button:disabled { background: #bbb; cursor: not-allowed; }
@@ -159,25 +161,46 @@ button:disabled { background: #bbb; cursor: not-allowed; }
 .comprar label { font-size: 0.8em; color: #555; }
 .comprar select { width: 100%; box-sizing: border-box; }
 /*
- * Quantidade + "Adicionar" LADO A LADO, na mesma linha, compactos (card da vitrine e página do produto).
+ * Quantidade + "Adicionar" LADO A LADO, na mesma linha (card da vitrine e página do produto).
  *  - .comprar-linha: flex sem quebra, espaço pequeno e tudo alinhado ao centro.
- *  - .quantidade: ~92px no total = botão "-" (26px) + campo (36px) + botão "+" (26px) + 2 espaços de 2px; altura 32px.
- *  - .comprar-botao: ocupa o resto da linha (flex: 1), fonte menor e padding menor.
- * A área de toque fica com pelo menos 26-32px e o foco continua visível (outline rosa abaixo).
+ *  - .quantidade: botão "-" (28px) + campo (32px) + botão "+" (28px) + 2 espaços de 2px; o grupo todo tem 44px de altura.
+ *  - .comprar-botao: ocupa o resto da linha (flex: 1), com no mínimo 44px de altura (área de toque confortável).
+ * O foco continua visível (outline rosa abaixo).
  */
 .comprar-linha { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; }
 .quantidade { display: flex; align-items: center; gap: 2px; flex: none; }
-.qtd-botao, .quantidade input[type="number"] { height: 32px; box-sizing: border-box; padding: 0; }
-.qtd-botao { width: 26px; min-width: 26px; font-size: 1em; line-height: 1; }
+.qtd-botao, .quantidade input[type="number"] { height: 44px; box-sizing: border-box; padding: 0; }
+.qtd-botao { width: 28px; min-width: 28px; font-size: 1em; line-height: 1; }
 .quantidade input[type="number"] {
-  width: 36px; text-align: center; font-size: 0.9em;
+  width: 32px; text-align: center; font-size: 0.9em;
   -moz-appearance: textfield; appearance: textfield; /* tira as setinhas nativas (Firefox e padrão) */
 }
 .quantidade input[type="number"]::-webkit-outer-spin-button,
 .quantidade input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; } /* idem no Chrome/Safari */
-.comprar-botao { flex: 1; width: auto; min-width: 0; height: 32px; padding: 0 8px; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.comprar-botao { flex: 1; width: auto; min-width: 0; min-height: 44px; padding: 0 6px; font-weight: bold; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* Foco visível para quem navega pelo teclado. */
 .comprar-botao:focus-visible, .qtd-botao:focus-visible, .quantidade input:focus-visible, .comprar select:focus-visible { outline: 3px solid #f0a8d6; outline-offset: 2px; }
+/*
+ * CHIPS de variação (tamanho, cor...): <input type="radio"> escondido + <span> estilizado dentro do <label>.
+ *  - o radio continua na tela para o teclado (setas e Tab), só fica invisível e cobrindo o chip;
+ *  - escolhido = borda grossa e negrito; esgotado (disabled) = riscado e apagado;
+ *  - cada chip tem pelo menos 44x44px de área de toque.
+ */
+.variacoes { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { position: relative; display: inline-flex; margin: 0; }
+.chip input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.chip span, a.chip {
+  display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
+  min-width: 44px; min-height: 44px; padding: 0 10px;
+  border: 1px solid #bda3bd; border-radius: 8px; background: #fff; color: #2b2b2b; font-size: 0.85rem; text-align: center;
+}
+.chip input:checked + span { border: 2px solid var(--cor-principal); font-weight: bold; background: #f9eef5; }
+.chip input:disabled { cursor: not-allowed; }
+.chip input:disabled + span { text-decoration: line-through; color: #999; background: #f3f3f3; border-style: dashed; }
+.chip input:focus-visible + span, a.chip:focus-visible { outline: 3px solid #f0a8d6; outline-offset: 2px; }
+a.chip { text-decoration: none; color: var(--cor-destaque); font-weight: bold; }
+/* Botão "Adicionar" do card: o ícone só aparece no celular (veja a regra de 600px abaixo). */
+.botao-icone { display: none; }
 /* Texto só para leitor de tela (o rótulo "Quantidade" fica invisível, mas continua lido). */
 .so-leitor { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .produto-pagina { display: flex; flex-wrap: wrap; gap: var(--espaco-2, 16px); align-items: flex-start; }
@@ -186,6 +209,25 @@ button:disabled { background: #bbb; cursor: not-allowed; }
 .produto-info { flex: 1 1 280px; max-width: 520px; }
 .produto-info .comprar { max-width: 320px; }
 .produto-descricao { white-space: pre-line; }
+
+/*
+ * Celular (até 600px): card mais compacto na grade de 2 colunas.
+ *  - esconde SKU e pontos do card (continuam na página do produto); a marca fica, pequena;
+ *  - quantidade e botão continuam lado a lado; o botão mostra só o ícone do carrinho (o aria-label guarda o texto).
+ */
+@media (max-width: 600px) {
+  main:has(.vitrine-grade) { padding: 12px; }
+  .card-corpo { padding: var(--espaco-1); }
+  .card-codigos { display: none; }
+  .card-marca { font-size: 0.7em; }
+  .card-nome { font-size: 0.9em; }
+  .preco-final { font-size: 1.2rem; }
+  .comprar-linha { gap: 4px; }
+  .qtd-botao { width: 26px; min-width: 26px; }
+  .quantidade input[type="number"] { width: 28px; }
+  .card .botao-icone { display: inline; }
+  .card .botao-texto { display: none; }
+}
 
 /* O atributo hidden precisa vencer regras como ".form label { display: flex }". */
 [hidden] { display: none !important; }
