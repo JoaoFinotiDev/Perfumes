@@ -11,7 +11,7 @@ const session = require('express-session');
 const { carregarUsuario } = require('./middlewares/auth');
 const Perfume = require('./domain/Perfume');
 const { resolverSegredo } = require('./config/segredo');
-const { criarArmazem, COOKIE } = require('./config/sessao');
+const { criarArmazemSeguro, COOKIE } = require('./config/sessao');
 const pool = require('./config/db'); // o mesmo pool dos repositorios
 
 // Segredo da sessao: em producao falha se estiver vazio ou for o exemplo; em desenvolvimento so avisa.
@@ -37,7 +37,7 @@ app.use(session({
   secret: segredoDaSessao,
   resave: false,
   saveUninitialized: false,
-  store: criarArmazem(session, pool),
+  store: criarArmazemSeguro(session, pool), // MySQL; se falhar, avisa no console e usa a memoria (so em desenvolvimento)
   cookie: COOKIE
 }));
 app.use(carregarUsuario);
@@ -55,6 +55,12 @@ app.use((req, res) => {
 // Erros inesperados: loga no servidor e mostra mensagem genérica (sem detalhes internos).
 app.use((err, req, res, next) => { // eslint-disable-line no-unused-vars
   console.error(err);
+  // A página de erro tem que funcionar mesmo se o erro veio ANTES do carregarUsuario (ex.: falha na sessão):
+  // sem estes valores padrão ela quebrava com "usuario is not defined" e escondia o erro de verdade.
+  res.locals.usuario = res.locals.usuario || null;
+  res.locals.mostrarCarrinho = res.locals.mostrarCarrinho !== false;
+  res.locals.moeda = res.locals.moeda || require('./utils/moeda');
+  res.locals.aviso = res.locals.aviso || null;
   res.status(500).render('erro', { titulo: 'Erro no servidor', mensagem: 'Algo deu errado. Tente de novo.' });
 });
 
