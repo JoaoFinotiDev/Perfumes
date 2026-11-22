@@ -111,6 +111,11 @@ main:has(.vitrine-grade) { max-width: 1200px; }
 .aviso-estoque { margin: 4px 0 0; width: fit-content; font-size: 0.75rem; font-weight: bold; padding: 2px 8px; border-radius: 999px; }
 .aviso-ultimas { background: #fff3cd; color: #7a5a00; }
 .aviso-esgotado { background: #fdecea; color: var(--cor-promocao); }
+/* No CARD o selo sempre guarda o seu espaço, mesmo escondido (estoque acima de 5).
+   Assim todos os cards da linha têm a mesma altura e os botões ficam alinhados.
+   visibility: hidden esconde o selo da tela e do leitor de tela, mas mantém o lugar dele. */
+.card .aviso-estoque { min-height: 1.4em; box-sizing: content-box; }
+.card .aviso-estoque[hidden] { display: block; visibility: hidden; }
 .card-corpo form { margin-top: auto; }
 .card-botao { width: 100%; }
 button:disabled { background: #bbb; cursor: not-allowed; }
