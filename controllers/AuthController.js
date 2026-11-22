@@ -20,7 +20,7 @@ class AuthController {
     try {
       const usuario = await this.auth.entrar(req.body.usuario, req.body.senha);
       await this._abrirSessao(req, usuario);
-      res.redirect('/itens');
+      res.redirect('/');
     } catch (erro) {
       if (!(erro instanceof ErroDeValidacao)) throw erro;
       res.status(401).render('login', { erro: erro.message, form: { usuario: req.body.usuario } });
@@ -37,7 +37,7 @@ class AuthController {
     try {
       const id = await this.auth.cadastrarCliente(req.body);
       await this._abrirSessao(req, await this.auth.buscarPorId(id));
-      res.redirect('/itens');
+      res.redirect('/');
     } catch (erro) {
       if (!(erro instanceof ErroDeValidacao)) throw erro;
       res.status(400).render('cadastro', { erro: erro.message, form: { usuario: req.body.usuario, nome: req.body.nome } });
@@ -46,7 +46,7 @@ class AuthController {
 
   /** POST /logout */
   logout(req, res) {
-    req.session.destroy(() => res.redirect('/itens'));
+    req.session.destroy(() => res.redirect('/'));
   }
 
   /** Troca o id da sessão (evita fixação de sessão) e guarda o usuário. Mantém o carrinho. */

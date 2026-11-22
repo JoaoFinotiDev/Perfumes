@@ -35,11 +35,13 @@ function conferir(nome, ok, extra = '') {
   const cliente = criarNavegador();
 
   // Catálogo público e busca
-  let r = await visitante('/itens');
-  conferir('GET /itens lista perfumes (público)', r.status === 200 && r.texto.includes('Malbec Tradicional'));
+  let r = await visitante('/');
+  conferir('GET / (vitrine) lista perfumes (público)', r.status === 200 && r.texto.includes('Malbec Tradicional'));
   conferir('acentos corretos (UTF-8)', r.texto.includes('O Boticário'));
-  r = await visitante('/itens?q=natura');
+  r = await visitante('/?q=natura');
   conferir('busca por marca', r.texto.includes('Kaiak') && !r.texto.includes('Malbec'));
+  r = await visitante('/itens');
+  conferir('visitante NÃO vê /itens (vai para o login)', r.status === 302 && r.local === '/login');
 
   // Papel checado no servidor
   r = await visitante('/vendedor/venda');
@@ -51,7 +53,9 @@ function conferir(nome, ok, extra = '') {
 
   // Admin
   r = await admin('/login', { metodo: 'POST', corpo: { usuario: 'admin', senha: 'admin' } });
-  conferir('login admin/admin', r.status === 302 && r.local === '/itens');
+  conferir('login admin/admin', r.status === 302 && r.local === '/');
+  r = await admin('/itens');
+  conferir('admin vê /itens com a coluna "Na vitrine"', r.status === 200 && r.texto.includes('Malbec Tradicional') && r.texto.includes('Na vitrine'));
   r = await admin('/admin/vendedores', { metodo: 'POST', corpo: { nome: 'Vend Teste', usuario: 'vend' + id, senha: 'senha123' } });
   conferir('admin cria vendedor', r.status === 302 && r.local === '/admin');
   r = await admin('/vendedor/venda');
@@ -63,6 +67,8 @@ function conferir(nome, ok, extra = '') {
   r = await cliente('/cadastro', { metodo: 'POST', corpo: { nome: 'Cli Teste', usuario: 'cli' + id, senha: 'senha123' } });
   conferir('cliente se cadastra e entra', r.status === 302);
   r = await cliente('/itens');
+  conferir('cliente NÃO vê /itens (403)', r.status === 403);
+  r = await cliente('/');
   conferir('cliente vê preço com 5% (189,90 -> 180,41)', r.texto.includes('180,41'), '');
   r = await cliente('/admin');
   conferir('cliente NÃO vê /admin (403)', r.status === 403);
@@ -76,7 +82,7 @@ function conferir(nome, ok, extra = '') {
   r = await cliente('/carrinho');
   conferir('carrinho: 189,90 - 5% = 180,41', r.texto.includes('180,41'));
   r = await cliente('/carrinho/finalizar', { metodo: 'POST', corpo: { forma: 'pix' } });
-  conferir('cliente finaliza compra simulada', r.status === 302 && r.local === '/itens');
+  conferir('cliente finaliza compra simulada', r.status === 302 && r.local === '/');
   r = await visitante('/carrinho/finalizar', { metodo: 'POST', corpo: { forma: 'pix' } });
   conferir('visitante não finaliza compra', r.status === 302 && r.local === '/login');
 
@@ -93,9 +99,7 @@ function conferir(nome, ok, extra = '') {
   conferir('código de barras repetido -> 400', r.status === 400);
   r = await vendedor('/api/produto-por-codigo/abc');
   conferir('API com código inválido -> 400', r.status === 400);
-  r = await vendedor('/api/produto-por-codigo/0000000000000');
-  conferir('API com código desconhecido não quebra', r.status === 200 && r.texto.includes('"encontrado"'), r.texto);
-  console.log('     (API respondeu:', r.texto.trim(), ')');
+  // (Sem teste com código válido da API: isso chamaria serviços externos.)
 
   // Abrir venda
   r = await vendedor('/vendedor/venda/codigo', { metodo: 'POST', corpo: { codigo: '1234567890123' } });
@@ -135,8 +139,6 @@ function conferir(nome, ok, extra = '') {
   conferir('ocultar por GET não existe (404)', r.status === 404);
   r = await visitante('/');
   conferir('vitrine NÃO mostra produto oculto', !r.texto.includes('Perfume &lt;b&gt;Teste'));
-  r = await visitante('/itens');
-  conferir('/itens do visitante NÃO mostra produto oculto', !r.texto.includes('Perfume &lt;b&gt;Teste'));
   r = await vendedor('/itens');
   conferir('/itens do vendedor mostra o oculto com "Na vitrine"', r.texto.includes('Perfume &lt;b&gt;Teste') && r.texto.includes('Na vitrine'));
   r = await cliente('/carrinho/adicionar', { metodo: 'POST', corpo: { perfumeId: pid } });

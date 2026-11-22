@@ -26,6 +26,7 @@ Abra http://localhost:3000. Testes: `npm test` (regras, sem banco) e, com o serv
 
 ## Acessos
 
+- **Tabela do catálogo (`GET /itens`, exigida pelo trabalho)**: só aparece depois de entrar como Vendedor ou Admin. Para ver, entre em `/login` com o usuário `admin` (criado pelo `script.sql`; a senha inicial está lá, troque antes de publicar) ou com um Vendedor criado pelo Admin. Cliente e visitante usam só a vitrine (`/`): visitante é levado ao login e Cliente recebe 403 em `/itens`.
 - Admin: usuário `admin` (cria os Vendedores em "Vendedores"). O admin inicial é criado pelo `script.sql`; troque a senha antes de publicar.
 - Cliente: cadastra-se sozinho em "Cadastrar" e ganha 5% de desconto.
 - Vendedor: cria anúncios no Catálogo e usa "Abrir venda". O formulário de `POST /itens` (novo anúncio) só aparece depois de entrar como Vendedor. O pagamento é apenas simulado.
@@ -37,7 +38,7 @@ No cadastro de produto, o código preenche nome, marca e foto pela API Kodebar (
 ## Telas
 
 - **Vitrine (`/`)**: página inicial no estilo marketplace, com cards (foto, marca, nome, preço e botão "Adicionar ao carrinho"), busca por nome ou marca, filtro por marca e ordenação por nome ou preço. O Cliente vê o preço antigo riscado, o preço com 5% e o selo "-5%". Produto sem foto mostra uma imagem local; sem estoque mostra "Esgotado".
-- **Catálogo (tabela) (`/itens`)**: tabela HTML com todos os registros (`GET /itens`) e, para o Vendedor, o formulário de novo anúncio (`POST /itens`).
+- **Catálogo (tabela) (`/itens`)**: só para Vendedor e Admin (middleware `exigirPapel`). Tabela HTML com todos os registros (`GET /itens`) e, para o Vendedor, o formulário de novo anúncio (`POST /itens`).
 
 ## Importar produtos Mawwal
 
@@ -54,7 +55,7 @@ Os produtos importados não ficam no `script.sql` (são dados de terceiros). Fon
 Menu **Gerenciar produtos** (`/vendedor/produtos`), para Vendedor e Admin:
 
 - Lista todos os produtos (inclusive ocultos), com busca por nome ou marca.
-- **Mostrar/Ocultar na vitrine**: botão (POST). A vitrine (`/`) só mostra produtos visíveis, e o servidor recusa colocar um produto oculto no carrinho do site. A tabela `/itens` mostra todos ao Vendedor (coluna "Na vitrine") e só os visíveis a visitante e cliente. A tela **Abrir venda** continua achando produtos ocultos (por nome, marca e código de barras): ocultar vale só para a vitrine.
+- **Mostrar/Ocultar na vitrine**: botão (POST). A vitrine (`/`) só mostra produtos visíveis, e o servidor recusa colocar um produto oculto no carrinho do site. A tabela `/itens` (só Vendedor e Admin) mostra todos os produtos, com a coluna "Na vitrine". A tela **Abrir venda** continua achando produtos ocultos (por nome, marca e código de barras): ocultar vale só para a vitrine.
 - **Editar** (`/vendedor/produtos/:id/editar`): nome, marca, preço, estoque, descrição, foto, código de barras e visibilidade, com as mesmas validações do cadastro. O código de barras é opcional e único (repetido em outro produto dá erro 400). O Enter nesse campo não envia o formulário (o leitor de código termina com Enter), e a edição não chama nenhuma API externa.
 - **Quem pode**: qualquer Vendedor (e o Admin) gerencia todos os produtos, pois a loja é uma só e os produtos importados da Mawwal não têm dono. Cliente recebe 403 e visitante vai para o login. A regra está em um lugar só, o método `podeGerenciar(produto)` em `domain/Usuario.js`; para limitar ao dono, troque a regra do Vendedor por `produto.vendedorId === this.id`.
 - A descrição aceita até 5000 caracteres (as descrições importadas passam de 1000).

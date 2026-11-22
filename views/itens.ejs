@@ -11,7 +11,7 @@
 
 <table>
   <thead>
-    <tr><th>Foto</th><th>ID</th><th>Nome</th><th>Marca</th><th>Preço</th><th>Estoque</th><th>Código de barras</th><th>Descrição</th><% if (veOcultos) { %><th>Na vitrine</th><% } %><th></th></tr>
+    <tr><th>Foto</th><th>ID</th><th>Nome</th><th>Marca</th><th>Preço</th><th>Estoque</th><th>Código de barras</th><th>Descrição</th><th>Na vitrine</th><th></th></tr>
   </thead>
   <tbody>
   <% perfumes.forEach(function (p) { const final = p.precoPara(usuario); %>
@@ -27,8 +27,8 @@
       <td><%= p.estoque %></td>
       <td><%= p.codigoBarras || '-' %></td>
       <td><%= p.descricao || '' %></td>
-      <%# Só quem gerencia produtos vê esta coluna (a lista dos outros já vem sem os ocultos). %>
-      <% if (veOcultos) { %><td><%= p.visivel ? 'Sim' : 'Não' %></td><% } %>
+      <%# Esta tela é só de Vendedor e Admin, que veem também os produtos ocultos da vitrine. %>
+      <td><%= p.visivel ? 'Sim' : 'Não' %></td>
       <td>
         <% if (!p.visivel) { %>Oculto
         <% } else if (p.estoque > 0) { %>

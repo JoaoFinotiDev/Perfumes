@@ -20,11 +20,14 @@ class CatalogoController {
     res.render('vitrine', { ...dados, temDesconto: this._temDesconto(req) });
   }
 
-  /** GET /itens: lista os perfumes (com busca por nome ou marca) e mostra o formulário ao vendedor. */
+  /**
+   * GET /itens: tabela do catálogo com TODOS os produtos (inclusive ocultos da vitrine).
+   * A rota só deixa entrar Vendedor e Admin (exigirPapel); Cliente e visitante usam a vitrine (/).
+   */
   async listar(req, res) {
     const busca = String(req.query.q || '').trim();
-    const perfumes = await this.perfumes.listar(busca, { incluirOcultos: this._veOcultos(req) });
-    res.render('itens', { perfumes, busca, erro: null, form: {}, temDesconto: this._temDesconto(req), veOcultos: this._veOcultos(req) });
+    const perfumes = await this.perfumes.listar(busca, { incluirOcultos: true });
+    res.render('itens', { perfumes, busca, erro: null, form: {}, temDesconto: this._temDesconto(req) });
   }
 
   /** POST /itens: grava um anúncio novo e volta para a lista. Só vendedor (a rota já barra os outros). */
@@ -36,17 +39,12 @@ class CatalogoController {
     } catch (erro) {
       if (!(erro instanceof ErroDeValidacao)) throw erro;
       // Dado inválido: mostra a lista de novo, com o erro e o que foi digitado.
-      const perfumes = await this.perfumes.listar('', { incluirOcultos: this._veOcultos(req) });
+      const perfumes = await this.perfumes.listar('', { incluirOcultos: true });
       res.status(400).render('itens', {
         perfumes, busca: '', erro: erro.message, form: req.body,
-        temDesconto: this._temDesconto(req), veOcultos: this._veOcultos(req)
+        temDesconto: this._temDesconto(req)
       });
     }
-  }
-
-  /** Quem gerencia produtos (Vendedor/Admin) vê também os ocultos da vitrine; visitante e cliente, só os visíveis. */
-  _veOcultos(req) {
-    return Boolean(req.usuario) && req.usuario.podeGerenciar();
   }
 
   /** Quem está logado tem desconto? Pergunta à estratégia dele (percentual maior que 0), sem olhar o papel. */

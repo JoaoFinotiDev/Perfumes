@@ -18,7 +18,8 @@
   </a>
   <nav>
     <a href="/">Vitrine</a>
-    <a href="/itens">Catálogo (tabela)</a>
+    <%# A tabela do catálogo só aparece para quem gerencia produtos; a rota GET /itens também barra os outros no servidor. %>
+    <% if (usuario && usuario.podeGerenciar()) { %><a href="/itens">Catálogo (tabela)</a><% } %>
     <a href="/carrinho">Carrinho</a>
     <%# Estes links so MOSTRAM o menu certo para cada papel. Quem barra de verdade e o middleware exigirPapel. %>
     <% if (usuario && usuario.papel === 'vendedor') { %><a href="/vendedor/venda">Abrir venda</a><% } %>
