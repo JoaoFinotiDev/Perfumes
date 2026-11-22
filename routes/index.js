@@ -10,8 +10,8 @@ const { exigirPapel } = require('../middlewares/auth');
 
 const router = express.Router();
 
-// Catálogo (home). GET / redireciona para a lista.
-router.get('/', (req, res) => res.redirect('/itens'));
+// Vitrine (GET /) em cards e catálogo em tabela (GET /itens, exigido pelo trabalho).
+router.get('/', ligar(c.catalogo, 'vitrine')); // vitrine em cards (home)
 router.get('/itens', ligar(c.catalogo, 'listar'));
 router.post('/itens', exigirPapel('vendedor'), ligar(c.catalogo, 'criar'));
 

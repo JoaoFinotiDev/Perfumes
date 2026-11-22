@@ -1,0 +1,59 @@
+<%# Vitrine (GET /): cards de produtos estilo marketplace, com busca, filtro por marca e ordenação.
+    A view só MOSTRA: preço com desconto, marcas e ordem já chegam prontos do PerfumeService. %>
+<%- include('partials/topo', { titulo: 'Vitrine' }) %>
+<h1>Vitrine</h1>
+<%# temDesconto vem do controller (pergunta à estratégia de desconto de quem está logado). %>
+<% if (temDesconto) { %><p class="destaque">Você tem 5% de desconto em todos os preços.</p><% } %>
+
+<%# Barra de busca: GET com ?q=&marca=&ordem=. Os valores atuais voltam preenchidos. %>
+<form method="get" action="/" class="vitrine-busca">
+  <input type="search" name="q" value="<%= busca %>" placeholder="Buscar por nome ou marca" maxlength="80" aria-label="Buscar por nome ou marca">
+  <select name="marca" aria-label="Filtrar por marca">
+    <option value="">Todas as marcas</option>
+    <% marcas.forEach(function (m) { %>
+      <option value="<%= m %>"<%= m === marca ? ' selected' : '' %>><%= m %></option>
+    <% }) %>
+  </select>
+  <select name="ordem" aria-label="Ordenar por">
+    <option value="nome"<%= ordem === 'nome' ? ' selected' : '' %>>Nome (A-Z)</option>
+    <option value="menor-preco"<%= ordem === 'menor-preco' ? ' selected' : '' %>>Menor preço</option>
+    <option value="maior-preco"<%= ordem === 'maior-preco' ? ' selected' : '' %>>Maior preço</option>
+  </select>
+  <button type="submit">Buscar</button>
+</form>
+
+<% if (!cards.length) { %>
+  <p class="dica">Nenhum perfume encontrado.</p>
+<% } else { %>
+<ul class="vitrine-grade">
+  <% cards.forEach(function (p) { %>
+  <li class="card<%= p.esgotado ? ' card-esgotado' : '' %>">
+    <div class="card-imagem">
+      <%# Sem foto (ou foto que falhar ao carregar): troca por um desenho local, sem serviço externo. %>
+      <img src="<%= p.fotoUrl || '/images/sem-foto.svg' %>" alt="<%= p.nome %>" loading="lazy"
+           onerror="this.onerror=null;this.src='/images/sem-foto.svg';">
+      <% if (p.temDesconto) { %><span class="selo">-<%= p.percentual %>%</span><% } %>
+    </div>
+    <div class="card-corpo">
+      <span class="card-marca"><%= p.marca %></span>
+      <h2 class="card-nome" title="<%= p.nome %>"><%= p.nome %></h2>
+      <p class="card-preco">
+        <% if (p.temDesconto) { %>
+          <s class="preco-antigo"><%= moeda(p.preco) %></s>
+          <strong class="preco-final"><%= moeda(p.precoFinal) %></strong>
+        <% } else { %>
+          <strong class="preco-final"><%= moeda(p.preco) %></strong>
+        <% } %>
+      </p>
+      <% if (p.esgotado) { %><p class="esgotado">Esgotado</p><% } %>
+      <%# Mesmo POST do catálogo em tabela. Esgotado: botão desativado. %>
+      <form method="post" action="/carrinho/adicionar">
+        <input type="hidden" name="perfumeId" value="<%= p.id %>">
+        <button type="submit" class="card-botao"<%= p.esgotado ? ' disabled' : '' %>>Adicionar ao carrinho</button>
+      </form>
+    </div>
+  </li>
+  <% }) %>
+</ul>
+<% } %>
+<%- include('partials/rodape') %>
