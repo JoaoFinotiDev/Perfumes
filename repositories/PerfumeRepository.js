@@ -60,6 +60,12 @@ class PerfumeRepository {
     return linhas[0] ? new Perfume(linhas[0]) : null;
   }
 
+  /** Busca pelo par nome + marca (ou null). Usado pela importacao para nao duplicar produtos. */
+  async buscarPorNomeEMarca(nome, marca) {
+    const [linhas] = await this.db.query('SELECT * FROM perfumes WHERE nome = ? AND marca = ? LIMIT 1', [nome, marca]);
+    return linhas[0] ? new Perfume(linhas[0]) : null;
+  }
+
   /** Grava um perfume novo e devolve o id criado. */
   async criar(d) {
     const [r] = await this.db.query(
