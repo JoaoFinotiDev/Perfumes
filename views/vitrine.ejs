@@ -58,9 +58,10 @@
     <div class="card-corpo">
       <span class="card-marca"><%= p.marca %></span>
       <h2 class="card-nome" title="<%= p.nome %>"><a href="/produto/<%= p.id %>"><%= p.nome %></a></h2>
+      <%# (card-codigos some no celular, veja style.css; na página do produto SKU e pontos aparecem sempre.) %>
       <%# SKU e pontos pequenos, quando houver (pontos só vêm preenchidos para a marca Queen Semijoias). %>
-      <% if (p.sku || p.pontos !== null) { %><p class="dica"><%= p.sku ? 'SKU ' + p.sku : '' %><%= p.sku && p.pontos !== null ? ' · ' : '' %><%= p.pontos !== null ? p.pontos + ' pontos' : '' %></p><% } %>
-      <%# Preço, estoque, seletor de variação e quantidade (bloco compartilhado com a página do produto). %>
+      <% if (p.sku || p.pontos !== null) { %><p class="dica card-codigos"><%= p.sku ? 'SKU ' + p.sku : '' %><%= p.sku && p.pontos !== null ? ' · ' : '' %><%= p.pontos !== null ? p.pontos + ' pontos' : '' %></p><% } %>
+      <%# Preço, selo de estoque, chips de variação e quantidade (bloco compartilhado com a página do produto). %>
       <%- include('partials/produto-compra', { p: p, ctx: 'card' }) %>
     </div>
   </li>
