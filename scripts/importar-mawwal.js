@@ -8,12 +8,14 @@
  * Tres classes, cada uma com UM trabalho (SOLID):
  *  - MawwalFonte:       busca o JSON na internet (unica parte que usa rede).
  *  - MawwalConversor:   transforma um produto Shopify em um Perfume (sem rede, sem banco).
- *  - ImportadorMawwal:  junta as pecas e grava pelo PerfumeRepository (nenhum SQL aqui).
+ *  - ImportadorMawwal:  o ImportadorDeCatalogo (comum a todas as lojas) com o conversor da Mawwal.
  *
  * Fonte: dados e fotos pertencem a Mawwal Arabia Brasil; uso apenas academico.
  */
 const fs = require('fs');
 const Perfume = require('../domain/Perfume');
+const { limparHtml } = require('../utils/html');
+const ImportadorDeCatalogo = require('./importador-de-catalogo');
 
 // Limites das colunas de script.sql (perfumes).
 const LIMITE_NOME = 120;
@@ -25,31 +27,6 @@ const LIMITE_CODIGO = 14;
 // A fonte NAO informa estoque, entao todo produto importado nasce com este valor padrao.
 const ESTOQUE_PADRAO = 10;
 const MARCA = 'Mawwal';
-
-// Entidades HTML com nome que aparecem nos textos em portugues. Nome da entidade -> caractere.
-const ENTIDADES = {
-  nbsp: ' ', amp: '&', quot: '"', apos: "'", lt: '<', gt: '>',
-  agrave: 'à', aacute: 'á', acirc: 'â', atilde: 'ã', auml: 'ä', Agrave: 'À', Aacute: 'Á', Acirc: 'Â', Atilde: 'Ã',
-  egrave: 'è', eacute: 'é', ecirc: 'ê', Eacute: 'É', Ecirc: 'Ê',
-  iacute: 'í', Iacute: 'Í', oacute: 'ó', ocirc: 'ô', otilde: 'õ', Oacute: 'Ó', Ocirc: 'Ô', Otilde: 'Õ',
-  uacute: 'ú', uuml: 'ü', Uacute: 'Ú', ccedil: 'ç', Ccedil: 'Ç', ntilde: 'ñ',
-  ordm: 'º', ordf: 'ª', ndash: '-', mdash: '-', hellip: '...', lsquo: "'", rsquo: "'", ldquo: '"', rdquo: '"'
-};
-
-/**
- * Troca entidades HTML pelo caractere de verdade: &ccedil; (nome), &#233; (decimal) e &#xE9; (hexadecimal).
- * Passa UMA vez pelo texto, entao "&amp;ccedil;" vira "&ccedil;" (nao decodifica duas vezes).
- * Entidade desconhecida fica como veio.
- */
-function decodificarEntidades(texto) {
-  return String(texto).replace(/&(#x[0-9a-f]+|#\d+|[a-z][a-z0-9]*);/gi, (inteira, corpo) => {
-    if (corpo[0] === '#') {
-      const codigo = corpo[1].toLowerCase() === 'x' ? parseInt(corpo.slice(2), 16) : parseInt(corpo.slice(1), 10);
-      return codigo > 0 && codigo <= 0x10ffff ? String.fromCodePoint(codigo) : inteira;
-    }
-    return Object.prototype.hasOwnProperty.call(ENTIDADES, corpo) ? ENTIDADES[corpo] : inteira;
-  });
-}
 
 /** Busca todas as paginas de products.json. */
 class MawwalFonte {
@@ -101,54 +78,20 @@ class MawwalConversor {
     });
   }
 
-  /** Tira as tags HTML, decodifica as entidades (&ccedil; vira ç) e junta espacos repetidos. */
+  /** Tira as tags HTML e decodifica as entidades (codigo compartilhado em utils/html.js). */
   limparHtml(html) {
-    const semTags = String(html || '').replace(/<[^>]*>/g, ' ');
-    return decodificarEntidades(semTags).replace(/\s+/g, ' ').trim();
+    return limparHtml(html);
   }
 }
 
-/** Orquestra: converte cada produto e grava se ainda nao existir (rodar 2x da o mesmo resultado). */
-class ImportadorMawwal {
+/**
+ * Importador da Mawwal: o ImportadorDeCatalogo (scripts/importador-de-catalogo.js, comum a todas as lojas)
+ * com o conversor da Mawwal como padrao. Mantem o nome e o uso antigos: new ImportadorMawwal(repositorio).
+ */
+class ImportadorMawwal extends ImportadorDeCatalogo {
   /** @param {PerfumeRepository} repositorio  @param {MawwalConversor} conversor */
   constructor(repositorio, conversor = new MawwalConversor()) {
-    this.repositorio = repositorio;
-    this.conversor = conversor;
-  }
-
-  async importar(produtos) {
-    const resumo = { importados: 0, pulados: 0, invalidos: 0 };
-    for (const bruto of produtos) {
-      const perfume = this.conversor.converter(bruto);
-      if (!perfume) { resumo.invalidos++; continue; }
-      // Nao duplica: pula se ja existe o mesmo nome+marca ou o mesmo codigo de barras.
-      const jaExiste = (await this.repositorio.buscarPorNomeEMarca(perfume.nome, perfume.marca))
-        || (perfume.codigoBarras && await this.repositorio.buscarPorCodigo(perfume.codigoBarras));
-      if (jaExiste) { resumo.pulados++; continue; }
-      await this.repositorio.criar(perfume);
-      resumo.importados++;
-    }
-    return resumo;
-  }
-
-  /**
-   * Conserta SO a descricao de produtos ja importados que ficaram com entidades cruas ("&ccedil;").
-   * Para cada produto da fonte, acha o do banco (nome + marca) e regrava a descricao ja decodificada,
-   * mas apenas quando a do banco ainda tem "&...;". Nao mexe em mais nada e nao apaga nada.
-   * Pode rodar varias vezes: depois de corrigida, a descricao nao tem mais "&...;" e e pulada.
-   */
-  async corrigirDescricoes(produtos) {
-    let corrigidos = 0;
-    for (const bruto of produtos) {
-      const perfume = this.conversor.converter(bruto);
-      if (!perfume) continue;
-      const atual = await this.repositorio.buscarPorNomeEMarca(perfume.nome, perfume.marca);
-      if (atual && /&(#x?[0-9a-f]+|[a-z][a-z0-9]*);/i.test(atual.descricao || '') && atual.descricao !== perfume.descricao) {
-        await this.repositorio.atualizarDescricao(atual.id, perfume.descricao);
-        corrigidos++;
-      }
-    }
-    return corrigidos;
+    super(repositorio, conversor);
   }
 }
 
