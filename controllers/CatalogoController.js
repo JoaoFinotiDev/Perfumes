@@ -47,6 +47,21 @@ class CatalogoController {
     }
   }
 
+  /**
+   * GET /api/produtos?q=...: JSON para a lista suspensa de busca (rota LOCAL, lê só o nosso banco).
+   * Sem `todos`: só produtos visíveis, para qualquer um (é o que a vitrine já mostra).
+   * Com `todos=1` (tela "Abrir venda"): inclui os ocultos, então exige quem gerencia produtos
+   * (Vendedor/Admin); os outros recebem 403 em JSON. O limite de resultados fica no service.
+   */
+  async buscarJson(req, res) {
+    const incluirOcultos = req.query.todos === '1';
+    if (incluirOcultos && !(req.usuario && req.usuario.podeGerenciar())) {
+      return res.status(403).json({ erro: 'Sem permissão.' });
+    }
+    const q = String(req.query.q || ''); // o service apara e limita o tamanho
+    res.json(await this.perfumes.buscarParaLista(q, { incluirOcultos }, req.usuario));
+  }
+
   /** Quem está logado tem desconto? Pergunta à estratégia dele (percentual maior que 0), sem olhar o papel. */
   _temDesconto(req) {
     return Boolean(req.usuario) && req.usuario.estrategiaDesconto().percentual() > 0;

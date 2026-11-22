@@ -115,3 +115,27 @@ button:disabled { background: #bbb; cursor: not-allowed; }
 .descricao { max-width: 260px; }
 .desc-texto { max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .desc-texto.aberta { white-space: normal; overflow: visible; }
+
+/* Busca em lista suspensa (public/javascripts/busca-lista.js). O JS cria o <span class="busca-lista"> em volta do campo. */
+.busca-lista { position: relative; display: block; flex: 1 1 220px; }
+.busca-lista > input { width: 100%; box-sizing: border-box; }
+.campo-busca { display: flex; flex-direction: column; gap: 4px; font-size: 0.9em; }
+.campo-busca .busca-lista { min-width: 260px; }
+.busca-painel {
+  position: absolute; z-index: 20; left: 0; right: 0; top: 100%; margin-top: 4px;
+  background: #fff; border: 1px solid var(--cor-borda); border-radius: var(--raio); box-shadow: var(--sombra-forte);
+}
+.busca-painel-campo { display: block; width: 100%; box-sizing: border-box; margin: 0; border: 0; border-bottom: 1px solid var(--cor-borda); border-radius: var(--raio) var(--raio) 0 0; }
+.busca-opcoes { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow-y: auto; } /* barra de rolagem da lista */
+.busca-opcao { display: flex; align-items: center; gap: var(--espaco-1); padding: 6px 10px; cursor: pointer; }
+.busca-opcao.ativa { background: var(--cor-fundo-imagem); }
+.busca-foto { width: 32px; height: 32px; object-fit: cover; border-radius: 4px; flex: none; }
+.busca-texto { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.busca-texto strong, .busca-texto small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.busca-texto small { color: #666; }
+.busca-preco { color: var(--cor-principal); font-weight: bold; white-space: nowrap; }
+.busca-aviso { margin: 0; padding: 10px; color: #666; }
+.busca-painel-campo:focus-visible { outline: 3px solid #f0a8d6; outline-offset: -3px; }
+
+/* Estoque rápido na lista "Gerenciar produtos": campo estreito ao lado dos botões Salvar, -1 e +1. */
+.estoque-campo { width: 5em; }

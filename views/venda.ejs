@@ -21,7 +21,13 @@
   <button type="submit">Adicionar</button>
 </form>
 <form method="get" action="/vendedor/venda" class="inline-form">
-  <label>Buscar por nome ou marca <input name="q" value="<%= busca %>" maxlength="80"></label>
+  <%# Com JS, clicar neste campo abre a lista de produtos (inclusive ocultos); escolher um adiciona à venda (POST abaixo).
+      O <label for> fica separado do campo de propósito: a lista suspensa é criada ao lado do campo. %>
+  <div class="campo-busca">
+    <label for="busca-q">Buscar por nome ou marca</label>
+    <input id="busca-q" name="q" value="<%= busca %>" maxlength="80" autocomplete="off"
+           data-busca-lista data-url="/api/produtos?todos=1" data-acao-post="/vendedor/venda/adicionar">
+  </div>
   <button type="submit">Buscar</button>
 </form>
 <% if (busca) { %>
@@ -81,4 +87,5 @@
     <button type="submit">Finalizar venda</button>
   </form>
 <% } %>
+<script src="/javascripts/busca-lista.js"></script>
 <%- include('partials/rodape') %>
