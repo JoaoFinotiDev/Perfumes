@@ -1,7 +1,14 @@
 <%# Vitrine (GET /): cards de produtos estilo marketplace, com busca, filtro por marca e ordenação.
     A view só MOSTRA: preço com desconto, marcas e ordem já chegam prontos do PerfumeService. %>
 <%- include('partials/topo', { titulo: 'Vitrine' }) %>
-<h1>Vitrine</h1>
+<%# Cabeçalho da vitrine: logo pequeno e uma frase curta de boas-vindas. %>
+<div class="vitrine-cabecalho">
+  <img src="/images/logo.jpg" alt="Lojinha Chic" class="vitrine-logo" width="64" height="64">
+  <div>
+    <h1>Vitrine</h1>
+    <p class="dica">Bem-vindo à Lojinha Chic: perfumes com todo o charme.</p>
+  </div>
+</div>
 <%# temDesconto vem do controller (pergunta à estratégia de desconto de quem está logado). %>
 <% if (temDesconto) { %><p class="destaque">Você tem 5% de desconto em todos os preços.</p><% } %>
 
