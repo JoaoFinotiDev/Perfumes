@@ -99,9 +99,9 @@ function conferir(nome, ok, extra = '') {
   conferir('POST /itens inválido -> 400', r.status === 400);
   r = await vendedor('/itens', { metodo: 'POST', corpo: { nome: 'Dup', marca: 'Marca', preco: '10', estoque: '1', codigo_barras: '789' + id } });
   conferir('código de barras repetido -> 400', r.status === 400);
-  r = await vendedor('/api/produto-por-codigo/abc');
-  conferir('API com código inválido -> 400', r.status === 400);
-  // (Sem teste com código válido da API: isso chamaria serviços externos.)
+  // A busca por código de barras via API (/api/produto-por-codigo) NÃO é testada aqui:
+  // ela chama serviços externos (Kodebar e Open Beauty Facts) e gastaria a cota diária.
+  // Assim, este teste roda sem rede externa (só o servidor local e o MySQL).
 
   // Abrir venda
   r = await vendedor('/vendedor/venda/codigo', { metodo: 'POST', corpo: { codigo: '1234567890123' } });
