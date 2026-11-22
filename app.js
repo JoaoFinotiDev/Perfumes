@@ -35,6 +35,7 @@ app.use(session({
 app.use(carregarUsuario);
 
 app.use('/', require('./routes/index'));
+app.use('/', require('./routes/produtos')); // antes de vendedor: aqui o Admin também entra
 app.use('/', require('./routes/vendedor'));
 app.use('/', require('./routes/admin'));
 

@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS perfumes (
   descricao     TEXT,
   codigo_barras VARCHAR(14)   UNIQUE,   -- opcional (UNIQUE aceita vários NULL)
   foto_url      VARCHAR(500),           -- opcional
+  visivel       BOOLEAN NOT NULL DEFAULT TRUE, -- o Vendedor escolhe se aparece na vitrine (/)
   vendedor_id   INT NULL,               -- quem criou o anúncio
   criado_em     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (vendedor_id) REFERENCES usuarios(id) ON DELETE SET NULL

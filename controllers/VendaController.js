@@ -8,6 +8,8 @@ const { ErroDeValidacao } = require('../utils/erros');
 const moeda = require('../utils/moeda');
 
 const CHAVE = 'venda'; // nome do carrinho da venda na sessão
+// No balcão o Vendedor vende também o que está oculto da vitrine (ocultar vale só para o site).
+const BALCAO = { permitirOculto: true };
 
 class VendaController {
   /**
@@ -31,14 +33,14 @@ class VendaController {
   /** Monta e mostra a tela de venda (com uma mensagem de erro opcional). */
   async _renderizar(req, res, erro) {
     const busca = String(req.query.q || '').trim();
-    const carrinho = await this.carrinhos.carregar(req.session, CHAVE);
+    const carrinho = await this.carrinhos.carregar(req.session, CHAVE, BALCAO);
     const cliente = await this._clienteAtual(req);
     res.render('venda', {
       carrinho, cliente, busca, erro,
       // Subtotal, desconto e total saem prontos daqui; a view so mostra.
       resumo: this.carrinhos.resumir(carrinho, cliente),
       clientes: await this.auth.listarClientes(),
-      resultados: busca ? await this.perfumes.listar(busca) : [],
+      resultados: busca ? await this.perfumes.listar(busca, { incluirOcultos: true }) : [],
       formas: FORMAS_DE_PAGAMENTO
     });
   }
@@ -55,7 +57,7 @@ class VendaController {
   /** POST /vendedor/venda/adicionar: adiciona um produto achado pela busca. */
   async adicionar(req, res) {
     await this._tentar(req, res, () =>
-      this.carrinhos.adicionar(req.session, CHAVE, Number(req.body.perfumeId)));
+      this.carrinhos.adicionar(req.session, CHAVE, Number(req.body.perfumeId), BALCAO));
   }
 
   /** POST /vendedor/venda/codigo: leitor de código de barras (age como teclado + Enter). */
@@ -65,19 +67,19 @@ class VendaController {
       req.session.aviso = 'Produto não encontrado';
       return res.redirect('/vendedor/venda');
     }
-    await this._tentar(req, res, () => this.carrinhos.adicionarPerfume(req.session, CHAVE, perfume));
+    await this._tentar(req, res, () => this.carrinhos.adicionarPerfume(req.session, CHAVE, perfume, BALCAO));
   }
 
   /** POST /vendedor/venda/remover */
   async remover(req, res) {
-    await this.carrinhos.remover(req.session, CHAVE, req.body.perfumeId);
+    await this.carrinhos.remover(req.session, CHAVE, req.body.perfumeId, BALCAO);
     res.redirect('/vendedor/venda');
   }
 
   /** POST /vendedor/venda/finalizar: grava a venda, baixa o estoque e limpa a tela. */
   async finalizar(req, res) {
     try {
-      const carrinho = await this.carrinhos.carregar(req.session, CHAVE);
+      const carrinho = await this.carrinhos.carregar(req.session, CHAVE, BALCAO);
       const venda = await this.vendas.finalizar({
         carrinho, cliente: await this._clienteAtual(req), vendedor: req.usuario, forma: req.body.forma
       });

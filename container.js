@@ -27,6 +27,7 @@ const CarrinhoController = require('./controllers/CarrinhoController');
 const VendaController = require('./controllers/VendaController');
 const AdminController = require('./controllers/AdminController');
 const ProdutoApiController = require('./controllers/ProdutoApiController');
+const GestaoProdutosController = require('./controllers/GestaoProdutosController');
 
 // Repositórios recebem a conexão com o banco.
 const usuarios = new UsuarioRepository(db);
@@ -52,5 +53,6 @@ module.exports = {
   carrinho: new CarrinhoController(carrinhoService, vendaService),
   venda: new VendaController(carrinhoService, perfumeService, authService, vendaService),
   admin: new AdminController(authService),
-  produtoApi: new ProdutoApiController(buscador)
+  produtoApi: new ProdutoApiController(buscador),
+  gestaoProdutos: new GestaoProdutosController(perfumeService)
 };

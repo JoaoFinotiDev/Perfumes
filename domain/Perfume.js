@@ -6,7 +6,7 @@ const { SemDesconto } = require('./Desconto');
 
 class Perfume {
   /** @param {object} dados linha da tabela perfumes */
-  constructor({ id, nome, marca, preco, estoque, descricao, codigo_barras, foto_url, vendedor_id }) {
+  constructor({ id, nome, marca, preco, estoque, descricao, codigo_barras, foto_url, vendedor_id, visivel }) {
     this.id = id;
     this.nome = nome;
     this.marca = marca;
@@ -16,6 +16,8 @@ class Perfume {
     this.codigoBarras = codigo_barras;
     this.fotoUrl = foto_url;
     this.vendedorId = vendedor_id;
+    // Aparece na vitrine? O MySQL devolve 1/0; sem a informação (produto novo) vale "sim".
+    this.visivel = visivel === undefined ? true : Boolean(visivel);
   }
 
   /**

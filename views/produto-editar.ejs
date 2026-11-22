@@ -1,0 +1,20 @@
+<%# Editar produto (Vendedor/Admin). O EJS escapa todo valor mostrado, e a view só MOSTRA. %>
+<%- include('partials/topo', { titulo: 'Editar produto' }) %>
+<h1>Editar produto #<%= produto.id %></h1>
+<% if (erro) { %><p class="erro"><%= erro %></p><% } %>
+
+<form method="post" action="/vendedor/produtos/<%= produto.id %>/editar" class="form">
+  <label>Nome <input name="nome" value="<%= form.nome || '' %>" required maxlength="120"></label>
+  <label>Marca <input name="marca" value="<%= form.marca || '' %>" required maxlength="80"></label>
+  <label>Preço (R$) <input name="preco" value="<%= form.preco || '' %>" required inputmode="decimal"></label>
+  <label>Estoque <input name="estoque" type="number" min="0" value="<%= form.estoque === undefined ? '' : form.estoque %>" required></label>
+  <label>Descrição <textarea name="descricao" maxlength="5000"><%= form.descricao || '' %></textarea></label>
+  <%# O leitor de código de barras digita os números e aperta Enter. O script abaixo impede que esse Enter envie o formulário. %>
+  <label>Código de barras (opcional, único) <input name="codigo_barras" id="codigo_barras" value="<%= form.codigo_barras || '' %>" maxlength="14" inputmode="numeric" autocomplete="off"></label>
+  <label>Foto (URL, opcional) <input name="foto_url" value="<%= form.foto_url || '' %>" maxlength="500"></label>
+  <label><input type="checkbox" name="visivel"<%= form.visivel ? ' checked' : '' %>> Mostrar na vitrine</label>
+  <button type="submit">Salvar</button>
+  <a href="/vendedor/produtos">Cancelar</a>
+</form>
+<script src="/javascripts/editar-produto.js"></script>
+<%- include('partials/rodape') %>

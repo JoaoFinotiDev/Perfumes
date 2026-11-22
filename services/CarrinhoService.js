@@ -15,35 +15,40 @@ class CarrinhoService {
     this.perfumes = perfumeService;
   }
 
-  /** Reconstrói o Carrinho a partir da sessão (ignora itens que sumiram do banco). */
-  async carregar(sessao, chave) {
+  /**
+   * Reconstrói o Carrinho a partir da sessão (ignora itens que sumiram do banco).
+   * Produto OCULTO da vitrine também é ignorado, a não ser que `permitirOculto` seja true
+   * (só a tela "Abrir venda" do Vendedor usa isso: ocultar vale só para a vitrine).
+   */
+  async carregar(sessao, chave, { permitirOculto = false } = {}) {
     const carrinho = new Carrinho();
     const guardado = sessao[chave] || {};
     for (const [id, quantidade] of Object.entries(guardado)) {
       const perfume = await this.perfumes.buscarPorId(id);
-      const qtd = perfume ? Math.min(quantidade, perfume.estoque) : 0;
+      const disponivel = perfume && (perfume.visivel || permitirOculto);
+      const qtd = disponivel ? Math.min(quantidade, perfume.estoque) : 0;
       if (qtd > 0) carrinho.adicionar(perfume, qtd);
     }
     return carrinho;
   }
 
-  /** Adiciona 1 unidade do perfume (por id) e salva na sessão. */
-  async adicionar(sessao, chave, perfumeId) {
+  /** Adiciona 1 unidade do perfume (por id) e salva na sessão. Produto oculto só entra com `permitirOculto`. */
+  async adicionar(sessao, chave, perfumeId, opcoes = {}) {
     const perfume = await this.perfumes.buscarPorId(perfumeId);
-    if (!perfume) throw new ErroDeValidacao('Produto não encontrado.');
-    await this.adicionarPerfume(sessao, chave, perfume);
+    if (!perfume || (!perfume.visivel && !opcoes.permitirOculto)) throw new ErroDeValidacao('Produto não encontrado.');
+    await this.adicionarPerfume(sessao, chave, perfume, opcoes);
   }
 
   /** Adiciona 1 unidade de um perfume já carregado. */
-  async adicionarPerfume(sessao, chave, perfume) {
-    const carrinho = await this.carregar(sessao, chave);
+  async adicionarPerfume(sessao, chave, perfume, opcoes = {}) {
+    const carrinho = await this.carregar(sessao, chave, opcoes);
     carrinho.adicionar(perfume, 1); // lança erro se passar do estoque
     sessao[chave] = carrinho.paraSessao();
   }
 
   /** Remove um perfume do carrinho. */
-  async remover(sessao, chave, perfumeId) {
-    const carrinho = await this.carregar(sessao, chave);
+  async remover(sessao, chave, perfumeId, opcoes = {}) {
+    const carrinho = await this.carregar(sessao, chave, opcoes);
     carrinho.remover(Number(perfumeId));
     sessao[chave] = carrinho.paraSessao();
   }

@@ -30,6 +30,18 @@ class Usuario {
     return false;
   }
 
+  /**
+   * Pode editar e ocultar/mostrar este produto? É o ÚNICO lugar com essa regra.
+   * Hoje: Vendedor e Admin gerenciam TODOS os produtos (a loja é uma só e os produtos
+   * importados não têm dono). Sem argumento, responde "pode gerenciar produtos em geral?"
+   * (usado para decidir o que listar). Para limitar ao dono, troque a regra do Vendedor
+   * por: return !produto || produto.vendedorId === this.id;
+   * @param {Perfume} [produto]
+   */
+  podeGerenciar(produto) { // eslint-disable-line no-unused-vars
+    return false;
+  }
+
   /** Dados mínimos guardados na sessão (nunca a senha). */
   paraSessao() {
     return { id: this.id, usuario: this.usuario, nome: this.nome, papel: this.papel };
@@ -46,11 +58,13 @@ class Cliente extends Usuario {
 /** Vendedor: cria anúncios e abre vendas. */
 class Vendedor extends Usuario {
   get papel() { return 'vendedor'; }
+  podeGerenciar() { return true; } // qualquer Vendedor gerencia todos os produtos (ver Usuario.podeGerenciar)
 }
 
 /** Administrador: cria vendedores. */
 class Admin extends Usuario {
   get papel() { return 'admin'; }
+  podeGerenciar() { return true; } // o Admin também gerencia os produtos
 }
 
 /** Papel (texto do banco) -> classe. Novo papel = nova linha aqui. */

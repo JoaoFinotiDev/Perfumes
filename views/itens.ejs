@@ -11,7 +11,7 @@
 
 <table>
   <thead>
-    <tr><th>Foto</th><th>ID</th><th>Nome</th><th>Marca</th><th>Preço</th><th>Estoque</th><th>Código de barras</th><th>Descrição</th><th></th></tr>
+    <tr><th>Foto</th><th>ID</th><th>Nome</th><th>Marca</th><th>Preço</th><th>Estoque</th><th>Código de barras</th><th>Descrição</th><% if (veOcultos) { %><th>Na vitrine</th><% } %><th></th></tr>
   </thead>
   <tbody>
   <% perfumes.forEach(function (p) { const final = p.precoPara(usuario); %>
@@ -27,8 +27,11 @@
       <td><%= p.estoque %></td>
       <td><%= p.codigoBarras || '-' %></td>
       <td><%= p.descricao || '' %></td>
+      <%# Só quem gerencia produtos vê esta coluna (a lista dos outros já vem sem os ocultos). %>
+      <% if (veOcultos) { %><td><%= p.visivel ? 'Sim' : 'Não' %></td><% } %>
       <td>
-        <% if (p.estoque > 0) { %>
+        <% if (!p.visivel) { %>Oculto
+        <% } else if (p.estoque > 0) { %>
         <form method="post" action="/carrinho/adicionar" class="inline">
           <input type="hidden" name="perfumeId" value="<%= p.id %>">
           <button type="submit">Adicionar</button>
@@ -37,7 +40,7 @@
       </td>
     </tr>
   <% }) %>
-  <% if (!perfumes.length) { %><tr><td colspan="9">Nenhum perfume encontrado.</td></tr><% } %>
+  <% if (!perfumes.length) { %><tr><td colspan="10">Nenhum perfume encontrado.</td></tr><% } %>
   </tbody>
 </table>
 
@@ -53,7 +56,7 @@
     <label>Marca <input name="marca" id="marca" value="<%= form.marca || '' %>" required maxlength="80"></label>
     <label>Preço (R$) <input name="preco" value="<%= form.preco || '' %>" required inputmode="decimal"></label>
     <label>Estoque <input name="estoque" type="number" min="0" value="<%= form.estoque || '' %>" required></label>
-    <label>Descrição <textarea name="descricao" id="descricao" maxlength="1000"><%= form.descricao || '' %></textarea></label>
+    <label>Descrição <textarea name="descricao" id="descricao" maxlength="5000"><%= form.descricao || '' %></textarea></label>
     <label>Foto (URL, opcional) <input name="foto_url" id="foto_url" value="<%= form.foto_url || '' %>" maxlength="500"></label>
     <button type="submit">Criar anúncio</button>
   </form>
