@@ -137,6 +137,20 @@ class PerfumeRepository {
     return r.affectedRows > 0;
   }
 
+  /** Troca SÓ o estoque de uma variação (do produto informado). UPDATE parametrizado; nenhuma outra coluna muda. */
+  async atualizarEstoqueVariacao(perfumeId, variacaoId, estoque) {
+    const [r] = await this.db.query(
+      'UPDATE variacoes SET estoque = ? WHERE id = ? AND perfume_id = ?', [estoque, variacaoId, perfumeId]);
+    return r.affectedRows > 0;
+  }
+
+  /** Liga (true) ou desliga (false) uma variação. Só a coluna "ativo" muda. */
+  async definirVariacaoAtiva(perfumeId, variacaoId, ativo) {
+    const [r] = await this.db.query(
+      'UPDATE variacoes SET ativo = ? WHERE id = ? AND perfume_id = ?', [ativo ? 1 : 0, variacaoId, perfumeId]);
+    return r.affectedRows > 0;
+  }
+
   /** Apaga uma variação (os itens de venda antigos ficam com variacao_id NULL, pela chave estrangeira). */
   async removerVariacao(perfumeId, variacaoId) {
     const [r] = await this.db.query('DELETE FROM variacoes WHERE id = ? AND perfume_id = ?', [variacaoId, perfumeId]);

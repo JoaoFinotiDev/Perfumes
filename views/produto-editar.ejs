@@ -22,7 +22,8 @@
   <a href="/vendedor/produtos">Cancelar</a>
 </form>
 <%# Variações (opcionais). Cada linha é um formulário próprio (fora do formulário do produto). %>
-<h2>Variações</h2>
+<%# id="variacoes": o link "Editar" de cada variação em "Gerenciar produtos" pula direto para cá. %>
+<h2 id="variacoes">Variações</h2>
 <p class="dica">Opcionais (ex.: tamanho, cor). Com variações ativas, o cliente escolhe uma e o preço e o estoque vêm dela; o produto mostra "a partir de" o menor preço e a soma dos estoques.</p>
 <% produto.variacoes.forEach(function (x) { %>
   <form method="post" action="/vendedor/produtos/<%= produto.id %>/variacoes/<%= x.id %>" class="variacao-linha">

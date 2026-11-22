@@ -366,6 +366,43 @@ class PerfumeService {
   }
 
   /**
+   * Acha a variação `variacaoId` DENTRO do produto (ativa ou não). Se ela for de outro produto, devolve null
+   * (o controller responde 404): assim ninguém mexe na variação de um produto pelo endereço de outro.
+   */
+  _variacaoDoProduto(produto, variacaoId) {
+    return produto.variacoes.find((x) => x.id === Number(variacaoId)) || null;
+  }
+
+  /**
+   * Troca SÓ o estoque de uma variação (atalho da lista "Gerenciar produtos").
+   * Valida no servidor: inteiro maior ou igual a 0. Depois ressincroniza o produto
+   * (perfumes.preco = menor preço ativo, perfumes.estoque = soma das ativas).
+   * @returns {Promise<boolean>} false se o produto não existe ou a variação não é dele
+   */
+  async atualizarEstoqueVariacao(id, variacaoId, valor, usuario) {
+    const produto = await this.buscarParaGestao(id, usuario);
+    if (!produto || !this._variacaoDoProduto(produto, variacaoId)) return false;
+    const estoque = v.inteiro(valor, 'Estoque da variação');
+    await this.perfumes.atualizarEstoqueVariacao(produto.id, Number(variacaoId), estoque);
+    await this.perfumes.sincronizarComVariacoes(produto.id);
+    return true;
+  }
+
+  /**
+   * Liga ou desliga uma variação. `ativo` vem do formulário ("1" liga, outro valor desliga).
+   * Variação inativa some da vitrine, da página do produto e de "Abrir venda" (Perfume.variacoesAtivas),
+   * mas continua listada em "Gerenciar produtos" para poder ser ligada de novo.
+   * @returns {Promise<boolean>} false se o produto não existe ou a variação não é dele
+   */
+  async definirVariacaoAtiva(id, variacaoId, ativo, usuario) {
+    const produto = await this.buscarParaGestao(id, usuario);
+    if (!produto || !this._variacaoDoProduto(produto, variacaoId)) return false;
+    await this.perfumes.definirVariacaoAtiva(produto.id, Number(variacaoId), String(ativo) === '1');
+    await this.perfumes.sincronizarComVariacoes(produto.id);
+    return true;
+  }
+
+  /**
    * Troca SÓ o estoque (atalho da lista "Gerenciar produtos", sem abrir a edição).
    * Valida no servidor: inteiro maior ou igual a 0 (senão ErroDeValidacao, que vira 400).
    * @param {number} id produto

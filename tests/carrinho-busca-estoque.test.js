@@ -156,7 +156,7 @@ test('controller do estoque: valor inválido -> 400 com mensagem; válido -> avi
   const sessao = {};
   const bom = criarRes();
   await ctrl.definirEstoque({ params: { id: '1' }, body: { estoque: '7' }, query: {}, session: sessao, usuario: vendedor }, bom);
-  assert.strictEqual(bom.local, '/vendedor/produtos');
+  assert.strictEqual(bom.local, '/vendedor/produtos#produto-1'); // volta para a linha do produto (âncora)
   assert.strictEqual(sessao.aviso, 'Estoque atualizado');
 
   const proibido = criarRes();

@@ -23,5 +23,8 @@ router.post('/vendedor/produtos/:id/estoque', ligar(c.gestaoProdutos, 'definirEs
 router.post('/vendedor/produtos/:id/variacoes', ligar(c.gestaoProdutos, 'adicionarVariacao'));
 router.post('/vendedor/produtos/:id/variacoes/:variacaoId', ligar(c.gestaoProdutos, 'atualizarVariacao'));
 router.post('/vendedor/produtos/:id/variacoes/:variacaoId/remover', ligar(c.gestaoProdutos, 'removerVariacao'));
+// Atalhos da LISTA "Gerenciar produtos": estoque de uma variação e ligar/desligar (o service confere a permissão).
+router.post('/vendedor/produtos/:id/variacoes/:variacaoId/estoque', ligar(c.gestaoProdutos, 'definirEstoqueVariacao'));
+router.post('/vendedor/produtos/:id/variacoes/:variacaoId/ativo', ligar(c.gestaoProdutos, 'definirAtivoVariacao'));
 
 module.exports = router;

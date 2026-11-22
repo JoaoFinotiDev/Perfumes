@@ -21,7 +21,53 @@ class GestaoProdutosController {
   async _mostrarLista(req, res, erro) {
     const busca = String((req.body && req.body.q) || req.query.q || '').trim().slice(0, 80);
     const perfumes = await this.perfumes.listar(busca, { incluirOcultos: true });
-    res.render('produtos', { perfumes, busca, erro });
+    // "aberto" = id do produto cujas variações voltam expandidas (depois de mexer numa delas).
+    const aberto = Number((req.body && req.body.aberto) || req.query.aberto) || 0;
+    res.render('produtos', { perfumes, busca, erro, aberto });
+  }
+
+  /**
+   * Volta para a lista na MESMA busca e na linha do produto (âncora #produto-<id>).
+   * Com `abrir`, a linha volta com as variações expandidas (?aberto=<id>).
+   */
+  _voltarParaLista(req, res, id, abrir = false) {
+    const params = new URLSearchParams(); // codifica o texto da busca (não quebra o endereço)
+    const q = String(req.body.q || '').trim().slice(0, 80);
+    if (q) params.set('q', q);
+    if (abrir) params.set('aberto', String(Number(id)));
+    const texto = params.toString();
+    res.redirect(`/vendedor/produtos${texto ? '?' + texto : ''}#produto-${Number(id)}`);
+  }
+
+  /**
+   * POST /vendedor/produtos/:id/variacoes/:variacaoId/estoque: troca só o estoque da variação.
+   * Valor inválido (não inteiro ou negativo) mostra a lista com o erro (400); variação de outro produto: 404.
+   */
+  async definirEstoqueVariacao(req, res) {
+    await this._proteger(res, async () => {
+      try {
+        const achou = await this.perfumes.atualizarEstoqueVariacao(
+          req.params.id, req.params.variacaoId, req.body.estoque, req.usuario);
+        if (!achou) return this._naoEncontrado(res);
+        req.session.aviso = 'Estoque atualizado';
+        this._voltarParaLista(req, res, req.params.id, true);
+      } catch (erro) {
+        if (!(erro instanceof ErroDeValidacao)) throw erro;
+        res.status(400);
+        await this._mostrarLista(req, res, erro.message);
+      }
+    });
+  }
+
+  /** POST /vendedor/produtos/:id/variacoes/:variacaoId/ativo: liga ("1") ou desliga a variação. */
+  async definirAtivoVariacao(req, res) {
+    await this._proteger(res, async () => {
+      const achou = await this.perfumes.definirVariacaoAtiva(
+        req.params.id, req.params.variacaoId, req.body.ativo, req.usuario);
+      if (!achou) return this._naoEncontrado(res);
+      req.session.aviso = String(req.body.ativo) === '1' ? 'Variação ativada' : 'Variação desativada';
+      this._voltarParaLista(req, res, req.params.id, true);
+    });
   }
 
   /**
@@ -34,8 +80,7 @@ class GestaoProdutosController {
         const achou = await this.perfumes.atualizarEstoque(req.params.id, req.body.estoque, req.usuario);
         if (!achou) return this._naoEncontrado(res);
         req.session.aviso = 'Estoque atualizado';
-        const q = String(req.body.q || '').trim().slice(0, 80);
-        res.redirect('/vendedor/produtos' + (q ? `?q=${encodeURIComponent(q)}` : ''));
+        this._voltarParaLista(req, res, req.params.id);
       } catch (erro) {
         if (!(erro instanceof ErroDeValidacao)) throw erro;
         res.status(400);
@@ -78,9 +123,7 @@ class GestaoProdutosController {
       const achou = await this.perfumes.definirVisibilidade(req.params.id, req.body.visivel, req.usuario);
       if (!achou) return this._naoEncontrado(res);
       req.session.aviso = String(req.body.visivel) === '1' ? 'Produto agora aparece na vitrine.' : 'Produto ocultado da vitrine.';
-      // Volta para a mesma busca (o texto é codificado para não quebrar o endereço).
-      const q = String(req.body.q || '').trim().slice(0, 80);
-      res.redirect('/vendedor/produtos' + (q ? `?q=${encodeURIComponent(q)}` : ''));
+      this._voltarParaLista(req, res, req.params.id); // mesma busca, na linha do produto
     });
   }
 
