@@ -9,9 +9,10 @@
 </head>
 <body>
 <header class="topo">
-  <a class="logo" href="/itens">Loja de Perfumes</a>
+  <a class="logo" href="/">Loja de Perfumes</a>
   <nav>
-    <a href="/itens">Catálogo</a>
+    <a href="/">Vitrine</a>
+    <a href="/itens">Catálogo (tabela)</a>
     <a href="/carrinho">Carrinho</a>
     <%# Estes links so MOSTRAM o menu certo para cada papel. Quem barra de verdade e o middleware exigirPapel. %>
     <% if (usuario && usuario.papel === 'vendedor') { %><a href="/vendedor/venda">Abrir venda</a><% } %>

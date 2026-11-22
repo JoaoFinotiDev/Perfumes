@@ -84,3 +84,31 @@ test('cache: o mesmo código só chama a API uma vez, mesmo ao mesmo tempo', asy
   await cache.buscar('123'); // e mais uma depois
   assert.strictEqual(chamadas, 1);
 });
+
+// Vitrine: preço com desconto vem da estratégia do usuário; foto só aceita http/https; ordem inválida vira "nome".
+test('PerfumeService.vitrine monta cards com desconto, foto segura e esgotado', async () => {
+  const PerfumeService = require('../services/PerfumeService');
+  let ordemUsada;
+  const repo = {
+    listar: async (busca, { ordem }) => {
+      ordemUsada = ordem;
+      return [
+        new Perfume({ id: 1, nome: 'A', marca: 'M', preco: 100, estoque: 2, foto_url: 'javascript:alert(1)' }),
+        new Perfume({ id: 2, nome: 'B', marca: 'M', preco: 50, estoque: 0, foto_url: 'https://x.com/a.jpg' })
+      ];
+    },
+    listarMarcas: async () => ['M']
+  };
+  const servico = new PerfumeService(repo);
+  const comCliente = await servico.vitrine({ ordem: 'preco; --' }, cliente);
+  assert.strictEqual(ordemUsada, 'nome');
+  assert.strictEqual(comCliente.cards[0].precoFinal, 95);
+  assert.strictEqual(comCliente.cards[0].temDesconto, true);
+  assert.strictEqual(comCliente.cards[0].percentual, 5);
+  assert.strictEqual(comCliente.cards[0].fotoUrl, null);
+  assert.strictEqual(comCliente.cards[1].fotoUrl, 'https://x.com/a.jpg');
+  assert.strictEqual(comCliente.cards[1].esgotado, true);
+  const visitante = await servico.vitrine({}, null);
+  assert.strictEqual(visitante.cards[0].precoFinal, 100);
+  assert.strictEqual(visitante.cards[0].temDesconto, false);
+});

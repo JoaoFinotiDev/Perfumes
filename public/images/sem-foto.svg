@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Placeholder local da vitrine: frasco de perfume simples, usado quando o produto não tem foto. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Sem foto">
+  <rect width="120" height="120" fill="#f3eef2"/>
+  <rect x="50" y="18" width="20" height="14" rx="3" fill="#8e2a68"/>
+  <rect x="55" y="32" width="10" height="8" fill="#b9a3b0"/>
+  <rect x="32" y="40" width="56" height="64" rx="10" fill="#e3d3dd" stroke="#b9a3b0" stroke-width="3"/>
+  <rect x="44" y="62" width="32" height="22" rx="3" fill="#fff" opacity="0.8"/>
+</svg>

@@ -5,24 +5,47 @@
  */
 const Perfume = require('../domain/Perfume');
 
+// Ordenações permitidas: chave que vem da URL -> trecho fixo de SQL (lista fechada contra SQL injection).
+const ORDENACOES = {
+  nome: 'nome',
+  'menor-preco': 'preco ASC, nome',
+  'maior-preco': 'preco DESC, nome'
+};
+
 class PerfumeRepository {
   /** @param {object} db pool do mysql2 */
   constructor(db) {
     this.db = db;
   }
 
-  /** Lista perfumes. Com `busca`, filtra por nome ou marca. */
-  async listar(busca = '') {
-    let sql = 'SELECT * FROM perfumes';
+  /**
+   * Lista perfumes. Com `busca`, filtra por nome ou marca.
+   * Opcional: `marca` (igual exata) e `ordem` (chave de ORDENACOES; qualquer outra vira "nome").
+   */
+  async listar(busca = '', { marca = '', ordem = 'nome' } = {}) {
+    const filtros = [];
     const params = [];
     if (busca) {
       // Os "?" são preenchidos pelo driver, o que impede SQL injection (texto malicioso virar comando).
-      sql += ' WHERE nome LIKE ? OR marca LIKE ?';
+      filtros.push('(nome LIKE ? OR marca LIKE ?)');
       const termo = `%${busca}%`;
       params.push(termo, termo);
     }
-    const [linhas] = await this.db.query(sql + ' ORDER BY nome', params);
+    if (marca) {
+      filtros.push('marca = ?');
+      params.push(marca);
+    }
+    const where = filtros.length ? ` WHERE ${filtros.join(' AND ')}` : '';
+    // O ORDER BY não aceita "?", então só entra texto da lista fixa acima (nunca o que veio da URL).
+    const orderBy = Object.prototype.hasOwnProperty.call(ORDENACOES, ordem) ? ORDENACOES[ordem] : ORDENACOES.nome;
+    const [linhas] = await this.db.query(`SELECT * FROM perfumes${where} ORDER BY ${orderBy}`, params);
     return linhas.map((l) => new Perfume(l));
+  }
+
+  /** Marcas diferentes que existem no banco, em ordem alfabética (para o filtro da vitrine). */
+  async listarMarcas() {
+    const [linhas] = await this.db.query('SELECT DISTINCT marca FROM perfumes ORDER BY marca');
+    return linhas.map((l) => l.marca);
   }
 
   /** Busca por id (ou null). */
