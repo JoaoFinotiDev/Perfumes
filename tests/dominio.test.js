@@ -48,7 +48,15 @@ test('VendaService converte EstoqueInsuficienteError em ErroDeValidacao', async 
 test('carrinho não passa do estoque', () => {
   const c = new Carrinho();
   c.adicionar(perfume, 3);
-  assert.throws(() => c.adicionar(perfume, 1), /Estoque insuficiente/);
+  // Já tem 3 no carrinho e o estoque é 3: a mensagem diz quantas já estão no carrinho.
+  assert.throws(() => c.adicionar(perfume, 1), /Você já tem 3 de "X" no carrinho e só temos 3 em estoque\./);
+});
+
+test('aviso de estoque: sem nada no carrinho só diz o estoque; esgotado diz esgotado', () => {
+  const c = new Carrinho();
+  assert.throws(() => c.adicionar(perfume, 5), /só temos 3 em estoque/);
+  const esgotado = new Perfume({ id: 2, nome: 'Z', marca: 'Y', preco: 10, estoque: 0 });
+  assert.throws(() => c.adicionar(esgotado, 1), /produto esgotado/);
 });
 
 test('venda com cliente aplica 5%, sem cliente é preço cheio', () => {

@@ -11,7 +11,7 @@ const session = require('express-session');
 const { carregarUsuario } = require('./middlewares/auth');
 const Perfume = require('./domain/Perfume');
 const { resolverSegredo } = require('./config/segredo');
-const { criarArmazemSeguro, COOKIE, NOME_COOKIE } = require('./config/sessao');
+const { criarArmazemSeguro, salvarAntesDeRedirecionar, COOKIE, NOME_COOKIE } = require('./config/sessao');
 const { tratarErro } = require('./middlewares/erros');
 const pool = require('./config/db'); // o mesmo pool dos repositorios
 
@@ -45,6 +45,8 @@ app.use(session({
   store: criarArmazemSeguro(session, pool), // MySQL; se falhar, avisa no console e usa a memoria (so em desenvolvimento)
   cookie: COOKIE
 }));
+// Grava a sessao antes de cada redirect (senao a pagina seguinte podia ler o carrinho antigo; veja config/sessao.js).
+app.use(salvarAntesDeRedirecionar);
 app.use(carregarUsuario);
 
 app.use('/', require('./routes/index'));

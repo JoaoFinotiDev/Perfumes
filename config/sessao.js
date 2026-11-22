@@ -139,7 +139,25 @@ function criarArmazemSeguro(session, pool, env = process.env) {
   return armazem;
 }
 
+/**
+ * Middleware: grava a sessao no MySQL ANTES de mandar um redirect.
+ * Por que: o express-session envia os cabecalhos do 302 antes de terminar de gravar. Com a sessao no MySQL
+ * (gravacao assincrona), o navegador seguia o redirect e lia a sessao ANTIGA: ex. "Adicionar" levava
+ * a um carrinho vazio. Salvando primeiro, a proxima pagina ja ve o dado novo.
+ * Sem sessao (ex.: depois do logout, que destroi a sessao) o redirect sai direto.
+ * Se a gravacao falhar, o erro vai para o tratador de erros (melhor avisar do que perder o carrinho calado).
+ */
+function salvarAntesDeRedirecionar(req, res, next) {
+  const redirecionar = res.redirect.bind(res);
+  res.redirect = (...args) => {
+    if (!req.session) return redirecionar(...args);
+    req.session.save((erro) => (erro ? next(erro) : redirecionar(...args)));
+  };
+  next();
+}
+
 module.exports = {
+  salvarAntesDeRedirecionar,
   criarArmazem, criarArmazemSeguro, iniciarLimpeza, ArmazemComReserva,
   criarCookie, COOKIE, NOME_COOKIE, DURACAO_MS
 };
