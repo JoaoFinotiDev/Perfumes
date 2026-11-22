@@ -28,9 +28,26 @@ CREATE TABLE IF NOT EXISTS perfumes (
   codigo_barras VARCHAR(14)   UNIQUE,   -- opcional (UNIQUE aceita vários NULL)
   foto_url      VARCHAR(500),           -- opcional
   visivel       BOOLEAN NOT NULL DEFAULT TRUE, -- o Vendedor escolhe se aparece na vitrine (/)
+  sku           VARCHAR(40) NULL UNIQUE,       -- código interno do produto (opcional e único)
+  pontos        INT NULL,                      -- só a marca 'Queen Semijoias' usa (regra no domínio: Perfume.aceitaPontos)
   vendedor_id   INT NULL,               -- quem criou o anúncio
   criado_em     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (vendedor_id) REFERENCES usuarios(id) ON DELETE SET NULL
+);
+
+-- Variações OPCIONAIS de um produto (tamanho, cor...): cada uma tem o seu preço e o seu estoque.
+-- Produto sem variação continua usando o preço e o estoque da tabela perfumes.
+-- Com variações ativas, perfumes.preco guarda o MENOR preço e perfumes.estoque a SOMA (o service mantém sincronizado).
+CREATE TABLE IF NOT EXISTS variacoes (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  perfume_id INT NOT NULL,
+  descricao  VARCHAR(80)   NOT NULL,
+  preco      DECIMAL(10,2) NOT NULL,
+  estoque    INT           NOT NULL DEFAULT 0,
+  ativo      BOOLEAN       NOT NULL DEFAULT TRUE,
+  ordem      INT           NOT NULL DEFAULT 0,
+  CONSTRAINT ck_variacoes_estoque CHECK (estoque >= 0),
+  FOREIGN KEY (perfume_id) REFERENCES perfumes(id) ON DELETE CASCADE
 );
 
 -- Cabeçalho de cada venda (pelo site ou aberta por um vendedor).
@@ -53,9 +70,11 @@ CREATE TABLE IF NOT EXISTS venda_itens (
   venda_id       INT NOT NULL,
   perfume_id     INT NOT NULL,
   quantidade     INT NOT NULL,
+  variacao_id    INT NULL,               -- variação vendida (NULL = produto sem variação)
   preco_unitario DECIMAL(10,2) NOT NULL, -- preço cheio no momento da venda
   FOREIGN KEY (venda_id)   REFERENCES vendas(id)   ON DELETE CASCADE,
-  FOREIGN KEY (perfume_id) REFERENCES perfumes(id)
+  FOREIGN KEY (perfume_id) REFERENCES perfumes(id),
+  FOREIGN KEY (variacao_id) REFERENCES variacoes(id) ON DELETE SET NULL
 );
 
 -- Admin inicial: usuário "admin", senha "admin" (hash bcrypt).
