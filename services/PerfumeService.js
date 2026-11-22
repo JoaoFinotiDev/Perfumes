@@ -14,6 +14,9 @@ const LIMITE_LISTA = 50;
 // Ordenações aceitas na vitrine (as mesmas chaves do PerfumeRepository).
 const ORDENS_VALIDAS = ['nome', 'menor-preco', 'maior-preco'];
 
+// Quantos chips de variação cabem no card da vitrine; o resto vira o chip "+N" (leva à página do produto).
+const MAX_CHIPS_CARD = 6;
+
 // Tamanho máximo da descrição (a coluna é TEXT). 5000 cabe as descrições importadas da Mawwal (até ~2500).
 const LIMITE_DESCRICAO = 5000;
 
@@ -107,6 +110,20 @@ class PerfumeService {
     const precoFinal = p.precoPara(usuario);
     const preco = p.precoBase();
     const estoque = Math.max(0, p.estoqueDe()); // nunca negativo: se vier algo estranho do banco, mostra 0
+    const variacoes = p.variacoesAtivas.map((x) => ({
+      id: x.id,
+      descricao: x.descricao,
+      preco: x.preco,
+      precoFinal: p.precoPara(usuario, x),
+      estoque: Math.max(0, x.estoque),
+      esgotada: x.estoque <= 0,
+      // Selo de estoque desta variação ("Últimas N" / "Esgotado"); o JS só o copia ao trocar a escolha.
+      aviso: Perfume.avisoDeEstoque(x.estoque)
+    }));
+    // Variação já marcada ao abrir: a PRIMEIRA com estoque (null se todas esgotaram ou se não há variações).
+    const inicial = variacoes.find((x) => !x.esgotada) || null;
+    // Estoque que a tela mostra de início: o da variação marcada, ou o do produto (sem variações).
+    const estoqueAtual = p.temVariacoes() ? (inicial ? inicial.estoque : 0) : estoque;
     return {
       id: p.id,
       nome: p.nome,
@@ -120,18 +137,28 @@ class PerfumeService {
       percentual,
       temVariacoes: p.temVariacoes(),
       opcoes: p.variacoesAtivas.length,
-      // Opções do seletor. O desconto do Cliente vale igual na variação (precoFinal já vem calculado).
-      variacoes: p.variacoesAtivas.map((x) => ({
-        id: x.id,
-        descricao: x.descricao,
-        preco: x.preco,
-        precoFinal: p.precoPara(usuario, x),
-        estoque: Math.max(0, x.estoque),
-        esgotada: x.estoque <= 0
-      })),
+      // Opções (chips). O desconto do Cliente vale igual na variação (precoFinal já vem calculado).
+      variacoes,
+      inicialId: inicial ? inicial.id : null,
+      // Chips que cabem no CARD (a página do produto usa `variacoes` inteira) e quantas ficaram de fora ("+N").
+      variacoesCard: this._chipsDoCard(variacoes, inicial),
+      maisOpcoes: Math.max(0, variacoes.length - MAX_CHIPS_CARD),
       estoque,
-      esgotado: estoque <= 0
+      esgotado: estoque <= 0,
+      estoqueAtual,
+      aviso: Perfume.avisoDeEstoque(estoqueAtual)
     };
+  }
+
+  /**
+   * Escolhe até MAX_CHIPS_CARD variações para o card, na ordem de exibição.
+   * Se a variação marcada de início ficaria de fora (as primeiras estão esgotadas), ela entra no lugar do último chip,
+   * assim o card sempre abre com uma opção marcada e o botão "Adicionar" funciona.
+   */
+  _chipsDoCard(variacoes, inicial) {
+    const visiveis = variacoes.slice(0, MAX_CHIPS_CARD);
+    if (inicial && !visiveis.includes(inicial)) visiveis[MAX_CHIPS_CARD - 1] = inicial;
+    return visiveis;
   }
 
   /**
