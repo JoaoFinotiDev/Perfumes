@@ -130,7 +130,16 @@ main:has(.vitrine-grade) { max-width: 1200px; }
 /* O bloco de compra (preço, selo, chips, quantidade e botão) fica preso ao FUNDO do card.
    O .card-corpo é uma coluna flex; margin-top: auto empurra este bloco para baixo,
    então os botões de todos os cards da mesma linha terminam na mesma altura. */
-.card .produto-compra { margin-top: auto; display: flex; flex-direction: column; gap: 2px; }
+/*
+ * Bloco de compra no CARD: o PREÇO fica logo abaixo do SKU (sem buraco), e só a LINHA DOS BOTÕES
+ * (quantidade + Adicionar) fica presa ao fundo do card. Como funciona:
+ *  - .produto-compra e o form .comprar "esticam" (flex: 1) até o fim do card;
+ *  - dentro do form, .comprar-linha usa margin-top: auto e por isso desce até a base.
+ * Resultado: botões alinhados entre os cards, e o espaço que sobra fica entre as variações e os botões.
+ */
+.card .produto-compra { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.card .produto-compra .comprar { flex: 1; }
+.card .comprar-linha { margin-top: auto; }
 /*
  * ESPAÇOS MENORES no card (nome, SKU/pontos, preço e variação mais juntos).
  *  - .card-codigos é um <p>: o navegador dá a ele uma margem de 1em em cima e embaixo; aqui zeramos.
@@ -141,7 +150,7 @@ main:has(.vitrine-grade) { max-width: 1200px; }
 .card .card-nome { margin-bottom: 2px; }
 .card .aviso-estoque { margin: 0; }
 .card .comprar { margin-top: 2px; gap: 4px; }
-.card-corpo form { margin-top: auto; }
+
 .card-botao { width: 100%; }
 button:disabled { background: #bbb; cursor: not-allowed; }
 
@@ -228,7 +237,11 @@ button:disabled { background: #bbb; cursor: not-allowed; }
 /* No CARD os chips são menores (32px), para caberem numa linha. 32px ainda passa do mínimo de toque da WCAG (24px).
    Na página do produto eles continuam com 44px. */
 .card .chip span { min-width: 34px; min-height: 32px; padding: 0 6px; font-size: 0.8rem; border-radius: 6px; }
-.card .variacoes { gap: 4px; }
+/* No card, os chips ficam SEMPRE numa linha só. Se não couberem (nomes longos, ex.: "16 SEM PEDRA"),
+   a linha rola para o lado em vez de empilhar e deixar o card alto. Cada chip não quebra o texto. */
+.card .variacoes { gap: 4px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.card .variacoes .chip { flex: 0 0 auto; }
+.card .chip span { white-space: nowrap; }
 .chip input:checked + span { border: 2px solid var(--cor-principal); font-weight: bold; background: #f9eef5; }
 .chip input:disabled { cursor: not-allowed; }
 .chip input:disabled + span { text-decoration: line-through; color: #999; background: #f3f3f3; border-style: dashed; }
