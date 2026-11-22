@@ -299,3 +299,29 @@ a.chip span { color: var(--cor-destaque); font-weight: bold; }
 [hidden] { display: none !important; }
 .variacao-linha { display: flex; gap: var(--espaco-1, 8px); align-items: flex-end; flex-wrap: wrap; margin: 6px 0; }
 .variacao-linha label { display: flex; flex-direction: column; font-size: 0.85em; }
+
+/* ===== Gerenciar produtos (tabela .tabela-gestao) =====
+ * A página usa a largura toda, como a vitrine (até 1400px), para a tabela não espremer as colunas. */
+main:has(.tabela-gestao) { max-width: 1400px; }
+.tabela-gestao th, .tabela-gestao td { padding: 6px 8px; }
+.tabela-gestao .col-foto { width: 48px; padding: 4px; }
+.foto-mini { width: 48px; height: 48px; object-fit: cover; display: block; }
+.sem-quebra { white-space: nowrap; }
+/* Ações lado a lado: botões pequenos, sem quebrar o texto em duas linhas. */
+.tabela-gestao .acoes { white-space: nowrap; }
+.botao-pequeno { padding: 4px 8px; font-size: 0.85em; white-space: nowrap; }
+.tabela-gestao .estoque-campo { width: 4.5em; padding: 4px; }
+/* "Editar" é um link com cara de botão pequeno (leva a outra página, por isso é <a> e não <button>). */
+a.botao-link { display: inline-block; background: #8e2a68; color: #fff; text-decoration: none; border-radius: 4px; }
+a.botao-link:hover { background: #6a1b4d; }
+/* Seta das variações: ">" fechada; gira 90 graus (vira "v") quando aberta (aria-expanded="true"). */
+.seta { background: none; color: #8e2a68; padding: 0 6px 0 0; font-weight: bold; }
+.seta:hover { background: none; color: #6a1b4d; }
+.seta span { display: inline-block; transition: transform 0.15s; }
+.seta[aria-expanded="true"] span { transform: rotate(90deg); }
+[data-linha-produto] { cursor: pointer; }
+/* Linhas das variações: fundo levemente diferente e nome recuado, para parecerem "filhas" do produto. */
+.linha-variacao td { background: #fbf4f8; }
+.linha-variacao .variacao-nome { padding-left: 28px; }
+.linha-variacao .variacao-nome::before { content: "\21B3  "; color: #a07090; } /* seta de canto: ↳ */
+.variacao-inativa td { color: #888; }
