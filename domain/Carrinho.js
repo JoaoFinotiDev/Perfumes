@@ -83,7 +83,11 @@ class Carrinho {
     const nova = atual + quantidade;
     const item = new ItemDeCarrinho(perfume, variacao, nova);
     if (!perfume.temEstoque(nova, variacao)) {
-      throw new ErroDeValidacao(`Estoque insuficiente de "${item.nome}": só temos ${item.estoque} em estoque.`);
+      // Mensagem clara: estoque zerado = "esgotada"; senão diz quantas unidades ainda existem.
+      const motivo = item.estoque <= 0
+        ? (variacao ? 'variação esgotada' : 'produto esgotado')
+        : `só temos ${item.estoque} em estoque`;
+      throw new ErroDeValidacao(`Estoque insuficiente de "${item.nome}": ${motivo}.`);
     }
     this._itens.set(chave, item);
   }

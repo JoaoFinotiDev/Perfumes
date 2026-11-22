@@ -281,3 +281,16 @@ test('página do produto: oculto só para quem gerencia; vitrine mostra "a parti
   const card = vitrine.cards.find((c) => c.id === 2);
   assert.deepStrictEqual([card.temVariacoes, card.opcoes, card.precoFinal], [true, 3, 80]);
 });
+
+// ---------- Abrir venda: esgotada e quantidade acima do estoque são recusadas no servidor ----------
+
+test('Abrir venda: variação esgotada e quantidade acima do estoque são recusadas, com aviso claro, e nada entra na venda', async () => {
+  const servico = new CarrinhoService(new PerfumeService(criarRepositorioFalso()));
+  const sessao = {};
+  const opcoes = { permitirOculto: true };
+  // Variação B (id 22) tem estoque 0.
+  await assert.rejects(() => servico.adicionar(sessao, 'venda', 2, { ...opcoes, variacaoId: '22' }), /variação esgotada/);
+  // Variação A (id 21) tem estoque 2: pedir 3 é recusado e diz quantas existem.
+  await assert.rejects(() => servico.adicionar(sessao, 'venda', 2, { ...opcoes, variacaoId: '21', quantidade: '3' }), /só temos 2 em estoque/);
+  assert.strictEqual(sessao.venda, undefined); // nada entrou na venda
+});

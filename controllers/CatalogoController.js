@@ -80,6 +80,20 @@ class CatalogoController {
     res.json(await this.perfumes.buscarParaLista(q, { incluirOcultos }, req.usuario));
   }
 
+  /**
+   * GET /api/produtos/:id/variacoes: variações do produto para a segunda busca de "Abrir venda".
+   * Rota LOCAL (só o nosso banco). Só quem gerencia produtos (Vendedor/Admin) usa; visitante e Cliente
+   * recebem 403 em JSON. Produto que não existe: 404 em JSON.
+   */
+  async variacoesJson(req, res) {
+    if (!(req.usuario && req.usuario.podeGerenciar())) {
+      return res.status(403).json({ erro: 'Sem permissão.' });
+    }
+    const variacoes = await this.perfumes.variacoesParaLista(req.params.id);
+    if (!variacoes) return res.status(404).json({ erro: 'Produto não encontrado.' });
+    res.json(variacoes);
+  }
+
   /** Quem está logado tem desconto? Pergunta à estratégia dele (percentual maior que 0), sem olhar o papel. */
   _temDesconto(req) {
     return Boolean(req.usuario) && req.usuario.estrategiaDesconto().percentual() > 0;
