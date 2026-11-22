@@ -14,7 +14,8 @@
 
 <%# Barra de busca: GET com ?q=&marca=&ordem=. Os valores atuais voltam preenchidos. %>
 <form method="get" action="/" class="vitrine-busca">
-  <input type="search" name="q" value="<%= busca %>" placeholder="Buscar por nome ou marca" maxlength="80" aria-label="Buscar por nome ou marca">
+  <input type="search" name="q" value="<%= busca %>" placeholder="Buscar por nome ou marca" maxlength="80" aria-label="Buscar por nome ou marca"
+         data-busca-lista data-url="/api/produtos" autocomplete="off">
   <select name="marca" aria-label="Filtrar por marca">
     <option value="">Todas as marcas</option>
     <% marcas.forEach(function (m) { %>
@@ -55,14 +56,18 @@
       <%# Estoque: com unidades, mostra o número exato ("1 em estoque" / "10 em estoque"); sem unidades, "Esgotado". %>
       <% if (p.esgotado) { %><p class="esgotado">Esgotado</p>
       <% } else { %><p class="estoque"><%= p.estoque %> em estoque</p><% } %>
-      <%# Mesmo POST do catálogo em tabela. Esgotado: botão desativado. %>
+      <%# Só visitante e Cliente veem o botão (mostrarCarrinho); visitante é levado ao login ao clicar. Esgotado: desativado. %>
+      <% if (mostrarCarrinho) { %>
       <form method="post" action="/carrinho/adicionar">
         <input type="hidden" name="perfumeId" value="<%= p.id %>">
         <button type="submit" class="card-botao"<%= p.esgotado ? ' disabled' : '' %>>Adicionar ao carrinho</button>
       </form>
+      <% } %>
     </div>
   </li>
   <% }) %>
 </ul>
 <% } %>
+<%# Busca em lista suspensa com pesquisa gradual (melhoria: sem JS, o formulário acima continua funcionando). %>
+<script src="/javascripts/busca-lista.js"></script>
 <%- include('partials/rodape') %>

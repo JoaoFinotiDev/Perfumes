@@ -1,7 +1,7 @@
 /**
  * controllers/CarrinhoController.js
  * Carrinho do site (guardado na sessão). Pagamento SIMULADO.
- * Qualquer visitante pode montar o carrinho; só o Cliente logado finaliza.
+ * Todas as rotas daqui são só do Cliente (o middleware exigirCliente barra os outros em routes/index.js).
  * O controller só cuida do HTTP (ler o pedido, chamar o service, responder).
  */
 const { FORMAS_DE_PAGAMENTO } = require('../domain/Venda');
@@ -71,7 +71,6 @@ class CarrinhoController {
     res.render('carrinho', {
       carrinho,
       resumo: this.carrinhos.resumir(carrinho, req.usuario),
-      podeFinalizar: Boolean(req.usuario && req.usuario.podeComprar()),
       formas: FORMAS_DE_PAGAMENTO,
       erro
     });

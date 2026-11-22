@@ -19,6 +19,9 @@ function carregarUsuario(req, res, next) {
   req.usuario = req.session.usuario ? criarUsuario(req.session.usuario) : null;
   res.locals.usuario = req.usuario;
   res.locals.moeda = moeda;
+  // Mostrar o link "Carrinho" e o botão "Adicionar ao carrinho"? Visitante vê (ao clicar vai para o login);
+  // logado só vê se o papel pode usar o carrinho (Cliente). Vendedor e Admin vendem por "Abrir venda".
+  res.locals.mostrarCarrinho = !req.usuario || req.usuario.podeUsarCarrinho();
   // Aviso de uma única exibição (flash): mostra uma vez e apaga da sessão.
   res.locals.aviso = req.session.aviso || null;
   delete req.session.aviso;
@@ -26,13 +29,13 @@ function carregarUsuario(req, res, next) {
 }
 
 /**
- * Exige login E um dos papéis informados. Ex.: exigirPapel('vendedor').
- * Sem login, manda para a tela de entrada. Com papel errado, responde 403 (acesso negado).
+ * Monta um middleware que exige login E um dos papéis informados.
+ * Sem login, guarda `avisoSemLogin` e manda para a tela de entrada. Com papel errado, responde 403 (acesso negado).
  */
-function exigirPapel(...papeis) {
+function criarBarreira(avisoSemLogin, papeis) {
   return (req, res, next) => {
     if (!req.usuario) {
-      req.session.aviso = 'Entre para continuar.';
+      req.session.aviso = avisoSemLogin;
       return res.redirect('/login');
     }
     if (!papeis.includes(req.usuario.papel)) {
@@ -42,4 +45,12 @@ function exigirPapel(...papeis) {
   };
 }
 
-module.exports = { carregarUsuario, exigirPapel };
+/** Exige um dos papéis informados. Ex.: exigirPapel('vendedor'). */
+function exigirPapel(...papeis) {
+  return criarBarreira('Entre para continuar.', papeis);
+}
+
+/** Rotas do carrinho: só o Cliente. O visitante vai para o login com um aviso específico. */
+const exigirCliente = criarBarreira('Entre como cliente para comprar.', ['cliente']);
+
+module.exports = { carregarUsuario, exigirPapel, exigirCliente };

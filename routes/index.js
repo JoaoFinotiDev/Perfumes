@@ -6,7 +6,7 @@
 const express = require('express');
 const c = require('../container');
 const ligar = require('../utils/ligar');
-const { exigirPapel } = require('../middlewares/auth');
+const { exigirPapel, exigirCliente } = require('../middlewares/auth');
 
 const router = express.Router();
 
@@ -23,10 +23,16 @@ router.get('/cadastro', ligar(c.auth, 'formCadastro'));
 router.post('/cadastro', ligar(c.auth, 'cadastrar'));
 router.post('/logout', ligar(c.auth, 'logout'));
 
-// Carrinho (qualquer visitante); só o cliente logado finaliza a compra.
+// Carrinho do site: SÓ o Cliente (checado aqui, no servidor; esconder o botão não basta).
+// Visitante vai para o login ("Entre como cliente para comprar."); Vendedor e Admin recebem 403.
+router.use('/carrinho', exigirCliente);
 router.get('/carrinho', ligar(c.carrinho, 'ver'));
 router.post('/carrinho/adicionar', ligar(c.carrinho, 'adicionar'));
 router.post('/carrinho/remover', ligar(c.carrinho, 'remover'));
-router.post('/carrinho/finalizar', exigirPapel('cliente'), ligar(c.carrinho, 'finalizar'));
+router.post('/carrinho/finalizar', ligar(c.carrinho, 'finalizar'));
+
+// Lista de produtos em JSON para a busca gradual do navegador. É uma rota LOCAL (lê só o nosso banco).
+// Sem login devolve só os visíveis; com ?todos=1 (tela "Abrir venda") exige Vendedor/Admin (o controller confere).
+router.get('/api/produtos', ligar(c.catalogo, 'buscarJson'));
 
 module.exports = router;
