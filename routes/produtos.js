@@ -19,5 +19,9 @@ router.get('/vendedor/produtos/:id/editar', ligar(c.gestaoProdutos, 'formEditar'
 router.post('/vendedor/produtos/:id/editar', ligar(c.gestaoProdutos, 'salvar'));
 router.post('/vendedor/produtos/:id/visibilidade', ligar(c.gestaoProdutos, 'definirVisibilidade'));
 router.post('/vendedor/produtos/:id/estoque', ligar(c.gestaoProdutos, 'definirEstoque'));
+// Variações do produto (adicionar, editar, remover), na tela de edição.
+router.post('/vendedor/produtos/:id/variacoes', ligar(c.gestaoProdutos, 'adicionarVariacao'));
+router.post('/vendedor/produtos/:id/variacoes/:variacaoId', ligar(c.gestaoProdutos, 'atualizarVariacao'));
+router.post('/vendedor/produtos/:id/variacoes/:variacaoId/remover', ligar(c.gestaoProdutos, 'removerVariacao'));
 
 module.exports = router;

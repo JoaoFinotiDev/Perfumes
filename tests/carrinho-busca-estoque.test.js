@@ -97,7 +97,7 @@ test('/api/produtos: sem login só visíveis, no máximo 50 itens', async () => 
   await ctrl.buscarJson({ query: {}, usuario: null }, res);
   assert.strictEqual(res.corpo.length, 50);
   assert.ok(res.corpo.every((p) => p.nome !== 'Segredo'));
-  assert.deepStrictEqual(Object.keys(res.corpo[0]).sort(), ['fotoUrl', 'id', 'marca', 'nome', 'precoTexto']);
+  assert.deepStrictEqual(Object.keys(res.corpo[0]).sort(), ['fotoUrl', 'id', 'marca', 'nome', 'precoTexto', 'sku', 'temVariacoes']);
 
   const filtrado = criarRes();
   await ctrl.buscarJson({ query: { q: 'rosa 5' }, usuario: null }, filtrado);

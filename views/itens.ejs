@@ -11,15 +11,18 @@
 
 <table>
   <thead>
-    <tr><th>Foto</th><th>ID</th><th>Nome</th><th>Marca</th><th>Preço</th><th>Estoque</th><th>Código de barras</th><th>Descrição</th><th>Na vitrine</th></tr>
+    <tr><th>Foto</th><th>ID</th><th>SKU</th><th>Nome</th><th>Marca</th><th>Pontos</th><th>Preço</th><th>Estoque</th><th>Código de barras</th><th>Descrição</th><th>Na vitrine</th></tr>
   </thead>
   <tbody>
   <% perfumes.forEach(function (p) { const final = p.precoPara(usuario); %>
     <tr>
       <td><% if (p.fotoUrl) { %><img src="<%= p.fotoUrl %>" alt="<%= p.nome %>" class="foto"><% } %></td>
       <td><%= p.id %></td>
-      <td><%= p.nome %></td>
+      <td><%= p.sku || '-' %></td>
+      <td><a href="/produto/<%= p.id %>"><%= p.nome %></a><% if (p.temVariacoes()) { %> <span class="dica">(<%= p.variacoesAtivas.length %> opções)</span><% } %></td>
       <td><%= p.marca %></td>
+      <%# Pontos: só a marca Queen Semijoias tem (p.pontos já vem null para as outras). %>
+      <td><%= p.pontos === null ? '-' : p.pontos %></td>
       <td>
         <% if (final < p.preco) { %><s><%= moeda(p.preco) %></s> <strong><%= moeda(final) %></strong>
         <% } else { %><%= moeda(p.preco) %><% } %>
@@ -38,7 +41,7 @@
       <td><%= p.visivel ? 'Sim' : 'Não' %></td>
     </tr>
   <% }) %>
-  <% if (!perfumes.length) { %><tr><td colspan="9">Nenhum perfume encontrado.</td></tr><% } %>
+  <% if (!perfumes.length) { %><tr><td colspan="11">Nenhum perfume encontrado.</td></tr><% } %>
   </tbody>
 </table>
 
@@ -55,10 +58,14 @@
     <label>Preço (R$) <input name="preco" value="<%= form.preco || '' %>" required inputmode="decimal"></label>
     <label>Estoque <input name="estoque" type="number" min="0" value="<%= form.estoque || '' %>" required></label>
     <label>Descrição <textarea name="descricao" id="descricao" maxlength="5000"><%= form.descricao || '' %></textarea></label>
+    <label>SKU (opcional, único) <input name="sku" value="<%= form.sku || '' %>" maxlength="40"></label>
+    <%# Pontos: o campo só aparece para a marca Queen Semijoias (o JS mostra/esconde ao digitar a marca; o servidor ignora nas outras). %>
+    <label data-pontos data-marca-pontos="<%= marcaComPontos %>"<%= aceitaPontos(form.marca) ? '' : ' hidden' %>>Pontos (opcional) <input name="pontos" type="number" min="0" step="1" value="<%= form.pontos || '' %>"></label>
     <label>Foto (URL, opcional) <input name="foto_url" id="foto_url" value="<%= form.foto_url || '' %>" maxlength="500"></label>
     <button type="submit">Criar anúncio</button>
   </form>
   <script src="/javascripts/cadastro-produto.js"></script>
+  <script src="/javascripts/pontos-por-marca.js"></script>
 <% } %>
 <script src="/javascripts/descricao-ver-mais.js"></script>
 <%- include('partials/rodape') %>

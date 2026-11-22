@@ -139,3 +139,26 @@ button:disabled { background: #bbb; cursor: not-allowed; }
 
 /* Estoque rápido na lista "Gerenciar produtos": campo estreito ao lado dos botões Salvar, -1 e +1. */
 .estoque-campo { width: 5em; }
+
+/* Card e página do produto: seletor de variação e quantidade (public/javascripts/comprar.js). */
+.card-nome a, .card-imagem a { color: inherit; text-decoration: none; }
+.card-nome a:hover, .card-nome a:focus-visible { text-decoration: underline; }
+.card-imagem a { display: block; }
+.comprar { display: flex; flex-direction: column; gap: 4px; margin-top: var(--espaco-1); }
+.comprar label { font-size: 0.8em; color: #555; }
+.comprar select { width: 100%; box-sizing: border-box; }
+.quantidade { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.quantidade label { flex-basis: 100%; }
+.quantidade input[type="number"] { width: 4.5em; text-align: center; }
+.qtd-botao { padding: 2px 10px; }
+.produto-pagina { display: flex; flex-wrap: wrap; gap: var(--espaco-2, 16px); align-items: flex-start; }
+.produto-foto { flex: 1 1 280px; max-width: 480px; background: var(--cor-fundo-imagem); border-radius: var(--raio); overflow: hidden; }
+.produto-foto img { width: 100%; height: auto; display: block; }
+.produto-info { flex: 1 1 280px; max-width: 520px; }
+.produto-info .comprar { max-width: 320px; }
+.produto-descricao { white-space: pre-line; }
+
+/* O atributo hidden precisa vencer regras como ".form label { display: flex }". */
+[hidden] { display: none !important; }
+.variacao-linha { display: flex; gap: var(--espaco-1, 8px); align-items: flex-end; flex-wrap: wrap; margin: 6px 0; }
+.variacao-linha label { display: flex; flex-direction: column; font-size: 0.85em; }

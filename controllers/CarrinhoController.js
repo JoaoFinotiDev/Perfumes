@@ -27,21 +27,28 @@ class CarrinhoController {
     await this._mostrar(req, res, null);
   }
 
-  /** POST /carrinho/adicionar: põe 1 unidade no carrinho. Se der erro, avisa na vitrine. */
+  /**
+   * POST /carrinho/adicionar: põe `quantidade` (padrão 1) do produto no carrinho, na variação escolhida
+   * (campo variacaoId, obrigatório quando o produto tem variações). O servidor confere tudo de novo:
+   * não confia no "max" do navegador. Se der erro, avisa na página do produto (ou na vitrine).
+   */
   async adicionar(req, res) {
     try {
-      await this.carrinhos.adicionar(req.session, CHAVE, Number(req.body.perfumeId));
+      await this.carrinhos.adicionar(req.session, CHAVE, Number(req.body.perfumeId), {
+        variacaoId: req.body.variacaoId, quantidade: req.body.quantidade
+      });
       res.redirect('/carrinho');
     } catch (erro) {
       if (!(erro instanceof ErroDeValidacao)) throw erro; // erro inesperado vai para o app.js
       req.session.aviso = erro.message;
-      res.redirect('/');
+      const id = Number(req.body.perfumeId);
+      res.redirect(Number.isInteger(id) && id > 0 ? `/produto/${id}` : '/'); // volta onde dá para corrigir
     }
   }
 
-  /** POST /carrinho/remover: tira o produto do carrinho. */
+  /** POST /carrinho/remover: tira a linha (produto + variação) do carrinho. */
   async remover(req, res) {
-    await this.carrinhos.remover(req.session, CHAVE, req.body.perfumeId);
+    await this.carrinhos.remover(req.session, CHAVE, req.body.perfumeId, { variacaoId: req.body.variacaoId });
     res.redirect('/carrinho');
   }
 

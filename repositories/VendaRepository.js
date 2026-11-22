@@ -27,17 +27,25 @@ class VendaRepository {
         [venda.cliente ? venda.cliente.id : null, venda.vendedor ? venda.vendedor.id : null,
          venda.forma, venda.subtotal, venda.desconto, venda.total]);
 
-      for (const { perfume, quantidade } of venda.itens) {
+      for (const item of venda.itens) {
+        const { perfume, variacao, quantidade } = item;
         // Só baixa se ainda houver estoque (evita estoque negativo em compras ao mesmo tempo).
+        // Item com variação: a baixa é na VARIAÇÃO; o estoque do produto (a soma) cai junto, para ficar sincronizado.
+        if (variacao) {
+          const [baixaVar] = await conexao.query(
+            'UPDATE variacoes SET estoque = estoque - ? WHERE id = ? AND perfume_id = ? AND estoque >= ?',
+            [quantidade, variacao.id, perfume.id, quantidade]);
+          if (baixaVar.affectedRows === 0) throw new EstoqueInsuficienteError(item.nome);
+        }
         const [baixa] = await conexao.query(
           'UPDATE perfumes SET estoque = estoque - ? WHERE id = ? AND estoque >= ?',
           [quantidade, perfume.id, quantidade]);
         if (baixa.affectedRows === 0) {
-          throw new EstoqueInsuficienteError(perfume.nome); // o service converte para erro de validacao
+          throw new EstoqueInsuficienteError(item.nome); // o service converte para erro de validacao
         }
         await conexao.query(
-          'INSERT INTO venda_itens (venda_id, perfume_id, quantidade, preco_unitario) VALUES (?, ?, ?, ?)',
-          [r.insertId, perfume.id, quantidade, perfume.preco]);
+          'INSERT INTO venda_itens (venda_id, perfume_id, variacao_id, quantidade, preco_unitario) VALUES (?, ?, ?, ?, ?)',
+          [r.insertId, perfume.id, variacao ? variacao.id : null, quantidade, item.preco]);
       }
       await conexao.commit();
       return r.insertId;

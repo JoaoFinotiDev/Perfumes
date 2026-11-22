@@ -30,9 +30,9 @@ class PerfumeRepository {
     if (apenasVisiveis) filtros.push('visivel = 1'); // texto fixo, sem dado do usuário
     if (busca) {
       // Os "?" são preenchidos pelo driver, o que impede SQL injection (texto malicioso virar comando).
-      filtros.push('(nome LIKE ? OR marca LIKE ?)');
+      filtros.push('(nome LIKE ? OR marca LIKE ? OR sku LIKE ?)'); // também acha pelo SKU
       const termo = `%${busca}%`;
-      params.push(termo, termo);
+      params.push(termo, termo, termo);
     }
     if (marca) {
       filtros.push('marca = ?');
@@ -47,7 +47,23 @@ class PerfumeRepository {
       params.push(limite);
     }
     const [linhas] = await this.db.query(sql, params);
-    return linhas.map((l) => new Perfume(l));
+    return this._montar(linhas);
+  }
+
+  /**
+   * Transforma linhas da tabela perfumes em objetos Perfume JÁ com as suas variações
+   * (uma única consulta extra para todas as linhas, em vez de uma por produto).
+   */
+  async _montar(linhas) {
+    if (!linhas.length) return [];
+    const [vars] = await this.db.query(
+      'SELECT * FROM variacoes WHERE perfume_id IN (?) ORDER BY ordem, id', [linhas.map((l) => l.id)]);
+    return linhas.map((l) => new Perfume({ ...l, variacoes: vars.filter((v) => v.perfume_id === l.id) }));
+  }
+
+  /** Igual a _montar, para uma linha só (ou nenhuma: devolve null). */
+  async _montarUm(linhas) {
+    return linhas[0] ? (await this._montar([linhas[0]]))[0] : null;
   }
 
   /** Marcas diferentes que existem no banco, em ordem alfabética (para o filtro da vitrine). */
@@ -60,21 +76,64 @@ class PerfumeRepository {
   /** Busca por id (ou null). */
   async buscarPorId(id) {
     const [linhas] = await this.db.query('SELECT * FROM perfumes WHERE id = ?', [id]);
-    return linhas[0] ? new Perfume(linhas[0]) : null;
+    return this._montarUm(linhas);
   }
 
   /** Busca pelo código de barras, SOMENTE no banco local (ou null). */
   async buscarPorCodigo(codigo) {
     const [linhas] = await this.db.query('SELECT * FROM perfumes WHERE codigo_barras = ?', [codigo]);
-    return linhas[0] ? new Perfume(linhas[0]) : null;
+    return this._montarUm(linhas);
   }
 
   /** Atualiza todos os campos editáveis de um produto (o dono, vendedor_id, não muda). */
   async atualizar(id, d) {
     await this.db.query(
       `UPDATE perfumes SET nome = ?, marca = ?, preco = ?, estoque = ?, descricao = ?,
-         codigo_barras = ?, foto_url = ?, visivel = ? WHERE id = ?`,
-      [d.nome, d.marca, d.preco, d.estoque, d.descricao, d.codigoBarras, d.fotoUrl, d.visivel ? 1 : 0, id]);
+         codigo_barras = ?, foto_url = ?, visivel = ?, sku = ?, pontos = ? WHERE id = ?`,
+      [d.nome, d.marca, d.preco, d.estoque, d.descricao, d.codigoBarras, d.fotoUrl, d.visivel ? 1 : 0,
+       d.sku || null, d.pontos === undefined ? null : d.pontos, id]);
+  }
+
+  /** Busca pelo SKU (código interno único), ou null. Usado para não duplicar produtos importados. */
+  async buscarPorSku(sku) {
+    const [linhas] = await this.db.query('SELECT * FROM perfumes WHERE sku = ?', [sku]);
+    return this._montarUm(linhas);
+  }
+
+  /** Grava uma variação nova (no fim da ordem) e devolve o id criado. */
+  async criarVariacao(perfumeId, d) {
+    const [r] = await this.db.query(
+      `INSERT INTO variacoes (perfume_id, descricao, preco, estoque, ativo, ordem)
+       VALUES (?, ?, ?, ?, ?, COALESCE(?, (SELECT COALESCE(MAX(o.ordem), -1) + 1 FROM variacoes o WHERE o.perfume_id = ?)))`,
+      [perfumeId, d.descricao, d.preco, d.estoque, d.ativo === false ? 0 : 1, d.ordem === undefined ? null : d.ordem, perfumeId]);
+    return r.insertId;
+  }
+
+  /** Atualiza descrição, preço, estoque e "ativa" de uma variação (do produto informado). */
+  async atualizarVariacao(perfumeId, variacaoId, d) {
+    const [r] = await this.db.query(
+      'UPDATE variacoes SET descricao = ?, preco = ?, estoque = ?, ativo = ? WHERE id = ? AND perfume_id = ?',
+      [d.descricao, d.preco, d.estoque, d.ativo ? 1 : 0, variacaoId, perfumeId]);
+    return r.affectedRows > 0;
+  }
+
+  /** Apaga uma variação (os itens de venda antigos ficam com variacao_id NULL, pela chave estrangeira). */
+  async removerVariacao(perfumeId, variacaoId) {
+    const [r] = await this.db.query('DELETE FROM variacoes WHERE id = ? AND perfume_id = ?', [variacaoId, perfumeId]);
+    return r.affectedRows > 0;
+  }
+
+  /**
+   * Mantém perfumes.preco = MENOR preço e perfumes.estoque = SOMA das variações ATIVAS.
+   * Assim a tabela /itens e a busca continuam simples. Sem variação ativa, não mexe no produto.
+   */
+  async sincronizarComVariacoes(perfumeId) {
+    await this.db.query(
+      `UPDATE perfumes p
+         JOIN (SELECT perfume_id, MIN(preco) AS preco, SUM(estoque) AS estoque
+                 FROM variacoes WHERE perfume_id = ? AND ativo = 1 GROUP BY perfume_id) v
+           ON v.perfume_id = p.id
+          SET p.preco = v.preco, p.estoque = v.estoque`, [perfumeId]);
   }
 
   /** Troca só a coluna estoque de um produto (UPDATE parametrizado; nenhum outro campo é tocado). */
@@ -95,15 +154,16 @@ class PerfumeRepository {
   /** Busca pelo par nome + marca (ou null). Usado pela importacao para nao duplicar produtos. */
   async buscarPorNomeEMarca(nome, marca) {
     const [linhas] = await this.db.query('SELECT * FROM perfumes WHERE nome = ? AND marca = ? LIMIT 1', [nome, marca]);
-    return linhas[0] ? new Perfume(linhas[0]) : null;
+    return this._montarUm(linhas);
   }
 
   /** Grava um perfume novo e devolve o id criado. */
   async criar(d) {
     const [r] = await this.db.query(
-      `INSERT INTO perfumes (nome, marca, preco, estoque, descricao, codigo_barras, foto_url, vendedor_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [d.nome, d.marca, d.preco, d.estoque, d.descricao, d.codigoBarras, d.fotoUrl, d.vendedorId]);
+      `INSERT INTO perfumes (nome, marca, preco, estoque, descricao, codigo_barras, foto_url, vendedor_id, sku, pontos)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [d.nome, d.marca, d.preco, d.estoque, d.descricao, d.codigoBarras, d.fotoUrl, d.vendedorId,
+       d.sku || null, d.pontos === undefined ? null : d.pontos]);
     return r.insertId;
   }
 }

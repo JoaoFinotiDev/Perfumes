@@ -1,0 +1,25 @@
+<%# Página do produto (GET /produto/:id): foto grande, descrição completa, SKU, pontos (só Queen Semijoias),
+    seletor de variação, preço, estoque, quantidade e "Adicionar ao carrinho". A view só MOSTRA: os valores chegam prontos. %>
+<%- include('partials/topo', { titulo: p.nome }) %>
+<p><a href="/">&larr; Voltar para a vitrine</a></p>
+<% if (!p.visivel) { %><p class="dica">Este produto está oculto da vitrine (só você, que gerencia produtos, vê esta página).</p><% } %>
+<% if (temDesconto) { %><p class="destaque">Você tem 5% de desconto em todos os preços.</p><% } %>
+<article class="produto-pagina">
+  <div class="produto-foto">
+    <img src="<%= p.fotoUrl || '/images/sem-foto.svg' %>" alt="<%= p.nome %>"
+         onerror="this.onerror=null;this.src='/images/sem-foto.svg';">
+  </div>
+  <div class="produto-info">
+    <span class="card-marca"><%= p.marca %></span>
+    <h1><%= p.nome %></h1>
+    <%# SKU e pontos só aparecem quando existem (pontos só vêm preenchidos para a marca Queen Semijoias). %>
+    <% if (p.sku) { %><p class="dica">SKU: <%= p.sku %></p><% } %>
+    <% if (p.pontos !== null) { %><p class="dica">Pontos: <%= p.pontos %></p><% } %>
+    <%- include('partials/produto-compra', { p: p, ctx: 'pagina' }) %>
+    <% if (!mostrarCarrinho) { %><p class="dica">Vendedor e Admin vendem pela tela "Abrir venda".</p><% } %>
+    <h2>Descrição</h2>
+    <p class="produto-descricao"><%= p.descricao || 'Sem descrição.' %></p>
+  </div>
+</article>
+<script src="/javascripts/comprar.js"></script>
+<%- include('partials/rodape') %>
