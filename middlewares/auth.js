@@ -22,6 +22,11 @@ function carregarUsuario(req, res, next) {
   req.usuario = req.session.usuario ? criarUsuario(req.session.usuario) : null;
   res.locals.usuario = req.usuario;
   res.locals.moeda = moeda;
+  // Endereço completo do site e da página, para as meta tags Open Graph (o LinkedIn precisa de https://...).
+  // SITE_URL (opcional, no .env) fixa o endereço público; sem ele usa o endereço que chegou no pedido.
+  const host = typeof req.get === 'function' ? req.get('host') : ''; // pedido sem cabeçalhos (testes): fica vazio
+  res.locals.urlDoSite = String(process.env.SITE_URL || (host ? `${req.protocol}://${host}` : '')).replace(/\/+$/, '');
+  res.locals.caminhoAtual = req.originalUrl;
   // Mostrar o link "Carrinho" e o botão "Adicionar ao carrinho"? Visitante vê (ao clicar vai para o login);
   // logado só vê se o papel pode usar o carrinho (Cliente). Vendedor e Admin vendem por "Abrir venda".
   res.locals.mostrarCarrinho = !req.usuario || req.usuario.podeUsarCarrinho();

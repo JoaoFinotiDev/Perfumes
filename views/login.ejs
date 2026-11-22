@@ -5,8 +5,9 @@
 <form method="post" action="/login" class="form">
   <%# autocomplete: o navegador oferece o usuário e a senha salvos. autocapitalize="none": o celular não põe maiúscula no usuário. %>
   <label>Usuário <input name="usuario" value="<%= form.usuario || '' %>" required autofocus autocomplete="username" autocapitalize="none" spellcheck="false"></label>
-  <label>Senha <input type="password" name="senha" required autocomplete="current-password"></label>
+  <label>Senha <input type="password" name="senha" required autocomplete="current-password" data-mostrar-senha></label>
   <button type="submit">Entrar</button>
 </form>
 <p>Ainda não tem conta? <a href="/cadastro">Cadastre-se como cliente</a> e ganhe <%= percentualCliente %>% de desconto.</p>
+<script src="/javascripts/mostrar-senha.js"></script>
 <%- include('partials/rodape') %>

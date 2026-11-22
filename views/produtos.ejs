@@ -52,7 +52,7 @@
        const filhas = p.variacoes.map(function (x) { return 'var-' + p.id + '-' + x.id; });
   %>
     <tr id="produto-<%= p.id %>"<%= filhas.length ? ' data-linha-produto' : '' %>>
-      <td class="col-foto"><% if (p.fotoUrl) { %><img src="<%= p.fotoUrl %>" alt="<%= p.nome %>" class="foto-mini"><% } %></td>
+      <td class="col-foto"><% if (p.fotoUrl) { %><img src="<%= p.fotoUrl %>" alt="<%= p.nome %>" class="foto-mini" loading="lazy" decoding="async" width="48" height="48"><% } %></td>
       <td><%= p.id %></td>
       <td>
         <%# Seta (só com JS: nasce escondida). aria-expanded diz se está aberta; aria-controls aponta as linhas filhas. %>

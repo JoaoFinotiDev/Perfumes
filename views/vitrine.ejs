@@ -1,6 +1,6 @@
 <%# Vitrine (GET /): cards de produtos estilo marketplace, com busca, filtro por marca e ordenação.
     A view só MOSTRA: preço com desconto, marcas e ordem já chegam prontos do PerfumeService. %>
-<%- include('partials/topo', { titulo: 'Vitrine' }) %>
+<%- include('partials/topo', { titulo: locals.titulo || 'Vitrine' }) %>
 <%# Cabeçalho da vitrine: logo pequeno e uma frase curta de boas-vindas. %>
 <div class="vitrine-cabecalho">
   <img src="/images/logo.jpg" alt="Lojinha Chic" class="vitrine-logo" width="64" height="64">
@@ -41,7 +41,12 @@
 </form>
 
 <% if (!cards.length) { %>
-  <p class="dica">Nenhum perfume encontrado.</p>
+  <%# Nada achado: explica e oferece limpar a busca, a marca e a ordem (o link "/" volta à vitrine completa). %>
+  <div class="vitrine-vazia" role="status">
+    <p><strong>Nenhum perfume encontrado.</strong></p>
+    <% if (busca || marca) { %><p class="dica">Tente outra palavra ou outra marca.</p>
+    <p><a href="/" class="botao-link botao-grande">Limpar filtros</a></p><% } %>
+  </div>
 <% } else { %>
 <%# Faixa da página atual (os números vêm prontos de domain/Paginacao.js). %>
 <p class="dica vitrine-faixa">Mostrando <%= paginacao.inicio %>-<%= paginacao.fim %> de <%= paginacao.total %> produto<%= paginacao.total === 1 ? '' : 's' %></p>
@@ -52,7 +57,7 @@
       <%# Sem foto (ou foto que falhar ao carregar): troca por um desenho local, sem serviço externo. %>
       <%# A foto e o nome abrem a página do produto. O seletor e o botão ficam FORA destes links (o card inteiro NÃO é um link). %>
       <a href="/produto/<%= p.id %>" aria-label="Abrir <%= p.nome %>">
-        <img src="<%= p.fotoUrl || '/images/sem-foto.svg' %>" alt="<%= p.nome %>" loading="lazy"
+        <img src="<%= p.fotoUrl || '/images/sem-foto.svg' %>" alt="<%= p.nome %>" loading="lazy" decoding="async"
              onerror="this.onerror=null;this.src='/images/sem-foto.svg';">
       </a>
       <% if (p.temDesconto) { %><span class="selo">-<%= p.percentual %>%</span><% } %>
