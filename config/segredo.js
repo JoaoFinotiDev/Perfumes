@@ -32,8 +32,8 @@ function resolverSegredo(env = process.env, avisar = console.warn, arquivoDev = 
   const mensagem = 'SESSION_SECRET esta vazio ou igual ao texto de exemplo. Defina um texto longo e aleatorio no .env (veja o .env.example).';
   if (env.NODE_ENV === 'production') throw new Error(mensagem);
   avisar(`AVISO: ${mensagem} Em producao o app nao sobe assim.`);
-  // Vazio: segredo fixo de desenvolvimento. Exemplo do .env.example: usa como veio.
-  return segredo === '' ? segredoDeDesenvolvimento(arquivoDev, avisar) : segredo;
+  // Vazio ou igual ao exemplo (que e publico): em desenvolvimento usa o segredo fixo do .segredo-dev.
+  return segredoDeDesenvolvimento(arquivoDev, avisar);
 }
 
 /**

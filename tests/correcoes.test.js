@@ -29,13 +29,16 @@ test('SESSION_SECRET: em producao vazio ou de exemplo falha; em desenvolvimento 
   assert.strictEqual(resolverSegredo({ NODE_ENV: 'production', SESSION_SECRET: 'um-segredo-de-verdade' }, avisar), 'um-segredo-de-verdade');
   assert.strictEqual(avisos.length, 0);
 
-  assert.strictEqual(resolverSegredo({ SESSION_SECRET: SEGREDO_DE_EXEMPLO }, avisar), SEGREDO_DE_EXEMPLO); // dev: avisa e segue
-  assert.strictEqual(avisos.length, 1);
-  // dev vazio: segredo fixo guardado em arquivo (aqui um arquivo temporario, para nao mexer no .segredo-dev real)
+  // dev: segredo vazio ou igual ao exemplo usa o segredo fixo guardado em arquivo
+  // (aqui um arquivo temporario, para nao mexer no .segredo-dev real)
   const arquivo = path.join(os.tmpdir(), `segredo-dev-${process.pid}-${Date.now()}`);
   try {
-    assert.ok(resolverSegredo({}, avisar, arquivo).length >= 32);
-    assert.strictEqual(avisos.length, 3); // aviso do .env vazio + aviso de arquivo criado
+    const doExemplo = resolverSegredo({ SESSION_SECRET: SEGREDO_DE_EXEMPLO }, avisar, arquivo);
+    assert.notStrictEqual(doExemplo, SEGREDO_DE_EXEMPLO);
+    assert.ok(doExemplo.length >= 32);
+    assert.strictEqual(avisos.length, 2); // aviso do exemplo + aviso de arquivo criado
+    assert.strictEqual(resolverSegredo({}, avisar, arquivo), doExemplo); // vazio: o mesmo segredo fixo
+    assert.strictEqual(avisos.length, 3);
   } finally { fs.rmSync(arquivo, { force: true }); }
 });
 

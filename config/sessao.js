@@ -11,8 +11,46 @@ const MySQLStore = require('express-mysql-session');
 /** Quanto tempo o login dura: 8 horas (em milissegundos). Vale para o cookie e para a linha no banco. */
 const DURACAO_MS = 8 * 60 * 60 * 1000;
 
-/** Opcoes do cookie de sessao: so o servidor le (httpOnly), e nao vai em POST vindo de outro site (lax). */
-const COOKIE = { httpOnly: true, sameSite: 'lax', maxAge: DURACAO_MS };
+/** Nome do cookie de sessao (o padrao do express-session). O logout usa o mesmo nome para apagar o cookie. */
+const NOME_COOKIE = 'connect.sid';
+
+/** De quanto em quanto tempo apagamos as sessoes vencidas: 15 minutos. */
+const INTERVALO_LIMPEZA_MS = 15 * 60 * 1000;
+
+/** Unicos erros que justificam trocar para a memoria: tabela "sessoes" inexistente ou MySQL inalcancavel. */
+const ERROS_DE_RESERVA = ['ER_NO_SUCH_TABLE', 'ECONNREFUSED', 'PROTOCOL_CONNECTION_LOST'];
+
+/**
+ * Opcoes do cookie de sessao: so o servidor le (httpOnly) e nao vai em POST vindo de outro site (lax).
+ * Em producao tambem `secure`: o navegador so envia o cookie por HTTPS (o app.js liga o `trust proxy`).
+ * Em desenvolvimento nao tem `secure`, senao o login quebraria em http://localhost e na rede local.
+ * @param {object} env variaveis de ambiente (process.env)
+ */
+function criarCookie(env = process.env) {
+  const cookie = { httpOnly: true, sameSite: 'lax', maxAge: DURACAO_MS };
+  if (env.NODE_ENV === 'production') cookie.secure = true;
+  return cookie;
+}
+
+/** Cookie com o ambiente atual. */
+const COOKIE = criarCookie();
+
+/**
+ * Limpeza propria das sessoes vencidas. Se o MySQL falhar, so loga o erro: o processo nunca cai.
+ * (A limpeza do pacote deixava a promise rejeitada solta, e o Node 15+ encerra o processo nesse caso.)
+ * O `.unref()` impede que este temporizador, sozinho, mantenha o Node vivo.
+ * @param {object} armazem armazem do MySQL (tem clearExpiredSessions)
+ * @param {number} intervalo tempo entre limpezas, em ms (so os testes mudam)
+ * @returns {NodeJS.Timeout} o temporizador
+ */
+function iniciarLimpeza(armazem, intervalo = INTERVALO_LIMPEZA_MS) {
+  const temporizador = setInterval(() => {
+    armazem.clearExpiredSessions()
+      .catch((erro) => console.error('ERRO ao apagar sessoes vencidas (tento de novo mais tarde):', erro));
+  }, intervalo);
+  temporizador.unref();
+  return temporizador;
+}
 
 /**
  * Cria o armazem de sessoes no MySQL.
@@ -22,13 +60,14 @@ const COOKIE = { httpOnly: true, sameSite: 'lax', maxAge: DURACAO_MS };
  */
 function criarArmazem(session, pool) {
   const Armazem = MySQLStore(session);
-  return new Armazem({
+  const armazem = new Armazem({
     schema: { tableName: 'sessoes' },
     createDatabaseTable: false,    // a tabela e criada pelo script.sql / migracao 003
     expiration: DURACAO_MS,        // sessao mais velha que isso vence
-    clearExpired: true,            // o pacote apaga sozinho as sessoes vencidas...
-    checkExpirationInterval: 15 * 60 * 1000 // ...a cada 15 minutos
+    clearExpired: false            // a limpeza e a nossa (iniciarLimpeza), que nunca derruba o processo
   }, pool);
+  armazem.limpeza = iniciarLimpeza(armazem); // guardado para os testes poderem parar
+  return armazem;
 }
 
 /**
@@ -51,9 +90,17 @@ class ArmazemComReserva extends require('express-session').Store {
     this.emUso = principal;
   }
 
-  /** Troca para a reserva (uma vez so) e explica o motivo no console. */
+  /**
+   * Troca para a reserva (uma vez so) e explica o motivo no console.
+   * So troca se o erro for "tabela inexistente" ou "MySQL inalcancavel"; qualquer outro erro so e logado.
+   * @returns {boolean} true se trocou
+   */
   usarReserva(erro) {
     if (this.emUso === this.reserva || !this.reserva) return false;
+    if (!erro || !ERROS_DE_RESERVA.includes(erro.code)) {
+      this.avisar('ERRO no armazem de sessoes (nao e tabela ausente nem conexao recusada, entao nao troco para a memoria):', erro);
+      return false;
+    }
     this.avisar('ERRO: o armazem de sessoes no MySQL falhou (a tabela "sessoes" existe? rode migracoes/003-sessoes.sql). '
       + 'Usando a memoria por enquanto: o login cai ao reiniciar o servidor.', erro);
     this.emUso = this.reserva;
@@ -92,4 +139,7 @@ function criarArmazemSeguro(session, pool, env = process.env) {
   return armazem;
 }
 
-module.exports = { criarArmazem, criarArmazemSeguro, ArmazemComReserva, COOKIE, DURACAO_MS };
+module.exports = {
+  criarArmazem, criarArmazemSeguro, iniciarLimpeza, ArmazemComReserva,
+  criarCookie, COOKIE, NOME_COOKIE, DURACAO_MS
+};
