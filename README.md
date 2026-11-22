@@ -56,6 +56,22 @@ As entidades HTML dos textos (`&ccedil;`, `&#233;`, `&amp;`...) são trocadas pe
 
 Os produtos importados não ficam no `script.sql` (são dados de terceiros). Fonte: dados e fotos pertencem a Mawwal Arabia Brasil; uso apenas acadêmico.
 
+## Importar catálogo Queen
+
+Precisa do banco já com a migração 002 (variações, SKU e pontos). Com o JSON já baixado (sem rede):
+
+```bash
+npm run importar:queen -- --arquivo=queen-produtos.json
+```
+
+Sem `--arquivo`, o comando baixa o catálogo da plataforma Conecta Venda (`POST /cliente/iniciar` devolve o cabeçalho `conecta-session`, e `POST /produtos/listar` devolve os produtos); `--salvar=queen-produtos.json` guarda o JSON bruto. Só adiciona, nunca apaga, e pode rodar mais de uma vez (a chave de "já existe" é o **SKU**, a referência da Queen).
+
+- Um produto por peça, marca `Queen Semijoias`, visível. Preço vem em centavos na fonte (3000 = R$ 30,00).
+- Peça com **2 ou mais variações ativas** vira produto com variações (descrição da variação ou "Opção N", preço e estoque de cada uma; o produto guarda o menor preço e a soma dos estoques). Com uma só, o preço e o estoque ficam no produto.
+- SKU = referência da Queen. Código de barras fica vazio (a referência não é EAN). **Pontos** saem do texto da descrição ("500 Pontos"), que é removido dela; a descrição vira "Categoria: ..." (mais o texto que sobrar).
+- As classes são `QueenFonte` (rede), `QueenConversor` e `ImportadorQueen`, que usa o `ImportadorDeCatalogo` comum (o mesmo da Mawwal, que continua funcionando igual).
+- Os produtos importados não ficam no `script.sql`. Fonte: catálogo https://app.conectavenda.com.br/af7c4f3dcc495af4273cbc35886f253b ; dados e fotos pertencem a Queen Semijoias; uso apenas acadêmico.
+
 ## Gerenciar produtos (Vendedor)
 
 Menu **Gerenciar produtos** (`/vendedor/produtos`), para Vendedor e Admin:
