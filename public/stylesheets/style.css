@@ -172,9 +172,14 @@ button:disabled { background: #bbb; cursor: not-allowed; }
 .busca-lista { position: relative; display: block; flex: 1 1 220px; }
 .busca-lista > input { width: 100%; box-sizing: border-box; }
 .campo-busca { display: flex; flex-direction: column; gap: 4px; font-size: 0.9em; }
-.campo-busca .busca-lista { min-width: 260px; }
+/* Em .campo-busca (coluna, ex.: "Abrir venda") o "flex: 1 1 220px" virava 220px de ALTURA e abria um buraco,
+   com a lista aparecendo lá embaixo. Aqui a caixa fica só do tamanho do campo (flex: none). */
+.campo-busca .busca-lista { min-width: 260px; flex: none; }
+/* Painel da lista: colado logo abaixo do campo e pelo menos 380px de largura (ou a do campo, se for maior),
+   para os nomes dos produtos não ficarem cortados ("ALI..."). Em tela estreita, nunca passa da largura da tela. */
 .busca-painel {
-  position: absolute; z-index: 20; left: 0; right: 0; top: 100%; margin-top: 4px;
+  position: absolute; z-index: 20; left: 0; top: 100%; margin-top: 4px;
+  width: max(100%, 380px); max-width: calc(100vw - 24px);
   background: #fff; border: 1px solid var(--cor-borda); border-radius: var(--raio); box-shadow: var(--sombra-forte);
 }
 .busca-painel-campo { display: block; width: 100%; box-sizing: border-box; margin: 0; border: 0; border-bottom: 1px solid var(--cor-borda); border-radius: var(--raio) var(--raio) 0 0; }
