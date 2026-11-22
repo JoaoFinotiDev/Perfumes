@@ -9,7 +9,8 @@ const test = require('node:test');
 const assert = require('node:assert');
 const Perfume = require('../domain/Perfume');
 const { criarUsuario } = require('../domain/Usuario');
-const PerfumeService = require('../services/PerfumeService');
+const VitrineService = require('../services/VitrineService');
+const GestaoProdutosService = require('../services/GestaoProdutosService');
 const CatalogoController = require('../controllers/CatalogoController');
 const GestaoProdutosController = require('../controllers/GestaoProdutosController');
 const { carregarUsuario, exigirCliente } = require('../middlewares/auth');
@@ -92,7 +93,7 @@ test('o menu recebe mostrarCarrinho pronto: visitante e cliente sim, vendedor e 
 // ---------- 2) GET /api/produtos ----------
 
 test('/api/produtos: sem login só visíveis, no máximo 50 itens', async () => {
-  const ctrl = new CatalogoController(new PerfumeService(criarRepositorioFalso()));
+  const ctrl = (() => { const r = criarRepositorioFalso(); return new CatalogoController(new VitrineService(r), new GestaoProdutosService(r)); })();
   const res = criarRes();
   await ctrl.buscarJson({ query: {}, usuario: null }, res);
   assert.strictEqual(res.corpo.length, 50);
@@ -105,7 +106,7 @@ test('/api/produtos: sem login só visíveis, no máximo 50 itens', async () => 
 });
 
 test('/api/produtos?todos=1: oculto só para Vendedor/Admin; visitante e cliente levam 403', async () => {
-  const ctrl = new CatalogoController(new PerfumeService(criarRepositorioFalso()));
+  const ctrl = (() => { const r = criarRepositorioFalso(); return new CatalogoController(new VitrineService(r), new GestaoProdutosService(r)); })();
   for (const u of [null, cliente]) {
     const res = criarRes();
     await ctrl.buscarJson({ query: { todos: '1', q: 'Segredo' }, usuario: u }, res);
@@ -126,7 +127,7 @@ test('/api/produtos?todos=1: oculto só para Vendedor/Admin; visitante e cliente
 
 test('atualizarEstoque grava inteiro >= 0 (inclusive 0) e recusa o resto', async () => {
   const repo = criarRepositorioFalso();
-  const servico = new PerfumeService(repo);
+  const servico = new GestaoProdutosService(repo);
   assert.strictEqual(await servico.atualizarEstoque(1, '12', vendedor), true);
   assert.strictEqual(repo.lista[0].estoque, 12);
   assert.strictEqual(await servico.atualizarEstoque(1, '0', admin), true);
@@ -139,13 +140,13 @@ test('atualizarEstoque grava inteiro >= 0 (inclusive 0) e recusa o resto', async
 });
 
 test('atualizarEstoque: cliente e visitante recebem erro de permissão', async () => {
-  const servico = new PerfumeService(criarRepositorioFalso());
+  const servico = new GestaoProdutosService(criarRepositorioFalso());
   await assert.rejects(() => servico.atualizarEstoque(1, '3', cliente), ErroDePermissao);
   await assert.rejects(() => servico.atualizarEstoque(1, '3', null), ErroDePermissao);
 });
 
 test('controller do estoque: valor inválido -> 400 com mensagem; válido -> aviso "Estoque atualizado"', async () => {
-  const ctrl = new GestaoProdutosController(new PerfumeService(criarRepositorioFalso()));
+  const ctrl = new GestaoProdutosController(new GestaoProdutosService(criarRepositorioFalso()));
 
   const ruim = criarRes();
   await ctrl.definirEstoque({ params: { id: '1' }, body: { estoque: '-3' }, query: {}, session: {}, usuario: vendedor }, ruim);

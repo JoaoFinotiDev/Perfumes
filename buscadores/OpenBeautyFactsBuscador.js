@@ -14,7 +14,8 @@ class OpenBeautyFactsBuscador extends BuscadorDeProduto {
         headers: { 'User-Agent': 'LojaPerfumes/1.0 (trabalho academico)' },
         signal: AbortSignal.timeout(5000)
       });
-      if (!resposta.ok) return null;
+      if (resposta.status === 404) return null; // não achou
+      if (!resposta.ok) throw new Error(`Open Beauty Facts respondeu ${resposta.status}`); // falha: não vai para o cache
       const dados = await resposta.json();
       const produto = dados.product;
       if (dados.status !== 1 || !produto || !produto.product_name) return null;
@@ -27,7 +28,8 @@ class OpenBeautyFactsBuscador extends BuscadorDeProduto {
         foto: produto.image_front_url || produto.image_url || ''
       };
     } catch (erro) {
-      return null; // falha de rede nunca quebra o cadastro
+      // Falha de rede ou tempo esgotado: lança (a cadeia segura e o cache não guarda a falha).
+      throw new Error(`Open Beauty Facts indisponível: ${erro.message}`);
     }
   }
 }

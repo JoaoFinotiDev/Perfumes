@@ -28,10 +28,10 @@
     <%# mostrarCarrinho vem pronto do middleware (visitante e Cliente veem; Vendedor e Admin não). A rota também barra no servidor. %>
     <% if (mostrarCarrinho) { %><a href="/carrinho">Carrinho</a><% } %>
     <%# Estes links so MOSTRAM o menu certo para cada papel. Quem barra de verdade e o middleware exigirPapel. %>
-    <% if (usuario && usuario.papel === 'vendedor') { %><a href="/vendedor/venda">Abrir venda</a><% } %>
+    <% if (usuario && usuario.ehVendedor()) { %><a href="/vendedor/venda">Abrir venda</a><% } %>
     <%# "Gerenciar produtos" aparece para quem a regra Usuario.podeGerenciar() libera (Vendedor e Admin). %>
     <% if (usuario && usuario.podeGerenciar()) { %><a href="/vendedor/produtos">Gerenciar produtos</a><% } %>
-    <% if (usuario && usuario.papel === 'admin') { %><a href="/admin">Vendedores</a><% } %>
+    <% if (usuario && usuario.ehAdmin()) { %><a href="/admin">Vendedores</a><% } %>
     <% if (usuario) { %>
       <form action="/logout" method="post" class="inline">
         <span class="quem"><%= usuario.nome %> (<%= usuario.papel %>)</span>

@@ -4,7 +4,7 @@
  * Senhas sempre com hash bcrypt.
  */
 const bcrypt = require('bcryptjs');
-const { criarUsuario } = require('../domain/Usuario');
+const { criarUsuario, PAPEIS } = require('../domain/Usuario');
 const { ErroDeValidacao } = require('../utils/erros');
 const v = require('../utils/validacao');
 
@@ -32,12 +32,12 @@ class AuthService {
 
   /** Cadastro feito pelo próprio cliente. */
   cadastrarCliente(dados) {
-    return this._criar(dados, 'cliente');
+    return this._criar(dados, PAPEIS.CLIENTE);
   }
 
   /** Cadastro de vendedor (a rota só deixa o admin chegar aqui). */
   cadastrarVendedor(dados) {
-    return this._criar(dados, 'vendedor');
+    return this._criar(dados, PAPEIS.VENDEDOR);
   }
 
   /** Valida os dados, gera o hash e grava. */
@@ -57,10 +57,10 @@ class AuthService {
   }
 
   /** Lista de clientes (para a tela de venda). */
-  listarClientes() { return this.usuarios.listarPorPapel('cliente'); }
+  listarClientes() { return this.usuarios.listarPorPapel(PAPEIS.CLIENTE); }
 
   /** Lista de vendedores (para a tela do admin). */
-  listarVendedores() { return this.usuarios.listarPorPapel('vendedor'); }
+  listarVendedores() { return this.usuarios.listarPorPapel(PAPEIS.VENDEDOR); }
 
   /** Busca usuário por id. */
   buscarPorId(id) { return this.usuarios.buscarPorId(id); }

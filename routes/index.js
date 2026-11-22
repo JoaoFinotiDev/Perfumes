@@ -7,14 +7,15 @@ const express = require('express');
 const c = require('../container');
 const ligar = require('../utils/ligar');
 const { exigirPapel, exigirCliente } = require('../middlewares/auth');
+const { PAPEIS } = require('../domain/Usuario');
 
 const router = express.Router();
 
 // Vitrine (GET /) em cards e catálogo em tabela (GET /itens, exigido pelo trabalho).
 router.get('/', ligar(c.catalogo, 'vitrine')); // vitrine em cards (home)
 // A tabela do catálogo é só de Vendedor e Admin; Cliente e visitante veem a vitrine (/).
-router.get('/itens', exigirPapel('vendedor', 'admin'), ligar(c.catalogo, 'listar'));
-router.post('/itens', exigirPapel('vendedor'), ligar(c.catalogo, 'criar'));
+router.get('/itens', exigirPapel(PAPEIS.VENDEDOR, PAPEIS.ADMIN), ligar(c.catalogo, 'listar'));
+router.post('/itens', exigirPapel(PAPEIS.VENDEDOR), ligar(c.catalogo, 'criar'));
 
 // Página do produto (pública; produto oculto só para quem gerencia produtos).
 router.get('/produto/:id', ligar(c.catalogo, 'produto'));

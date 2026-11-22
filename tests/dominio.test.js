@@ -71,7 +71,21 @@ test('cadeia: usa o segundo buscador e ignora falhas do primeiro', async () => {
   const quebrado = { buscar: async () => { throw new Error('rede'); } };
   const bom = { buscar: async () => ({ nome: 'A', marca: 'B', foto: '' }) };
   assert.deepStrictEqual(await new BuscadorEmCadeia([quebrado, bom]).buscar('1'), { nome: 'A', marca: 'B', descricao: '', foto: '' });
-  assert.strictEqual(await new BuscadorEmCadeia([quebrado]).buscar('1'), null);
+  // Ninguém achou e alguém FALHOU: lança (falhar não é "não existe"; o cache não pode guardar isso).
+  await assert.rejects(() => new BuscadorEmCadeia([quebrado]).buscar('1'), /rede/);
+  // Todos responderam "não achei": aí sim é null.
+  assert.strictEqual(await new BuscadorEmCadeia([{ buscar: async () => null }]).buscar('1'), null);
+});
+
+test('cache: falha da API NÃO é guardada (a próxima busca tenta de novo); "não achou" é guardado', async () => {
+  const BuscadorComCache = require('../buscadores/BuscadorComCache');
+  let chamadas = 0;
+  const instavel = { buscar: async () => { chamadas++; if (chamadas === 1) throw new Error('rede'); return null; } };
+  const cache = new BuscadorComCache(instavel);
+  await assert.rejects(() => cache.buscar('789'), /rede/);
+  assert.strictEqual(await cache.buscar('789'), null); // tentou de novo (2ª chamada) e guardou o "não achou"
+  assert.strictEqual(await cache.buscar('789'), null); // agora vem do cache
+  assert.strictEqual(chamadas, 2);
 });
 
 test('cadeia: o segundo buscador completa os campos que o primeiro deixou vazios', async () => {
@@ -94,8 +108,8 @@ test('cache: o mesmo código só chama a API uma vez, mesmo ao mesmo tempo', asy
 });
 
 // Vitrine: preço com desconto vem da estratégia do usuário; foto só aceita http/https; ordem inválida vira "nome".
-test('PerfumeService.vitrine monta cards com desconto, foto segura e esgotado', async () => {
-  const PerfumeService = require('../services/PerfumeService');
+test('VitrineService.vitrine monta cards com desconto, foto segura e esgotado', async () => {
+  const VitrineService = require('../services/VitrineService');
   let ordemUsada;
   const repo = {
     listar: async (busca, { ordem }) => {
@@ -108,7 +122,7 @@ test('PerfumeService.vitrine monta cards com desconto, foto segura e esgotado', 
     contar: async () => 2,
     listarMarcas: async () => ['M']
   };
-  const servico = new PerfumeService(repo);
+  const servico = new VitrineService(repo);
   const comCliente = await servico.vitrine({ ordem: 'preco; --' }, cliente);
   assert.strictEqual(ordemUsada, 'nome');
   assert.strictEqual(comCliente.cards[0].precoFinal, 95);

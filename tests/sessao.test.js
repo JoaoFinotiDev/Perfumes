@@ -175,9 +175,9 @@ test('logout: destrói a sessao e apaga o cookie', () => {
 });
 
 test('carrinho.ejs mostra o percentual que vem do resumo (nao um 5% fixo)', async () => {
-  const carrinho = { estaVazio: () => false, itens: [] };
-  const base = { erro: null, carrinho, usuario: null, mostrarCarrinho: true, aviso: null, moeda: require('../utils/moeda'), formas: { pix: 'Pix' } };
-  const resumo = { subtotal: 100, desconto: 10, total: 90, temDesconto: true, percentualTexto: '10%' };
+  const base = { erro: null, usuario: null, mostrarCarrinho: true, aviso: null, moeda: require('../utils/moeda'), formas: { pix: 'Pix' } };
+  const linhas = [{ nome: 'X', marca: 'Y', quantidade: 2, unitario: 45, subtotal: 90, perfumeId: 1, variacaoId: '' }];
+  const resumo = { linhas, subtotal: 100, desconto: 10, total: 90, temDesconto: true, percentualTexto: '10%' };
   const html = await ejs.renderFile(path.join(__dirname, '..', 'views', 'carrinho.ejs'), { ...base, resumo });
   assert.match(html, /Desconto de cliente \(10%\)/);
 });

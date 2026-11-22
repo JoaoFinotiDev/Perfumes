@@ -4,6 +4,7 @@
  */
 const { ErroDeValidacao } = require('../utils/erros');
 const { NOME_COOKIE } = require('../config/sessao');
+const { CARRINHOS } = require('../services/CarrinhoService');
 
 class AuthController {
   /** @param {AuthService} authService */
@@ -56,12 +57,12 @@ class AuthController {
 
   /** Troca o id da sessão (evita fixação de sessão) e guarda o usuário. Mantém o carrinho. */
   _abrirSessao(req, usuario) {
-    const carrinho = req.session.carrinho;
+    const carrinho = req.session[CARRINHOS.SITE];
     return new Promise((resolve, reject) => {
       req.session.regenerate((err) => {
         if (err) return reject(err);
         req.session.usuario = usuario.paraSessao();
-        if (carrinho) req.session.carrinho = carrinho;
+        if (carrinho) req.session[CARRINHOS.SITE] = carrinho;
         resolve();
       });
     });

@@ -16,11 +16,7 @@ class Variacao {
     this.ativo = ativo === undefined ? true : Boolean(ativo);
     this.ordem = ordem === undefined ? 0 : Number(ordem);
   }
-
-  /** Há estoque suficiente nesta variação para a quantidade pedida? */
-  temEstoque(quantidade) {
-    return this.estoque >= quantidade;
-  }
+  // O estoque da variação é conferido por Perfume.temEstoque(quantidade, variacao), num lugar só.
 }
 
 module.exports = Variacao;

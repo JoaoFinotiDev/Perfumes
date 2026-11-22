@@ -34,4 +34,4 @@ function tratarErro(err, req, res, next) {
   res.status(status).render('erro', MENSAGENS[status] || PADRAO);
 }
 
-module.exports = { tratarErro, MENSAGENS };
+module.exports = { tratarErro };

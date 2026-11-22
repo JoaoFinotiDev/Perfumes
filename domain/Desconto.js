@@ -20,6 +20,11 @@ class EstrategiaDesconto {
     throw new Error('Implemente percentual() na subclasse.');
   }
 
+  /** O percentual em número inteiro, pronto para a tela (0.05 vira 5). Único lugar que faz essa conta. */
+  emPorcento() {
+    return Math.round(this.percentual() * 100);
+  }
+
   /** Devolve o valor já com desconto. */
   aplicar(valor) {
     return arredondar(valor * (1 - this.percentual()));

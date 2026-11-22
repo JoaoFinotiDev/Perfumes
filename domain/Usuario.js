@@ -1,12 +1,18 @@
 /**
  * domain/Usuario.js
  * Classes de domínio dos usuários: Usuario (base), Cliente, Vendedor e Admin.
- * Cada papel responde "qual é o meu desconto?" por polimorfismo,
- * então o resto do sistema não precisa de "if (papel === ...)".
+ * Cada papel responde por si mesmo (polimorfismo): "qual é o meu desconto?", "posso usar o carrinho?",
+ * "sou vendedor?". Assim o resto do sistema PERGUNTA ao objeto e não compara texto (papel === '...').
  */
 const { SemDesconto, DescontoCliente } = require('./Desconto');
 
-/** Usuário genérico. Sem desconto por padrão. */
+/**
+ * Nomes dos papéis, iguais aos valores da coluna usuarios.papel no banco.
+ * É o ÚNICO lugar com esses textos: rotas, serviços e repositórios usam PAPEIS.CLIENTE etc.
+ */
+const PAPEIS = Object.freeze({ CLIENTE: 'cliente', VENDEDOR: 'vendedor', ADMIN: 'admin' });
+
+/** Usuário genérico. Sem desconto e sem nenhuma permissão especial por padrão. */
 class Usuario {
   /** @param {{id:number, usuario:string, nome:string}} dados */
   constructor({ id, usuario, nome }) {
@@ -15,19 +21,28 @@ class Usuario {
     this.nome = nome;
   }
 
-  /** Nome do papel (igual ao valor guardado no banco). */
+  /** Nome do papel (igual ao valor guardado no banco). Cada subclasse devolve o seu. */
   get papel() {
-    throw new Error('Implemente papel na subclasse.');
+    throw new Error('Implemente "papel" na subclasse.');
   }
 
-  /** Estratégia de desconto deste usuário. */
+  /** Este usuário tem um dos papéis da lista? Usado pelo middleware exigirPapel. */
+  temPapel(...papeis) {
+    return papeis.includes(this.papel);
+  }
+
+  /** É Cliente? (as subclasses que são trocam para true) */
+  ehCliente() { return false; }
+
+  /** É Vendedor? */
+  ehVendedor() { return false; }
+
+  /** É Admin? */
+  ehAdmin() { return false; }
+
+  /** Estratégia de desconto deste usuário (padrão Strategy, veja domain/Desconto.js). */
   estrategiaDesconto() {
     return new SemDesconto();
-  }
-
-  /** Pode finalizar compra pelo site? Só o Cliente (as subclasses mudam isso). */
-  podeComprar() {
-    return false;
   }
 
   /**
@@ -56,34 +71,36 @@ class Usuario {
   }
 }
 
-/** Cliente: compra com 5% de desconto. */
+/** Cliente: compra pelo site com 5% de desconto. */
 class Cliente extends Usuario {
-  get papel() { return 'cliente'; }
+  get papel() { return PAPEIS.CLIENTE; }
+  ehCliente() { return true; }
   estrategiaDesconto() { return new DescontoCliente(); }
-  podeComprar() { return true; }
   podeUsarCarrinho() { return true; }
 }
 
-/** Vendedor: cria anúncios e abre vendas. */
+/** Vendedor: cria anúncios, gerencia produtos e abre vendas no balcão. */
 class Vendedor extends Usuario {
-  get papel() { return 'vendedor'; }
-  podeGerenciar() { return true; } // qualquer Vendedor gerencia todos os produtos (ver Usuario.podeGerenciar)
+  get papel() { return PAPEIS.VENDEDOR; }
+  ehVendedor() { return true; }
+  podeGerenciar() { return true; } // qualquer Vendedor gerencia todos os produtos (veja Usuario.podeGerenciar)
 }
 
-/** Administrador: cria vendedores. */
+/** Administrador: cria vendedores e também gerencia os produtos. */
 class Admin extends Usuario {
-  get papel() { return 'admin'; }
-  podeGerenciar() { return true; } // o Admin também gerencia os produtos
+  get papel() { return PAPEIS.ADMIN; }
+  ehAdmin() { return true; }
+  podeGerenciar() { return true; }
 }
 
-/** Papel (texto do banco) -> classe. Novo papel = nova linha aqui. */
-const CLASSES_POR_PAPEL = { cliente: Cliente, vendedor: Vendedor, admin: Admin };
+/** Papel (texto do banco) -> classe. Papel novo = uma linha nova aqui. */
+const CLASSES_POR_PAPEL = { [PAPEIS.CLIENTE]: Cliente, [PAPEIS.VENDEDOR]: Vendedor, [PAPEIS.ADMIN]: Admin };
 
-/** Fábrica: cria o objeto certo a partir de uma linha do banco ou da sessão. */
+/** Fábrica: cria o objeto certo (Cliente, Vendedor ou Admin) a partir de uma linha do banco ou da sessão. */
 function criarUsuario(dados) {
   const Classe = CLASSES_POR_PAPEL[dados.papel];
   if (!Classe) throw new Error(`Papel desconhecido: ${dados.papel}`);
   return new Classe(dados);
 }
 
-module.exports = { Usuario, Cliente, Vendedor, Admin, criarUsuario };
+module.exports = { Usuario, Cliente, Vendedor, Admin, criarUsuario, PAPEIS };

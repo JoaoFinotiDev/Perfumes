@@ -10,7 +10,7 @@
   </div>
 </div>
 <%# temDesconto vem do controller (pergunta à estratégia de desconto de quem está logado). %>
-<% if (temDesconto) { %><p class="destaque">Você tem 5% de desconto em todos os preços.</p><% } %>
+<% if (percentualDesconto) { %><p class="destaque">Você tem <%= percentualDesconto %>% de desconto em todos os preços.</p><% } %>
 
 <%# Barra de busca: GET com ?q=&marca=&ordem=. Os valores atuais voltam preenchidos. %>
 <form method="get" action="/" class="vitrine-busca">
@@ -32,7 +32,7 @@
   <%# Quantos produtos por página. O form não envia "pagina", então mudar busca, marca, ordem ou isto volta à página 1. %>
   <label class="vitrine-por-pagina">Mostrar:
     <select name="porPagina" data-envia-ao-mudar>
-      <% [30, 50, 100].forEach(function (n) { %>
+      <% opcoesPorPagina.forEach(function (n) { %>
         <option value="<%= n %>"<%= n === paginacao.porPagina ? ' selected' : '' %>><%= n %></option>
       <% }) %>
     </select>

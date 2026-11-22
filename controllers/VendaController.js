@@ -7,7 +7,9 @@ const { FORMAS_DE_PAGAMENTO } = require('../domain/Venda');
 const { ErroDeValidacao } = require('../utils/erros');
 const moeda = require('../utils/moeda');
 
-const CHAVE = 'venda'; // nome do carrinho da venda na sessão
+const { CARRINHOS } = require('../services/CarrinhoService');
+
+const CHAVE = CARRINHOS.BALCAO; // nome do carrinho da venda na sessão
 // No balcão o Vendedor vende também o que está oculto da vitrine (ocultar vale só para o site).
 const BALCAO = { permitirOculto: true };
 
@@ -36,8 +38,8 @@ class VendaController {
     const carrinho = await this.carrinhos.carregar(req.session, CHAVE, BALCAO);
     const cliente = await this._clienteAtual(req);
     res.render('venda', {
-      carrinho, cliente, busca, erro,
-      // Subtotal, desconto e total saem prontos daqui; a view so mostra.
+      cliente, busca, erro,
+      // Linhas, subtotal, desconto e total saem prontos daqui; a view só mostra.
       resumo: this.carrinhos.resumir(carrinho, cliente),
       clientes: await this.auth.listarClientes(),
       resultados: busca ? await this.perfumes.listar(busca, { incluirOcultos: true }) : [],
@@ -49,7 +51,7 @@ class VendaController {
   async definirCliente(req, res) {
     const id = Number(req.body.clienteId);
     const cliente = id ? await this.auth.buscarPorId(id) : null;
-    if (cliente && cliente.papel === 'cliente') req.session.vendaClienteId = cliente.id;
+    if (cliente && cliente.ehCliente()) req.session.vendaClienteId = cliente.id;
     else delete req.session.vendaClienteId;
     res.redirect('/vendedor/venda');
   }

@@ -37,6 +37,7 @@ class BuscadorComCache extends BuscadorDeProduto {
     const busca = this.buscador.buscar(codigo)
       .then((valor) => {
         // "Não achou" (null) também é guardado: evita gastar cota com o mesmo código.
+        // Já uma FALHA (erro lançado) não chega aqui: a promise rejeita, nada é guardado e a próxima busca tenta de novo.
         this.cache.set(codigo, { valor, expiraEm: Date.now() + this.validadeMs });
         return valor;
       })

@@ -3,7 +3,7 @@
 <%- include('partials/topo', { titulo: p.nome }) %>
 <p><a href="/">&larr; Voltar para a vitrine</a></p>
 <% if (!p.visivel) { %><p class="dica">Este produto está oculto da vitrine (só você, que gerencia produtos, vê esta página).</p><% } %>
-<% if (temDesconto) { %><p class="destaque">Você tem 5% de desconto em todos os preços.</p><% } %>
+<% if (percentualDesconto) { %><p class="destaque">Você tem <%= percentualDesconto %>% de desconto em todos os preços.</p><% } %>
 <article class="produto-pagina">
   <div class="produto-foto">
     <img src="<%= p.fotoUrl || '/images/sem-foto.svg' %>" alt="<%= p.nome %>"

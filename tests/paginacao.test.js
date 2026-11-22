@@ -2,12 +2,12 @@
  * tests/paginacao.test.js
  * Testa (sem rede e sem banco) a paginação da vitrine:
  *  1) a classe Paginacao (páginas, offset, faixa, janela de números, valores inválidos);
- *  2) o PerfumeService chamando o repositório com limite e offset certos e montando os links.
+ *  2) o VitrineService chamando o repositório com limite e offset certos e montando os links.
  */
 const test = require('node:test');
 const assert = require('node:assert');
 const Paginacao = require('../domain/Paginacao');
-const PerfumeService = require('../services/PerfumeService');
+const VitrineService = require('../services/VitrineService');
 
 test('Paginacao: total 0 tem 1 página vazia e faixa 0-0', () => {
   const p = new Paginacao(0, 5, 30);
@@ -54,14 +54,14 @@ test('Paginacao.janela: reticências só onde há buraco', () => {
   assert.deepStrictEqual(new Paginacao(90, 2, 30).janela(), [1, 2, 3]);
 });
 
-test('PerfumeService.vitrine: conta e lista com os mesmos filtros, limite e offset da página', async () => {
+test('VitrineService.vitrine: conta e lista com os mesmos filtros, limite e offset da página', async () => {
   const chamadas = {};
   const repo = {
     contar: async (busca, filtros) => { chamadas.contar = [busca, filtros]; return 619; },
     listar: async (busca, filtros) => { chamadas.listar = [busca, filtros]; return []; },
     listarMarcas: async () => []
   };
-  const r = await new PerfumeService(repo).vitrine(
+  const r = await new VitrineService(repo).vitrine(
     { busca: ' rosa ', marca: 'Alfa', ordem: 'maior-preco', pagina: '3', porPagina: '50' }, null);
   assert.deepStrictEqual(chamadas.contar, ['rosa', { marca: 'Alfa', apenasVisiveis: true }]);
   assert.strictEqual(chamadas.listar[0], 'rosa');
@@ -73,14 +73,14 @@ test('PerfumeService.vitrine: conta e lista com os mesmos filtros, limite e offs
   assert.strictEqual(r.links.paginas.find((x) => x && x.atual).numero, 3);
 });
 
-test('PerfumeService.vitrine: valores inválidos usam 30 por página, página 1 e links curtos', async () => {
+test('VitrineService.vitrine: valores inválidos usam 30 por página, página 1 e links curtos', async () => {
   let usado;
   const repo = {
     contar: async () => 100,
     listar: async (busca, filtros) => { usado = filtros; return []; },
     listarMarcas: async () => []
   };
-  const r = await new PerfumeService(repo).vitrine({ pagina: 'x', porPagina: '9999' }, null);
+  const r = await new VitrineService(repo).vitrine({ pagina: 'x', porPagina: '9999' }, null);
   assert.deepStrictEqual([usado.limite, usado.offset], [30, 0]);
   assert.strictEqual(r.links.anterior, null);
   assert.strictEqual(r.links.proxima, '/?pagina=2');

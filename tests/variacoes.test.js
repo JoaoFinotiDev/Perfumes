@@ -10,6 +10,8 @@ const Variacao = require('../domain/Variacao');
 const Carrinho = require('../domain/Carrinho');
 const { criarUsuario } = require('../domain/Usuario');
 const PerfumeService = require('../services/PerfumeService');
+const VitrineService = require('../services/VitrineService');
+const GestaoProdutosService = require('../services/GestaoProdutosService');
 const CarrinhoService = require('../services/CarrinhoService');
 const CarrinhoController = require('../controllers/CarrinhoController');
 const VendaRepository = require('../repositories/VendaRepository');
@@ -218,17 +220,17 @@ test('venda: variação sem estoque no banco desfaz a venda', async () => {
 // ---------- Service: SKU, pontos, variações ----------
 
 test('SKU duplicado dá erro 400 (ErroDeValidacao) ao editar e ao criar', async () => {
-  const servico = new PerfumeService(criarRepositorioFalso());
+  const servico = new GestaoProdutosService(criarRepositorioFalso());
   await assert.rejects(() => servico.atualizar(1, { ...formulario, marca: 'Alfa', sku: '2001' }, vendedor), /SKU/);
   assert.strictEqual(await servico.atualizar(2, { ...formulario, sku: '2001' }, vendedor), true); // o próprio produto mantém o SKU
   const repo = criarRepositorioFalso();
   repo.criar = async () => { const e = new Error('dup'); e.code = 'ER_DUP_ENTRY'; e.sqlMessage = "Duplicate entry 'x' for key 'perfumes.sku'"; throw e; };
-  await assert.rejects(() => new PerfumeService(repo).criar({ ...formulario, sku: 'x' }, 2), /SKU/);
+  await assert.rejects(() => new GestaoProdutosService(repo).criar({ ...formulario, sku: 'x' }, 2), /SKU/);
 });
 
 test('pontos: Queen guarda; outra marca ignora o valor enviado; trocar a marca zera', async () => {
   const repo = criarRepositorioFalso();
-  const servico = new PerfumeService(repo);
+  const servico = new GestaoProdutosService(repo);
   await servico.atualizar(2, { ...formulario, sku: '2001', pontos: '750' }, vendedor);
   assert.strictEqual(repo.lista[1].pontos, 750);
   await servico.atualizar(1, { ...formulario, marca: 'Outra Marca', pontos: '999' }, vendedor);
@@ -240,7 +242,7 @@ test('pontos: Queen guarda; outra marca ignora o valor enviado; trocar a marca z
 
 test('variações: adicionar/editar/remover sincroniza preço (menor) e estoque (soma) do produto', async () => {
   const repo = criarRepositorioFalso();
-  const servico = new PerfumeService(repo);
+  const servico = new GestaoProdutosService(repo);
   await servico.adicionarVariacao(1, { descricao: 'P', preco: '40,50', estoque: '3' }, vendedor);
   assert.strictEqual(repo.lista[0].variacoes.length, 1);
   assert.strictEqual(repo.lista[0].preco, 40.5);
@@ -259,7 +261,7 @@ test('variações: adicionar/editar/remover sincroniza preço (menor) e estoque 
 
 test('estoque rápido recusa produto com variações; editar produto com variações não muda preço e estoque', async () => {
   const repo = criarRepositorioFalso();
-  const servico = new PerfumeService(repo);
+  const servico = new GestaoProdutosService(repo);
   await assert.rejects(() => servico.atualizarEstoque(2, '9', vendedor), /variações/);
   await servico.atualizar(2, { ...formulario, preco: '1', estoque: '1', sku: '2001' }, vendedor);
   assert.strictEqual(repo.lista[1].preco, 80);
@@ -267,7 +269,7 @@ test('estoque rápido recusa produto com variações; editar produto com variaç
 });
 
 test('página do produto: oculto só para quem gerencia; vitrine mostra "a partir de" e as variações com desconto', async () => {
-  const servico = new PerfumeService(criarRepositorioFalso());
+  const servico = new VitrineService(criarRepositorioFalso());
   assert.strictEqual(await servico.paginaDoProduto(3, null), null);
   assert.strictEqual(await servico.paginaDoProduto(3, cliente), null);
   assert.strictEqual((await servico.paginaDoProduto(3, vendedor)).id, 3);

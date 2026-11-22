@@ -10,9 +10,10 @@ const express = require('express');
 const c = require('../container');
 const ligar = require('../utils/ligar');
 const { exigirPapel } = require('../middlewares/auth');
+const { PAPEIS } = require('../domain/Usuario');
 
 const router = express.Router();
-router.use('/vendedor/produtos', exigirPapel('vendedor', 'admin'));
+router.use('/vendedor/produtos', exigirPapel(PAPEIS.VENDEDOR, PAPEIS.ADMIN));
 
 router.get('/vendedor/produtos', ligar(c.gestaoProdutos, 'listar'));
 router.get('/vendedor/produtos/:id/editar', ligar(c.gestaoProdutos, 'formEditar'));

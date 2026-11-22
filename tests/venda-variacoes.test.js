@@ -10,7 +10,8 @@ const test = require('node:test');
 const assert = require('node:assert');
 const Perfume = require('../domain/Perfume');
 const { criarUsuario } = require('../domain/Usuario');
-const PerfumeService = require('../services/PerfumeService');
+const VitrineService = require('../services/VitrineService');
+const GestaoProdutosService = require('../services/GestaoProdutosService');
 const CatalogoController = require('../controllers/CatalogoController');
 
 const cliente = criarUsuario({ id: 1, usuario: 'c', nome: 'C', papel: 'cliente' });
@@ -29,7 +30,7 @@ function criarController() {
     ]
   });
   const repositorio = { buscarPorId: async (id) => (id === 7 ? produto : null) };
-  return new CatalogoController(new PerfumeService(repositorio));
+  return new CatalogoController(new VitrineService(repositorio), new GestaoProdutosService(repositorio));
 }
 
 /** res falso: guarda status e JSON. */

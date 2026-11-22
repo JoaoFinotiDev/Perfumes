@@ -26,7 +26,11 @@
     ultimoCodigo = codigo;
     status.textContent = 'Buscando dados do produto...';
     fetch('/api/produto-por-codigo/' + encodeURIComponent(codigo))
-      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        // 503 = as bases não responderam (rede ou limite). Vai para o catch, que deixa tentar o mesmo código de novo.
+        if (r.status === 503) throw new Error('busca indisponível');
+        return r.json();
+      })
       .then(function (dados) {
         if (dados.encontrado) {
           preencher('nome', dados.nome);
