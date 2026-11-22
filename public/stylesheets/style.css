@@ -308,6 +308,10 @@ a.chip span { color: var(--cor-destaque); font-weight: bold; }
 .tabela-rolagem { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 15px 0; }
 .tabela-rolagem > table { margin: 0; } /* a margem passa para a caixa */
 
+/* Quantidade editável no carrinho: campo e "Atualizar" lado a lado. */
+.qtd-carrinho { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.qtd-carrinho .estoque-campo { width: 64px; }
+
 /* 3. Aviso de erro já é vermelho (.erro) e o de sucesso verde (.aviso); o topo.ejs escolhe a classe. */
 
 @media (max-width: 600px) {
@@ -321,6 +325,10 @@ a.chip span { color: var(--cor-destaque); font-weight: bold; }
     min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
   }
   .topo nav a { padding: 0 6px; }
+  /* 9. Menu do topo numa linha só: os links ficam lado a lado e o menu rola para o lado com o dedo
+   *    (em vez de virar 3 ou 4 linhas e empurrar a página para baixo). Tab continua passando por todos. */
+  .topo .menu-principal { flex-wrap: nowrap; overflow-x: auto; white-space: nowrap; width: 100%; -webkit-overflow-scrolling: touch; }
+  .topo .menu-principal form { display: inline-flex; align-items: center; flex: none; }
   /* Estoque rápido no celular: os mesmos [ − ] [campo] [ + ] [Salvar], só que com 44px. */
   /* min-height (e não height): vence a altura de 28px do desktop, que vem mais abaixo neste arquivo. */
   .estoque-controle .botao-pequeno, .tabela-gestao .estoque-campo { min-height: 44px; }

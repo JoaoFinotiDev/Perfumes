@@ -10,6 +10,7 @@ const { criarUsuario, PAPEIS } = require('../domain/Usuario');
 const { DescontoCliente } = require('../domain/Desconto');
 const moeda = require('../utils/moeda'); // formata dinheiro (R$ 12,50) para as views
 const { avisarErro } = require('../utils/aviso');
+const { caminhoDeVolta } = require('../utils/caminho');
 
 /**
  * Roda em toda requisição: recria o usuário de domínio a partir da sessão
@@ -46,6 +47,9 @@ function criarBarreira(avisoSemLogin, papeis) {
   return (req, res, next) => {
     if (!req.usuario) {
       avisarErro(req.session, avisoSemLogin); // barrado: aviso em vermelho na tela de login
+      // Guarda para onde voltar depois de entrar (só caminho interno; veja utils/caminho.js).
+      const voltar = caminhoDeVolta(req);
+      if (voltar) req.session.voltarPara = voltar;
       return res.redirect('/login');
     }
     if (!req.usuario.temPapel(...papeis)) {

@@ -84,7 +84,17 @@ function conferir(nome, ok, extra = '') {
   r = await cliente('/carrinho');
   conferir('carrinho: 189,90 - 5% = 180,41', r.texto.includes('180,41'));
   r = await cliente('/carrinho/finalizar', { metodo: 'POST', corpo: { forma: 'pix' } });
-  conferir('cliente finaliza compra simulada', r.status === 302 && r.local === '/');
+  // Depois de finalizar, vai para o comprovante da compra (/compras/N), que só o dono vê.
+  conferir('cliente finaliza compra simulada e vai ao comprovante', r.status === 302 && /^\/compras\/\d+$/.test(r.local || ''), r.local);
+  const comprovante = r.local;
+  r = await cliente(comprovante);
+  conferir('comprovante mostra itens e total com desconto', r.status === 200 && r.texto.includes('Âmbar Noturno') && r.texto.includes('180,41'));
+  const outroCliente = criarNavegador();
+  await outroCliente('/cadastro', { metodo: 'POST', corpo: { nome: 'Outro', usuario: 'out' + id, senha: 'senha123' } });
+  r = await outroCliente(comprovante);
+  conferir('comprovante de OUTRO cliente -> 404', r.status === 404);
+  r = await visitante(comprovante);
+  conferir('visitante no comprovante vai para o login', r.status === 302 && r.local === '/login');
   r = await visitante('/carrinho/finalizar', { metodo: 'POST', corpo: { forma: 'pix' } });
   conferir('visitante não finaliza compra', r.status === 302 && r.local === '/login');
   r = await visitante('/carrinho/adicionar', { metodo: 'POST', corpo: { perfumeId: '1' } });

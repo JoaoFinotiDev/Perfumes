@@ -62,6 +62,26 @@ class VendaRepository {
       conexao.release();
     }
   }
+
+  /**
+   * Busca uma venda e os itens dela (para o comprovante). Devolve null se não existe.
+   * O nome do produto e a descrição da variação vêm do banco por JOIN; o preço é o GRAVADO na hora da venda
+   * (venda_itens.preco_unitario), então o comprovante não muda se o preço do produto mudar depois.
+   * @param {number} id id da venda
+   * @returns {Promise<{venda: object, itens: object[]}|null>}
+   */
+  async buscarComItens(id) {
+    const [vendas] = await this.db.query('SELECT * FROM vendas WHERE id = ?', [id]);
+    if (!vendas[0]) return null;
+    const [itens] = await this.db.query(
+      `SELECT i.quantidade, i.preco_unitario, p.nome, p.marca, v.descricao AS variacao
+         FROM venda_itens i
+         JOIN perfumes p ON p.id = i.perfume_id
+         LEFT JOIN variacoes v ON v.id = i.variacao_id
+        WHERE i.venda_id = ?
+        ORDER BY i.id`, [id]);
+    return { venda: vendas[0], itens };
+  }
 }
 
 module.exports = VendaRepository;

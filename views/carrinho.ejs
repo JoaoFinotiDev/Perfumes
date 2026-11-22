@@ -6,13 +6,14 @@
   <p>Seu carrinho está vazio. <a href="/">Ver vitrine</a></p>
 <% } else { %>
   <%# Tabela e totais: mesma partial da tela "Abrir venda". %>
-  <%- include('partials/itens-carrinho', { resumo: resumo, acaoRemover: '/carrinho/remover' }) %>
+  <%- include('partials/itens-carrinho', { resumo: resumo, acaoRemover: '/carrinho/remover', acaoQuantidade: '/carrinho/quantidade' }) %>
   <%# Economia = desconto já calculado em CarrinhoService.resumir (a view não faz conta). %>
   <% if (resumo.temDesconto) { %><p class="destaque economia">Você economizou <%= moeda(resumo.desconto) %> nesta compra.</p><% } %>
   <p><a href="/">&larr; Continuar comprando</a></p>
 
   <%# Esta tela só abre para o Cliente (a rota confere no servidor), então o botão de finalizar sempre aparece. %>
-  <form method="post" action="/carrinho/finalizar" class="form">
+  <%# data-enviar-uma-vez: depois do clique o botão trava (evita compra em dobro no duplo clique). %>
+  <form method="post" action="/carrinho/finalizar" class="form" data-enviar-uma-vez>
     <label>Forma de pagamento (simulado)
       <select name="forma" required>
         <% Object.keys(formas).forEach(function (k) { %><option value="<%= k %>"><%= formas[k] %></option><% }) %>
@@ -21,4 +22,5 @@
     <button type="submit">Finalizar compra</button>
   </form>
 <% } %>
+<script src="/javascripts/enviar-uma-vez.js"></script>
 <%- include('partials/rodape') %>

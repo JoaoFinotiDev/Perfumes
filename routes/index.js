@@ -33,7 +33,10 @@ router.use('/carrinho', exigirCliente);
 router.get('/carrinho', ligar(c.carrinho, 'ver'));
 router.post('/carrinho/adicionar', ligar(c.carrinho, 'adicionar'));
 router.post('/carrinho/remover', ligar(c.carrinho, 'remover'));
+router.post('/carrinho/quantidade', ligar(c.carrinho, 'quantidade')); // muda a quantidade de uma linha
 router.post('/carrinho/finalizar', ligar(c.carrinho, 'finalizar'));
+// Comprovante da compra: só Cliente (exigirCliente) e só o dono (o VendaService confere e devolve 404 aos outros).
+router.get('/compras/:id', exigirCliente, ligar(c.carrinho, 'comprovante'));
 
 // Lista de produtos em JSON para a busca gradual do navegador. É uma rota LOCAL (lê só o nosso banco).
 // Sem login devolve só os visíveis; com ?todos=1 (tela "Abrir venda") exige Vendedor/Admin (o controller confere).

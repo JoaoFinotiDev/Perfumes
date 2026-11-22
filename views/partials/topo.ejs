@@ -21,7 +21,8 @@
     <img src="/images/logo.jpg" alt="Lojinha Chic" class="marca-logo" width="48" height="48">
     <span class="marca-nome">Lojinha Chic</span>
   </a>
-  <nav>
+  <%# Menu principal. No celular ele fica numa linha só e rola para o lado (style.css), em vez de virar várias linhas. %>
+  <nav aria-label="Principal" class="menu-principal">
     <a href="/">Vitrine</a>
     <%# A tabela do catálogo só aparece para quem gerencia produtos; a rota GET /itens também barra os outros no servidor. %>
     <% if (usuario && usuario.podeGerenciar()) { %><a href="/itens">Catálogo (tabela)</a><% } %>
