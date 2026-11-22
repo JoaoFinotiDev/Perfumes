@@ -6,7 +6,10 @@ a { color: #8e2a68; }
 
 .topo { background: #6a1b4d; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
 .topo a, .topo .quem { color: #fff; text-decoration: none; margin-right: 12px; }
-.topo .logo { font-size: 1.3em; font-weight: bold; }
+/* Marca da loja no topo: logo redondo ao lado do nome. A borda clara destaca o logo rosa no fundo vinho. */
+.topo .marca { display: flex; align-items: center; gap: 10px; }
+.topo .marca-logo { height: 48px; width: 48px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; }
+.topo .marca-nome { font-size: 1.3em; font-weight: bold; }
 .topo nav { display: flex; align-items: center; flex-wrap: wrap; }
 
 table { width: 100%; border-collapse: collapse; background: #fff; margin: 15px 0; }
@@ -99,3 +102,9 @@ button:disabled { background: #bbb; cursor: not-allowed; }
 
 /* Foco visível para quem navega pelo teclado. */
 .card-botao:focus-visible, .vitrine-busca :focus-visible { outline: 3px solid #f0a8d6; outline-offset: 2px; }
+
+/* Cabeçalho da vitrine: logo redondo pequeno ao lado do título e da frase. */
+.vitrine-cabecalho { display: flex; align-items: center; gap: var(--espaco-2); }
+.vitrine-cabecalho h1 { margin: 0; }
+.vitrine-cabecalho p { margin: 4px 0 0; }
+.vitrine-logo { height: 64px; width: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--cor-borda); }

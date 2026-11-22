@@ -4,12 +4,18 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><%= titulo %> - Loja de Perfumes</title>
+  <title><%= titulo %> - Lojinha Chic</title>
+  <%# Favicon: o mesmo logo redondo da loja aparece na aba do navegador. %>
+  <link rel="icon" href="/images/logo.jpg">
   <link rel="stylesheet" href="/stylesheets/style.css">
 </head>
 <body>
 <header class="topo">
-  <a class="logo" href="/">Loja de Perfumes</a>
+  <%# Marca da loja: logo redondo + nome, os dois levam para a vitrine (/). O alt do logo e o proprio nome. %>
+  <a class="marca" href="/">
+    <img src="/images/logo.jpg" alt="Lojinha Chic" class="marca-logo" width="48" height="48">
+    <span class="marca-nome">Lojinha Chic</span>
+  </a>
   <nav>
     <a href="/">Vitrine</a>
     <a href="/itens">Catálogo (tabela)</a>

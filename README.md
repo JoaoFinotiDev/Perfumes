@@ -1,4 +1,6 @@
-# Loja de Perfumes
+# Lojinha Chic
+
+> Lojinha Chic, uma loja de perfumes. O nome do banco (`loja_perfumes`), a pasta e o repositório continuam com o nome antigo para não quebrar nada.
 
 **Tema:** marketplace de perfumes (catálogo, carrinho, login de Cliente, Vendedor e Admin, venda no balcão com código de barras).
 **Disciplina:** Linguagem de Programação 1 - **Professor:** Leandro Luis Pauro
