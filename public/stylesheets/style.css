@@ -310,7 +310,14 @@ main:has(.tabela-gestao) { max-width: 1400px; }
 /* Ações lado a lado: botões pequenos, sem quebrar o texto em duas linhas. */
 .tabela-gestao .acoes { white-space: nowrap; }
 .botao-pequeno { padding: 4px 8px; font-size: 0.85em; white-space: nowrap; }
-.tabela-gestao .estoque-campo { width: 4.5em; padding: 4px; }
+/* Estoque rápido numa linha só: [ − ] [ campo ] [ + ] [Salvar]. Tudo com 28px de altura, para a linha
+ * da variação ter a mesma altura das outras. inline-flex + nowrap: nada pula para a linha de baixo. */
+.estoque-controle { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.estoque-controle form.inline { display: inline-flex; }
+.tabela-gestao .estoque-campo { width: 56px; height: 28px; padding: 2px 4px; box-sizing: border-box; font-size: 0.9em; }
+.estoque-controle .botao-pequeno { height: 28px; padding: 0 8px; line-height: 1; }
+/* − e +: quadradinhos de 28px (o texto do botão é curto; o aria-label diz "Tirar/Pôr 1 do estoque de ..."). */
+.estoque-controle .botao-passo { width: 28px; padding: 0; font-weight: bold; font-size: 1em; }
 /* "Editar" é um link com cara de botão pequeno (leva a outra página, por isso é <a> e não <button>). */
 a.botao-link { display: inline-block; background: #8e2a68; color: #fff; text-decoration: none; border-radius: 4px; }
 a.botao-link:hover { background: #6a1b4d; }

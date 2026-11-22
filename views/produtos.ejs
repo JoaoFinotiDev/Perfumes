@@ -11,25 +11,34 @@
 </form>
 
 <%
-  // Controles de estoque rápido (campo + Salvar, e -1 / +1), iguais para o produto e para a variação.
-  // `acao` é o endereço do POST; `aberto` faz a lista voltar com as variações daquele produto expandidas.
+  // Controle de estoque rápido, igual para o produto e para a variação, numa linha só:
+  //   [ − ] [ campo ] [ + ] [Salvar]
+  // São 3 formulários (−1, +1 e Salvar), todos para o mesmo POST (`acao`). O campo numérico fica FORA do
+  // formulário do Salvar, mas pertence a ele pelo atributo form="..." (assim a ordem na tela e a do Tab ficam iguais).
+  // `aberto` faz a lista voltar com as variações daquele produto expandidas; `chave` deixa o id do formulário único.
   // O servidor valida de novo (inteiro >= 0). Sem JS tudo funciona, pois são formulários comuns.
-  function controlesDeEstoque(acao, estoque, nome, aberto) {
+  function controlesDeEstoque(acao, estoque, nome, aberto, chave) {
+    const idForm = 'estoque-' + chave;
+    // Um botão −1 ou +1: formulário próprio que já envia o valor novo (nunca abaixo de 0).
+    function passo(n) {
 %>
-  <form method="post" action="<%= acao %>" class="inline estoque-form">
-    <input type="hidden" name="q" value="<%= busca %>">
-    <% if (aberto) { %><input type="hidden" name="aberto" value="<%= aberto %>"><% } %>
-    <input type="number" name="estoque" value="<%= estoque %>" min="0" step="1" required class="estoque-campo" aria-label="Estoque de <%= nome %>">
-    <button type="submit" class="botao-pequeno">Salvar</button>
-  </form>
-  <% [-1, 1].forEach(function (passo) { %>
-  <form method="post" action="<%= acao %>" class="inline">
-    <input type="hidden" name="q" value="<%= busca %>">
-    <% if (aberto) { %><input type="hidden" name="aberto" value="<%= aberto %>"><% } %>
-    <input type="hidden" name="estoque" value="<%= Math.max(0, estoque + passo) %>">
-    <button type="submit" class="botao-pequeno" aria-label="<%= passo < 0 ? 'Tirar' : 'Pôr' %> 1 do estoque de <%= nome %>"<%= passo < 0 && estoque <= 0 ? ' disabled' : '' %>><%= passo < 0 ? '-1' : '+1' %></button>
-  </form>
-  <% }) %>
+    <form method="post" action="<%= acao %>" class="inline">
+      <input type="hidden" name="q" value="<%= busca %>">
+      <% if (aberto) { %><input type="hidden" name="aberto" value="<%= aberto %>"><% } %>
+      <input type="hidden" name="estoque" value="<%= Math.max(0, estoque + n) %>">
+      <button type="submit" class="botao-pequeno botao-passo" aria-label="<%= n < 0 ? 'Tirar' : 'Pôr' %> 1 do estoque de <%= nome %>"<%= n < 0 && estoque <= 0 ? ' disabled' : '' %>><%= n < 0 ? '−' : '+' %></button>
+    </form>
+<%  } %>
+  <div class="estoque-controle">
+    <% passo(-1); %>
+    <input type="number" name="estoque" form="<%= idForm %>" value="<%= estoque %>" min="0" step="1" required class="estoque-campo" aria-label="Estoque de <%= nome %>">
+    <% passo(1); %>
+    <form method="post" action="<%= acao %>" id="<%= idForm %>" class="inline">
+      <input type="hidden" name="q" value="<%= busca %>">
+      <% if (aberto) { %><input type="hidden" name="aberto" value="<%= aberto %>"><% } %>
+      <button type="submit" class="botao-pequeno">Salvar</button>
+    </form>
+  </div>
 <% } %>
 
 <table class="tabela-gestao">
@@ -60,7 +69,7 @@
       <td>
         <% if (p.temVariacoes()) { %>
           <%= p.estoqueDe() %> (total)
-        <% } else { controlesDeEstoque('/vendedor/produtos/' + p.id + '/estoque', p.estoque, p.nome, 0); } %>
+        <% } else { controlesDeEstoque('/vendedor/produtos/' + p.id + '/estoque', p.estoque, p.nome, 0, 'p' + p.id); } %>
       </td>
       <td><%= p.visivel ? 'Sim' : 'Não' %></td>
       <td class="acoes">
@@ -82,7 +91,7 @@
       <td class="variacao-nome"><%= x.descricao %></td>
       <td></td>
       <td class="sem-quebra"><%= moeda(x.preco) %></td>
-      <td><% controlesDeEstoque('/vendedor/produtos/' + p.id + '/variacoes/' + x.id + '/estoque', x.estoque, nomeVar, p.id); %></td>
+      <td><% controlesDeEstoque('/vendedor/produtos/' + p.id + '/variacoes/' + x.id + '/estoque', x.estoque, nomeVar, p.id, 'v' + x.id); %></td>
       <td><%= x.ativo ? 'Ativa' : 'Inativa' %></td>
       <td class="acoes">
         <a href="/vendedor/produtos/<%= p.id %>/editar#variacoes" class="botao-pequeno botao-link">Editar</a>

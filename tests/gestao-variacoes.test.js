@@ -157,5 +157,16 @@ test('tela: produto com variações tem seta, linhas filhas, "a partir de" e tot
   assert.ok(html.includes('action="/vendedor/produtos/1/variacoes/12/ativo"'));
   assert.match(html, />Ativar</);
   assert.ok(html.includes('href="/vendedor/produtos/1/editar#variacoes"'));
+  // Estoque numa linha, na ordem [ − ] [ campo ] [ + ] [Salvar]; o campo pertence ao formulário do Salvar (form="...").
+  const controle = html.slice(html.indexOf('<div class="estoque-controle">', html.indexOf('id="var-1-11"')));
+  const pos = ['aria-label="Tirar 1', 'form="estoque-v11"', 'aria-label="Pôr 1', 'id="estoque-v11"', '>Salvar<'].map((t) => controle.indexOf(t));
+  assert.ok(pos.every((p, i) => p >= 0 && (i === 0 || p > pos[i - 1])), `ordem dos controles: ${pos}`);
+  // Estoque 0 (produto 3 com estoque 0 não existe aqui; a variação B tem 3): o − só desativa em 0.
+  assert.ok(!/aria-label="Tirar 1 do estoque de Anel - A"[^>]*disabled/.test(html));
+  const zero = await ejs.renderFile(path.join(__dirname, '..', 'views', 'produtos.ejs'), {
+    perfumes: [new Perfume({ id: 9, nome: 'Zerado', marca: 'Alfa', preco: 1, estoque: 0, visivel: 1 })], busca: '', erro: null, aberto: 0,
+    usuario: vendedor, mostrarCarrinho: false, aviso: null, moeda: require('../utils/moeda')
+  });
+  assert.match(zero, /aria-label="Tirar 1 do estoque de Zerado" disabled/);
   assert.ok(!html.includes('id="var-2-21" class="linha-variacao" data-filha-de="2" data-aberta'), 'só o produto ?aberto volta aberto');
 });
