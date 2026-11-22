@@ -5,8 +5,9 @@
   "scripts": {
     "start": "node ./bin/www",
     "dev": "nodemon --ext js,ejs,json,css --ignore tests/ ./bin/www",
-    "test": "node --test tests/dominio.test.js",
-    "e2e": "node tests/e2e.js"
+    "test": "node --test tests/dominio.test.js tests/importar-mawwal.test.js",
+    "e2e": "node tests/e2e.js",
+    "importar:mawwal": "node scripts/importar-mawwal.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

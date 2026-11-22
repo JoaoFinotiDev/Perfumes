@@ -36,3 +36,13 @@ No cadastro de produto, o código preenche nome, marca e foto pela API Kodebar (
 
 - **Vitrine (`/`)**: página inicial no estilo marketplace, com cards (foto, marca, nome, preço e botão "Adicionar ao carrinho"), busca por nome ou marca, filtro por marca e ordenação por nome ou preço. O Cliente vê o preço antigo riscado, o preço com 5% e o selo "-5%". Produto sem foto mostra uma imagem local; sem estoque mostra "Esgotado".
 - **Catálogo (tabela) (`/itens`)**: tabela HTML com todos os registros (`GET /itens`) e, para o Vendedor, o formulário de novo anúncio (`POST /itens`).
+
+## Importar produtos Mawwal
+
+```bash
+npm run importar:mawwal
+```
+
+Lê a lista pública `https://mawwal.com.br/products.json` (1 segundo entre páginas) e grava os produtos na tabela `perfumes`, com marca `Mawwal`. Só adiciona: quem já existe (mesmo nome e marca, ou mesmo código de barras) é pulado, então pode rodar mais de uma vez. A fonte não informa estoque, por isso cada produto entra com estoque padrão 10 e sem vendedor (`vendedor_id` fica `NULL`). Para evitar nova chamada à internet: `npm run importar:mawwal -- --salvar=mawwal.json` guarda o JSON e `-- --arquivo=mawwal.json` importa a partir dele.
+
+Os produtos importados não ficam no `script.sql` (são dados de terceiros). Fonte: dados e fotos pertencem a Mawwal Arabia Brasil; uso apenas acadêmico.
