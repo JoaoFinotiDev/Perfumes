@@ -20,6 +20,7 @@ function criarRepositorioFalso() {
   return {
     lista,
     listar: async (busca, { apenasVisiveis = false } = {}) => lista.filter((p) => !apenasVisiveis || p.visivel),
+    contar: async (busca, { apenasVisiveis = false } = {}) => lista.filter((p) => !apenasVisiveis || p.visivel).length,
     listarMarcas: async ({ apenasVisiveis = false } = {}) =>
       [...new Set(lista.filter((p) => !apenasVisiveis || p.visivel).map((p) => p.marca))],
     buscarPorId: async (id) => lista.find((p) => p.id === id) || null,

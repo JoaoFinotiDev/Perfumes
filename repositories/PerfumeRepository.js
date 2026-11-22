@@ -19,12 +19,10 @@ class PerfumeRepository {
   }
 
   /**
-   * Lista perfumes. Com `busca`, filtra por nome ou marca.
-   * Opcional: `marca` (igual exata), `ordem` (chave de ORDENACOES; qualquer outra vira "nome")
-   * e `apenasVisiveis` (true = esconde os produtos que o Vendedor ocultou da vitrine).
-   * `limite` (inteiro positivo) corta o número de linhas; 0 = sem limite (usado pela lista suspensa de busca).
+   * Monta o WHERE (e seus parâmetros) a partir dos filtros. É usado por listar() E por contar(),
+   * para a contagem da paginação e a lista olharem exatamente os mesmos produtos.
    */
-  async listar(busca = '', { marca = '', ordem = 'nome', apenasVisiveis = false, limite = 0 } = {}) {
+  _filtrar(busca, { marca = '', apenasVisiveis = false } = {}) {
     const filtros = [];
     const params = [];
     if (apenasVisiveis) filtros.push('visivel = 1'); // texto fixo, sem dado do usuário
@@ -38,16 +36,38 @@ class PerfumeRepository {
       filtros.push('marca = ?');
       params.push(marca);
     }
-    const where = filtros.length ? ` WHERE ${filtros.join(' AND ')}` : '';
+    return { where: filtros.length ? ` WHERE ${filtros.join(' AND ')}` : '', params };
+  }
+
+  /**
+   * Lista perfumes. Com `busca`, filtra por nome, marca ou SKU.
+   * Opcional: `marca` (igual exata), `ordem` (chave de ORDENACOES; qualquer outra vira "nome")
+   * e `apenasVisiveis` (true = esconde os produtos que o Vendedor ocultou da vitrine).
+   * `limite` (inteiro positivo) corta o número de linhas; 0 = sem limite.
+   * `offset` (inteiro positivo) pula linhas antes de começar: junto com o limite faz a paginação no banco.
+   */
+  async listar(busca = '', { marca = '', ordem = 'nome', apenasVisiveis = false, limite = 0, offset = 0 } = {}) {
+    const { where, params } = this._filtrar(busca, { marca, apenasVisiveis });
     // O ORDER BY não aceita "?", então só entra texto da lista fixa acima (nunca o que veio da URL).
     const orderBy = Object.prototype.hasOwnProperty.call(ORDENACOES, ordem) ? ORDENACOES[ordem] : ORDENACOES.nome;
     let sql = `SELECT * FROM perfumes${where} ORDER BY ${orderBy}`;
     if (Number.isInteger(limite) && limite > 0) {
       sql += ' LIMIT ?'; // o limite também vai como parâmetro, nunca concatenado
       params.push(limite);
+      if (Number.isInteger(offset) && offset > 0) {
+        sql += ' OFFSET ?'; // OFFSET só existe junto com LIMIT
+        params.push(offset);
+      }
     }
     const [linhas] = await this.db.query(sql, params);
     return this._montar(linhas);
+  }
+
+  /** Quantos perfumes passam pelos mesmos filtros de listar() (o total da paginação). */
+  async contar(busca = '', { marca = '', apenasVisiveis = false } = {}) {
+    const { where, params } = this._filtrar(busca, { marca, apenasVisiveis });
+    const [linhas] = await this.db.query(`SELECT COUNT(*) AS total FROM perfumes${where}`, params);
+    return Number(linhas[0].total);
   }
 
   /**

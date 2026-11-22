@@ -97,6 +97,7 @@ test('PerfumeService.vitrine monta cards com desconto, foto segura e esgotado', 
         new Perfume({ id: 2, nome: 'B', marca: 'M', preco: 50, estoque: 0, foto_url: 'https://x.com/a.jpg' })
       ];
     },
+    contar: async () => 2,
     listarMarcas: async () => ['M']
   };
   const servico = new PerfumeService(repo);
