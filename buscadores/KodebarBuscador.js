@@ -14,7 +14,7 @@ class KodebarBuscador extends BuscadorDeProduto {
     this.urlBase = 'https://kodebar.korvensistemas.com.br';
   }
 
-  /** Consulta o Kodebar. Devolve {nome, marca, descricao, foto} ou null se nao achar ou falhar. */
+  /** Consulta o Kodebar. Devolve {nome, marca, descricao, foto} ou null se não achar ou falhar. */
   async buscar(codigo) {
     if (!this.token) return null; // sem token: passa a vez para o próximo buscador
     try {
@@ -23,13 +23,16 @@ class KodebarBuscador extends BuscadorDeProduto {
         headers: { 'X-API-Key': this.token },
         signal: AbortSignal.timeout(5000) // não espera mais que 5 segundos
       });
-      if (!resposta.ok) return null; // 404 = não achou; 401/429 = token ou limite
+      if (resposta.status === 404) return null; // 404 = não achou (isso pode ir para o cache)
+      // 401/429/5xx = token, limite ou servidor: é FALHA, não "não achou". Lança para o cache não guardar.
+      if (!resposta.ok) throw new Error(`Kodebar respondeu ${resposta.status}`);
       const dados = await resposta.json();
       if (!dados.nome) return null;
       // O Kodebar não tem campo de descrição: ela fica vazia para outro buscador completar.
       return { nome: dados.nome, marca: dados.marca || '', descricao: '', foto: dados.thumbnail || '' };
     } catch (erro) {
-      return null; // falha de rede nunca quebra o cadastro
+      // Falha de rede ou tempo esgotado. A cadeia (BuscadorEmCadeia) segura o erro e tenta o próximo buscador.
+      throw new Error(`Kodebar indisponível: ${erro.message}`);
     }
   }
 }

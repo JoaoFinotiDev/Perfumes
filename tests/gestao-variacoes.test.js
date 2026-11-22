@@ -12,7 +12,7 @@ const path = require('node:path');
 const ejs = require('ejs');
 const Perfume = require('../domain/Perfume');
 const { criarUsuario } = require('../domain/Usuario');
-const PerfumeService = require('../services/PerfumeService');
+const GestaoProdutosService = require('../services/GestaoProdutosService');
 const PerfumeRepository = require('../repositories/PerfumeRepository');
 const GestaoProdutosController = require('../controllers/GestaoProdutosController');
 const { ErroDeValidacao, ErroDePermissao } = require('../utils/erros');
@@ -51,7 +51,7 @@ function criarRepositorioFalso() {
 
 test('estoque da variação: grava inteiro >= 0 e ressincroniza a soma; negativo, decimal ou texto dá erro', async () => {
   const repo = criarRepositorioFalso();
-  const servico = new PerfumeService(repo);
+  const servico = new GestaoProdutosService(repo);
   assert.strictEqual(await servico.atualizarEstoqueVariacao(1, 11, '7', vendedor), true);
   assert.strictEqual(repo.lista[0].variacoes[0].estoque, 7);
   assert.strictEqual(repo.lista[0].estoque, 10); // 7 + 3
@@ -63,7 +63,7 @@ test('estoque da variação: grava inteiro >= 0 e ressincroniza a soma; negativo
 
 test('variação de OUTRO produto (ou inexistente) devolve false e não muda nada', async () => {
   const repo = criarRepositorioFalso();
-  const servico = new PerfumeService(repo);
+  const servico = new GestaoProdutosService(repo);
   assert.strictEqual(await servico.atualizarEstoqueVariacao(1, 21, '9', vendedor), false); // 21 é do produto 2
   assert.strictEqual(await servico.definirVariacaoAtiva(1, 21, '0', vendedor), false);
   assert.strictEqual(await servico.atualizarEstoqueVariacao(99, 11, '9', vendedor), false); // produto não existe
@@ -73,7 +73,7 @@ test('variação de OUTRO produto (ou inexistente) devolve false e não muda nad
 
 test('desativar tira a variação da soma e do "a partir de"; ativar devolve', async () => {
   const repo = criarRepositorioFalso();
-  const servico = new PerfumeService(repo);
+  const servico = new GestaoProdutosService(repo);
   await servico.definirVariacaoAtiva(1, 12, '0', vendedor); // B (80, 3) sai
   const p = repo.lista[0];
   assert.strictEqual(p.variacaoPorId(12), null); // some da vitrine / Abrir venda
@@ -86,7 +86,7 @@ test('desativar tira a variação da soma e do "a partir de"; ativar devolve', a
 });
 
 test('papel: Cliente não mexe na variação (ErroDePermissao)', async () => {
-  const servico = new PerfumeService(criarRepositorioFalso());
+  const servico = new GestaoProdutosService(criarRepositorioFalso());
   await assert.rejects(() => servico.atualizarEstoqueVariacao(1, 11, '1', cliente), ErroDePermissao);
   await assert.rejects(() => servico.definirVariacaoAtiva(1, 11, '0', cliente), ErroDePermissao);
 });
@@ -110,7 +110,7 @@ function respostaFalsa() {
 }
 
 test('controller: sucesso volta à mesma busca com a linha aberta; vid de outro produto 404; inválido 400; Cliente 403', async () => {
-  const controller = new GestaoProdutosController(new PerfumeService(criarRepositorioFalso()));
+  const controller = new GestaoProdutosController(new GestaoProdutosService(criarRepositorioFalso()));
   const pedido = (params, body, usuario = vendedor) => ({ params, body, query: {}, session: {}, usuario });
 
   let req = pedido({ id: '1', variacaoId: '11' }, { estoque: '4', q: 'anel rosa', aberto: '1' });

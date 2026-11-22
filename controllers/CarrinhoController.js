@@ -7,7 +7,9 @@
 const { FORMAS_DE_PAGAMENTO } = require('../domain/Venda');
 const { ErroDeValidacao } = require('../utils/erros');
 
-const CHAVE = 'carrinho'; // nome do carrinho na sessão (a tela de venda usa outro nome)
+const { CARRINHOS } = require('../services/CarrinhoService');
+
+const CHAVE = CARRINHOS.SITE; // nome do carrinho do site na sessão (a tela de venda usa outro)
 
 class CarrinhoController {
   /**
@@ -76,7 +78,6 @@ class CarrinhoController {
   async _mostrar(req, res, erro) {
     const carrinho = await this.carrinhos.carregar(req.session, CHAVE);
     res.render('carrinho', {
-      carrinho,
       resumo: this.carrinhos.resumir(carrinho, req.usuario),
       formas: FORMAS_DE_PAGAMENTO,
       erro

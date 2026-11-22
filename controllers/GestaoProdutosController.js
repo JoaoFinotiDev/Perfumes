@@ -1,15 +1,16 @@
 /**
  * controllers/GestaoProdutosController.js
  * Telas do Vendedor (e do Admin) para gerenciar produtos: lista, edição e mostrar/ocultar na vitrine.
- * O controller só lida com HTTP; as regras (validação, permissão, código único) ficam no PerfumeService.
+ * O controller só lida com HTTP; as regras (validação, permissão, código único) ficam no GestaoProdutosService.
  * NENHUMA API externa é chamada aqui: a edição usa só o banco local.
  */
 const { ErroDeValidacao, ErroDePermissao } = require('../utils/erros');
+const { limparBusca } = require('../services/PerfumeService');
 
 class GestaoProdutosController {
-  /** @param {PerfumeService} perfumeService regras do catálogo (recebido pelo container.js) */
-  constructor(perfumeService) {
-    this.perfumes = perfumeService;
+  /** @param {GestaoProdutosService} gestaoService regras de gestão de produtos (recebido pelo container.js) */
+  constructor(gestaoService) {
+    this.perfumes = gestaoService;
   }
 
   /** GET /vendedor/produtos: lista TODOS os produtos (inclusive ocultos), com busca por nome ou marca. */
@@ -19,7 +20,7 @@ class GestaoProdutosController {
 
   /** Monta a tela da lista (com uma mensagem de erro opcional, usada quando o estoque é inválido). */
   async _mostrarLista(req, res, erro) {
-    const busca = String((req.body && req.body.q) || req.query.q || '').trim().slice(0, 80);
+    const busca = limparBusca((req.body && req.body.q) || req.query.q);
     const perfumes = await this.perfumes.listar(busca, { incluirOcultos: true });
     // "aberto" = id do produto cujas variações voltam expandidas (depois de mexer numa delas).
     const aberto = Number((req.body && req.body.aberto) || req.query.aberto) || 0;
@@ -32,7 +33,7 @@ class GestaoProdutosController {
    */
   _voltarParaLista(req, res, id, abrir = false) {
     const params = new URLSearchParams(); // codifica o texto da busca (não quebra o endereço)
-    const q = String(req.body.q || '').trim().slice(0, 80);
+    const q = limparBusca(req.body.q);
     if (q) params.set('q', q);
     if (abrir) params.set('aberto', String(Number(id)));
     const texto = params.toString();
@@ -182,6 +183,7 @@ class GestaoProdutosController {
     }
   }
 
+  /** Responde 404 com a página de erro (produto ou variação que não existe). */
   _naoEncontrado(res) {
     res.status(404).render('erro', { titulo: 'Produto não encontrado', mensagem: 'Esse produto não existe.' });
   }

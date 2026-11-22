@@ -23,7 +23,7 @@ function preco(valor, campo) {
     throw new ErroDeValidacao(`${campo}: informe um valor maior que zero.`);
   }
   // `arredondar` (de domain/Desconto.js) acerta casos como 1,005, que Math.round(n * 100) / 100 arredondava para baixo
-  // (1.005 * 100 vale 100.49999999999999 no computador). Assim o preco digitado e o preco com desconto usam a MESMA regra.
+  // (1.005 * 100 vale 100.49999999999999 no computador). Assim o preço digitado e o preço com desconto usam a MESMA regra.
   return arredondar(n);
 }
 

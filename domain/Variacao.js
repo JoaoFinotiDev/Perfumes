@@ -5,7 +5,7 @@
  * Variações são OPCIONAIS: produto sem variação usa o preço e o estoque do próprio Perfume.
  */
 class Variacao {
-  /** @param {object} dados linha da tabela variacoes */
+  /** @param {object} dados linha da tabela variações */
   constructor({ id, perfume_id, descricao, preco, estoque, ativo, ordem }) {
     this.id = id;
     this.perfumeId = perfume_id;
@@ -16,11 +16,7 @@ class Variacao {
     this.ativo = ativo === undefined ? true : Boolean(ativo);
     this.ordem = ordem === undefined ? 0 : Number(ordem);
   }
-
-  /** Há estoque suficiente nesta variação para a quantidade pedida? */
-  temEstoque(quantidade) {
-    return this.estoque >= quantidade;
-  }
+  // O estoque da variação é conferido por Perfume.temEstoque(quantidade, variacao), num lugar só.
 }
 
 module.exports = Variacao;

@@ -13,6 +13,8 @@ const VendaRepository = require('./repositories/VendaRepository');
 
 const AuthService = require('./services/AuthService');
 const PerfumeService = require('./services/PerfumeService');
+const VitrineService = require('./services/VitrineService');
+const GestaoProdutosService = require('./services/GestaoProdutosService');
 const CarrinhoService = require('./services/CarrinhoService');
 const VendaService = require('./services/VendaService');
 
@@ -36,7 +38,10 @@ const vendas = new VendaRepository(db);
 
 // Serviços recebem repositórios.
 const authService = new AuthService(usuarios);
+// Produtos: consultas comuns (carrinho e venda), vitrine (comprador) e gestão (Vendedor/Admin).
 const perfumeService = new PerfumeService(perfumes);
+const vitrineService = new VitrineService(perfumes);
+const gestaoService = new GestaoProdutosService(perfumes);
 const carrinhoService = new CarrinhoService(perfumeService);
 const vendaService = new VendaService(vendas);
 
@@ -48,11 +53,11 @@ const buscador = new BuscadorComCache(
 
 // Controllers recebem serviços.
 module.exports = {
-  catalogo: new CatalogoController(perfumeService),
+  catalogo: new CatalogoController(vitrineService, gestaoService),
   auth: new AuthController(authService),
   carrinho: new CarrinhoController(carrinhoService, vendaService),
   venda: new VendaController(carrinhoService, perfumeService, authService, vendaService),
   admin: new AdminController(authService),
   produtoApi: new ProdutoApiController(buscador),
-  gestaoProdutos: new GestaoProdutosController(perfumeService)
+  gestaoProdutos: new GestaoProdutosController(gestaoService)
 };

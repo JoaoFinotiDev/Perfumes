@@ -1,6 +1,6 @@
 /**
  * tests/importar-mawwal.test.js
- * Testa a conversao Shopify -> Perfume e a regra de nao duplicar. Sem rede e sem banco.
+ * Testa a conversão Shopify -> Perfume e a regra de não duplicar. Sem rede e sem banco.
  */
 const test = require('node:test');
 const assert = require('node:assert');
@@ -33,7 +33,7 @@ test('produto sem preco valido e descartado', () => {
 
 test('importar duas vezes nao duplica', async () => {
   const gravados = [];
-  const repositorio = { // repositorio falso em memoria
+  const repositorio = { // repositório falso em memória
     buscarPorNomeEMarca: async (n, m) => gravados.find((g) => g.nome === n && g.marca === m) || null,
     buscarPorCodigo: async () => null,
     criar: async (p) => { gravados.push(p); }
@@ -61,6 +61,6 @@ test('corrigirDescricoes regrava so a descricao que ainda tem entidade', async (
   const produto = { ...exemplo, body_html: '<p>Fixa&ccedil;&atilde;o longa</p>' };
   assert.strictEqual(await importador.corrigirDescricoes([produto]), 1);
   assert.deepStrictEqual(gravados, [[7, 'Fixação longa']]);
-  repositorio.buscarPorNomeEMarca = async () => ({ id: 7, descricao: 'Fixação longa' }); // ja corrigida
+  repositorio.buscarPorNomeEMarca = async () => ({ id: 7, descricao: 'Fixação longa' }); // já corrigida
   assert.strictEqual(await importador.corrigirDescricoes([produto]), 0);
 });

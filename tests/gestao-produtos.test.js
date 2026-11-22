@@ -7,7 +7,8 @@ const test = require('node:test');
 const assert = require('node:assert');
 const Perfume = require('../domain/Perfume');
 const { criarUsuario } = require('../domain/Usuario');
-const PerfumeService = require('../services/PerfumeService');
+const VitrineService = require('../services/VitrineService');
+const GestaoProdutosService = require('../services/GestaoProdutosService');
 const CarrinhoService = require('../services/CarrinhoService');
 const { ErroDeValidacao, ErroDePermissao } = require('../utils/erros');
 
@@ -35,9 +36,10 @@ const cliente = criarUsuario({ id: 8, usuario: 'c', nome: 'C', papel: 'cliente' 
 const formulario = { nome: 'Rosa Nova', marca: 'Alfa', preco: '120,50', estoque: '3', descricao: '', codigo_barras: '', foto_url: '', visivel: 'on' };
 
 test('produto oculto some da vitrine, mas continua na lista de quem vende', async () => {
-  const servico = new PerfumeService(criarRepositorioFalso());
+  const repo = criarRepositorioFalso();
+  const servico = new GestaoProdutosService(repo);
   await servico.definirVisibilidade(1, '0', vendedor);
-  const vitrine = await servico.vitrine({}, null);
+  const vitrine = await new VitrineService(repo).vitrine({}, null); // a mesma base vista pelo comprador
   assert.deepStrictEqual(vitrine.cards.map((c) => c.id), [2]);
   assert.deepStrictEqual(vitrine.marcas, ['Beta']);
   assert.strictEqual((await servico.listar('', { incluirOcultos: true })).length, 2);
@@ -45,7 +47,7 @@ test('produto oculto some da vitrine, mas continua na lista de quem vende', asyn
 });
 
 test('produto oculto não entra no carrinho do site, mas entra na venda do balcão', async () => {
-  const servico = new PerfumeService(criarRepositorioFalso());
+  const servico = new GestaoProdutosService(criarRepositorioFalso());
   await servico.definirVisibilidade(1, '0', vendedor);
   const carrinhos = new CarrinhoService(servico);
   const sessao = {};
@@ -58,14 +60,14 @@ test('produto oculto não entra no carrinho do site, mas entra na venda do balc�
 });
 
 test('código de barras de outro produto dá erro; o do próprio produto é aceito', async () => {
-  const servico = new PerfumeService(criarRepositorioFalso());
+  const servico = new GestaoProdutosService(criarRepositorioFalso());
   await assert.rejects(() => servico.atualizar(1, { ...formulario, codigo_barras: '22222222' }, vendedor), ErroDeValidacao);
   assert.strictEqual(await servico.atualizar(1, { ...formulario, codigo_barras: '11111111' }, vendedor), true);
 });
 
 test('editar salva os campos validados e a visibilidade', async () => {
   const repo = criarRepositorioFalso();
-  const servico = new PerfumeService(repo);
+  const servico = new GestaoProdutosService(repo);
   await servico.atualizar(1, { ...formulario, visivel: undefined }, vendedor); // caixa desmarcada = oculto
   assert.strictEqual(repo.lista[0].nome, 'Rosa Nova');
   assert.strictEqual(repo.lista[0].preco, 120.5);
@@ -75,7 +77,7 @@ test('editar salva os campos validados e a visibilidade', async () => {
 });
 
 test('só quem pode gerenciar edita ou oculta (cliente é barrado)', async () => {
-  const servico = new PerfumeService(criarRepositorioFalso());
+  const servico = new GestaoProdutosService(criarRepositorioFalso());
   assert.strictEqual(cliente.podeGerenciar(), false);
   assert.strictEqual(vendedor.podeGerenciar(), true);
   await assert.rejects(() => servico.atualizar(1, formulario, cliente), ErroDePermissao);

@@ -1,8 +1,8 @@
 /**
  * tests/sessao.test.js
- * Testa (sem rede e sem banco) a sessao persistente:
- *  - o segredo de desenvolvimento e o MESMO entre duas chamadas (o login sobrevive ao reinicio);
- *  - o armazem de sessoes no MySQL e configurado com a tabela "sessoes" e 8 horas de duracao.
+ * Testa (sem rede e sem banco) a sessão persistente:
+ *  - o segredo de desenvolvimento é o MESMO entre duas chamadas (o login sobrevive ao reinício);
+ *  - o armazém de sessões no MySQL é configurado com a tabela "sessoes" e 8 horas de duração.
  */
 const test = require('node:test');
 const assert = require('node:assert');
@@ -59,16 +59,16 @@ test('se o MySQL falhar em desenvolvimento, loga o erro e cai para a memoria; em
     const armazem = criarArmazemSeguro(session, poolQuebrado, { NODE_ENV: 'development' });
     await new Promise((r) => setImmediate(r)); // deixa o teste da tabela falhar
     assert.ok(erros.some((e) => /sessoes/.test(e)), 'o erro claro foi para o console');
-    // A sessao grava e le na reserva (memoria), sem lancar erro.
+    // A sessão grava e lê na reserva (memória), sem lançar erro.
     await new Promise((ok, no) => armazem.set('abc', { cookie: { maxAge: 1000 }, usuario: 'x' }, (e) => (e ? no(e) : ok())));
     const lida = await new Promise((ok, no) => armazem.get('abc', (e, s) => (e ? no(e) : ok(s))));
     assert.strictEqual(lida.usuario, 'x');
     assert.ok(armazem.reserva instanceof session.MemoryStore);
     const producao = criarArmazemSeguro(session, poolQuebrado, { NODE_ENV: 'production' });
     assert.strictEqual(producao.reserva, null);
-    await producao.principal.onReady(); await armazem.principal.onReady(); // so fecha depois de iniciar
+    await producao.principal.onReady(); await armazem.principal.onReady(); // só fecha depois de iniciar
     await producao.principal.close();
-    await armazem.principal.close(); // encerra o temporizador do pacote, senao o teste nao termina
+    await armazem.principal.close(); // encerra o temporizador do pacote, senão o teste não termina
   } finally { console.error = original; }
 });
 
@@ -110,7 +110,7 @@ test('reserva em memoria: so para tabela inexistente ou conexao recusada; outros
   const novo = () => new ArmazemComReserva({}, new session.MemoryStore(), (...a) => avisos.push(a[0]));
   const outro = novo();
   assert.strictEqual(outro.usarReserva(Object.assign(new Error('x'), { code: 'ER_ACCESS_DENIED_ERROR' })), false);
-  assert.strictEqual(outro.emUso, outro.principal); // nao trocou
+  assert.strictEqual(outro.emUso, outro.principal); // não trocou
   assert.strictEqual(avisos.length, 1); // mas logou
   for (const code of ['ER_NO_SUCH_TABLE', 'ECONNREFUSED', 'PROTOCOL_CONNECTION_LOST']) {
     const a = novo();
@@ -156,7 +156,7 @@ test('tratador de erros: status de err.status / err.statusCode, 500 por padrao, 
       assert.match(res.tela.titulo, titulo);
       assert.strictEqual(res.locals.usuario, null);
     }
-    // Resposta ja comecou: passa o erro adiante, sem desenhar nada.
+    // Resposta já começou: passa o erro adiante, sem desenhar nada.
     const res = respostaFalsa(true);
     const erro = new Error('tarde demais');
     let recebido = null;
@@ -175,9 +175,9 @@ test('logout: destrói a sessao e apaga o cookie', () => {
 });
 
 test('carrinho.ejs mostra o percentual que vem do resumo (nao um 5% fixo)', async () => {
-  const carrinho = { estaVazio: () => false, itens: [] };
-  const base = { erro: null, carrinho, usuario: null, mostrarCarrinho: true, aviso: null, moeda: require('../utils/moeda'), formas: { pix: 'Pix' } };
-  const resumo = { subtotal: 100, desconto: 10, total: 90, temDesconto: true, percentualTexto: '10%' };
+  const base = { erro: null, usuario: null, mostrarCarrinho: true, aviso: null, moeda: require('../utils/moeda'), formas: { pix: 'Pix' } };
+  const linhas = [{ nome: 'X', marca: 'Y', quantidade: 2, unitario: 45, subtotal: 90, perfumeId: 1, variacaoId: '' }];
+  const resumo = { linhas, subtotal: 100, desconto: 10, total: 90, temDesconto: true, percentualTexto: '10%' };
   const html = await ejs.renderFile(path.join(__dirname, '..', 'views', 'carrinho.ejs'), { ...base, resumo });
   assert.match(html, /Desconto de cliente \(10%\)/);
 });
@@ -193,7 +193,7 @@ test('redirect so sai depois de gravar a sessao (senao o carrinho aparecia vazio
   await new Promise((r) => setImmediate(r));
   assert.deepStrictEqual(ordem, ['save', 'redirect:/carrinho']);
 
-  // Sem sessao (logout): redireciona direto. Erro ao gravar: vai para o next.
+  // Sem sessão (logout): redireciona direto. Erro ao gravar: vai para o next.
   const semSessao = []; const res2 = { redirect: (u) => semSessao.push(u) };
   salvarAntesDeRedirecionar({}, res2, () => {}); res2.redirect('/');
   assert.deepStrictEqual(semSessao, ['/']);

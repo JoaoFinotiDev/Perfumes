@@ -17,18 +17,25 @@ class BuscadorEmCadeia extends BuscadorDeProduto {
     this.buscadores = buscadores;
   }
 
-  /** Pergunta a cada buscador, na ordem, e junta o que cada um achou. Devolve o produto ou null. */
+  /**
+   * Pergunta a cada buscador, na ordem, e junta o que cada um achou.
+   * Devolve o produto, ou null quando TODOS responderam "não achei".
+   * Se ninguém achou e algum buscador FALHOU (rede, limite), lança erro: "falhou" não é "não existe",
+   * e assim o BuscadorComCache não guarda a falha (a próxima tentativa pergunta de novo).
+   */
   async buscar(codigo) {
     let resultado = null;
+    let ultimaFalha = null;
     for (const buscador of this.buscadores) {
       try {
         const achado = await buscador.buscar(codigo);
         if (achado) resultado = this.completar(resultado, achado);
       } catch (erro) {
-        // um buscador com defeito não impede o próximo de tentar
+        ultimaFalha = erro; // um buscador com defeito não impede o próximo de tentar
       }
       if (resultado && this.estaCompleto(resultado)) break; // nada mais a buscar
     }
+    if (!resultado && ultimaFalha) throw ultimaFalha;
     return resultado; // null: ninguém achou, o formulário fica para digitar
   }
 

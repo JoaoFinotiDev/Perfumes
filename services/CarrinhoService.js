@@ -1,17 +1,23 @@
 /**
  * services/CarrinhoService.js
  * Monta e atualiza carrinhos guardados na sessão.
- * Serve para dois carrinhos: o do site ('carrinho') e o da tela de venda ('venda').
+ * Serve para dois carrinhos: o do site (CARRINHOS.SITE) e o da tela de venda (CARRINHOS.BALCAO).
  * Na sessão fica só { chaveDaLinha: quantidade }, onde a chave é "idDoProduto" ou
  * "idDoProduto:idDaVariacao" (veja Carrinho.chave); os preços e o estoque
  * são sempre lidos do banco (o usuário não consegue forçar um preço).
  */
 const Carrinho = require('../domain/Carrinho');
-const { SemDesconto } = require('../domain/Desconto');
+const { SemDesconto, arredondar } = require('../domain/Desconto');
 const { ErroDeValidacao } = require('../utils/erros');
 
 // Quantidade máxima por pedido de adição (trava de sanidade; o limite de verdade é o estoque).
 const QUANTIDADE_MAXIMA = 100000;
+
+/**
+ * Nome de cada carrinho dentro da sessão. Único lugar com esses textos:
+ * o login (AuthController) e os controllers usam estas constantes.
+ */
+const CARRINHOS = Object.freeze({ SITE: 'carrinho', BALCAO: 'venda' });
 
 class CarrinhoService {
   /** @param {PerfumeService} perfumeService */
@@ -82,20 +88,36 @@ class CarrinhoService {
   }
 
   /**
-   * Calcula os valores que a tela mostra, para a view so exibir (sem fazer conta).
-   * O desconto vem do comprador: cada papel tem a sua estrategia (Cliente 5%, os outros 0).
-   * @param {Carrinho} carrinho carrinho ja carregado
-   * @param {Usuario|null} comprador quem paga (null = preco cheio)
-   * @returns {{subtotal:number, desconto:number, total:number, temDesconto:boolean}}
+   * Calcula TUDO o que a tabela do carrinho mostra, para a view só exibir (nenhuma conta na view).
+   * Serve igual para o carrinho do site e para a tela "Abrir venda" (partial views/partials/itens-carrinho.ejs).
+   * O desconto vem do comprador: cada papel tem a sua estratégia (Cliente 5%, os outros 0).
+   * @param {Carrinho} carrinho carrinho já carregado
+   * @param {Usuario|null} comprador quem paga (null = preço cheio)
+   * @returns {{linhas: object[], subtotal:number, desconto:number, total:number, temDesconto:boolean, percentualTexto:string}}
    */
   resumir(carrinho, comprador) {
     const estrategia = comprador ? comprador.estrategiaDesconto() : new SemDesconto();
+    // Uma linha por item: preço unitário já com desconto e o subtotal da linha (unitário x quantidade).
+    const linhas = carrinho.itens.map((item) => {
+      const unitario = item.precoPara(comprador);
+      return {
+        nome: item.nome,
+        marca: item.perfume.marca,
+        quantidade: item.quantidade,
+        unitario,
+        subtotal: arredondar(unitario * item.quantidade),
+        // Os dois campos que o botão "Remover" envia (veja CarrinhoService.remover).
+        perfumeId: item.perfume.id,
+        variacaoId: item.variacao ? item.variacao.id : ''
+      };
+    });
     return {
+      linhas,
       subtotal: carrinho.subtotal(),
       desconto: carrinho.desconto(estrategia),
       total: carrinho.total(estrategia),
-      temDesconto: estrategia.percentual() > 0, // a tela decide o aviso por aqui, nao pelo papel
-        percentualTexto: `${Math.round(estrategia.percentual() * 100)}%` // texto pronto (ex.: "5%"): a view nao faz conta
+      temDesconto: estrategia.percentual() > 0, // a tela decide o aviso por aqui, não pelo papel
+      percentualTexto: `${estrategia.emPorcento()}%` // texto pronto (ex.: "5%"): a view não faz conta
     };
   }
 
@@ -104,5 +126,7 @@ class CarrinhoService {
     delete sessao[chave];
   }
 }
+
+CarrinhoService.CARRINHOS = CARRINHOS;
 
 module.exports = CarrinhoService;

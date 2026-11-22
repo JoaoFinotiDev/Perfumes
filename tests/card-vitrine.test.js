@@ -8,10 +8,10 @@ const assert = require('node:assert');
 const path = require('node:path');
 const ejs = require('ejs');
 const Perfume = require('../domain/Perfume');
-const PerfumeService = require('../services/PerfumeService');
+const VitrineService = require('../services/VitrineService');
 const moeda = require('../utils/moeda');
 
-const servico = new PerfumeService({});
+const servico = new VitrineService({});
 const raiz = path.join(__dirname, '..');
 
 /** Monta um produto com variações [{descricao, estoque}] e devolve o "cartão" que a view recebe. */
@@ -88,9 +88,9 @@ test('todas esgotadas: nenhum chip marcado, selo Esgotado e botão desativado', 
 test('a vitrine compila (com card e SKU/pontos) e a página do produto compila', async () => {
   const p = { ...cartao([2, 7]), sku: '123', pontos: null, nome: 'Teste', marca: 'Alfa', fotoUrl: null, temDesconto: false, percentual: 0 };
   const paginacao = { porPagina: 30, inicio: 1, fim: 1, total: 1, totalPaginas: 1 };
-  const comum = { usuario: null, mostrarCarrinho: true, temDesconto: false, moeda, aviso: null, erro: null };
+  const comum = { usuario: null, mostrarCarrinho: true, percentualDesconto: 0, moeda, aviso: null, erro: null };
   const vitrine = await ejs.renderFile(path.join(raiz, 'views/vitrine.ejs'), {
-    ...comum, cards: [p], marcas: [], busca: '', marca: '', ordem: 'nome', paginacao, links: {}
+    ...comum, cards: [p], marcas: [], busca: '', marca: '', ordem: 'nome', paginacao, links: {}, opcoesPorPagina: [30, 50, 100]
   });
   assert.match(vitrine, /card-codigos/);
   const pagina = await ejs.renderFile(path.join(raiz, 'views/produto.ejs'), { ...comum, p: { ...p, visivel: true, descricao: 'd' } });

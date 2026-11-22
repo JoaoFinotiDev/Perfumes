@@ -19,13 +19,13 @@ class BuscadorComCache extends BuscadorDeProduto {
     super();
     this.buscador = buscador;
     this.validadeMs = validadeMs;
-    this.cache = new Map(); // codigo -> { valor, expiraEm }
-    this.emAndamento = new Map(); // codigo -> Promise (evita duas chamadas ao mesmo tempo)
+    this.cache = new Map(); // código -> { valor, expiraEm }
+    this.emAndamento = new Map(); // código -> Promise (evita duas chamadas ao mesmo tempo)
   }
 
   /**
    * Devolve o resultado guardado (se ainda vale) ou busca de verdade e guarda.
-   * Ideia: a mesma pergunta nao vai duas vezes para a API.
+   * Ideia: a mesma pergunta não vai duas vezes para a API.
    */
   async buscar(codigo) {
     const guardado = this.cache.get(codigo);
@@ -37,6 +37,7 @@ class BuscadorComCache extends BuscadorDeProduto {
     const busca = this.buscador.buscar(codigo)
       .then((valor) => {
         // "Não achou" (null) também é guardado: evita gastar cota com o mesmo código.
+        // Já uma FALHA (erro lançado) não chega aqui: a promise rejeita, nada é guardado e a próxima busca tenta de novo.
         this.cache.set(codigo, { valor, expiraEm: Date.now() + this.validadeMs });
         return valor;
       })

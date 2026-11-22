@@ -18,7 +18,7 @@ const Variacao = require('./Variacao');
 const MARCA_COM_PONTOS = 'Queen Semijoias';
 
 class Perfume {
-  /** @param {object} dados linha da tabela perfumes (mais `variacoes`, uma lista opcional de linhas de variacoes) */
+  /** @param {object} dados linha da tabela perfumes (mais `variacoes`, uma lista opcional de linhas de variações) */
   constructor({ id, nome, marca, preco, estoque, descricao, codigo_barras, foto_url, vendedor_id, visivel, sku, pontos, variacoes }) {
     this.id = id;
     this.nome = nome;

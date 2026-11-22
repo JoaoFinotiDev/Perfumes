@@ -1,6 +1,6 @@
 /**
  * tests/correcoes.test.js
- * Testes das correcoes da revisao: arredondamento do preco, SESSION_SECRET e ordem da baixa de estoque.
+ * Testes das correções da revisão: arredondamento do preço, SESSION_SECRET e ordem da baixa de estoque.
  * Sem rede e sem banco.
  */
 const test = require('node:test');
@@ -30,7 +30,7 @@ test('SESSION_SECRET: em producao vazio ou de exemplo falha; em desenvolvimento 
   assert.strictEqual(avisos.length, 0);
 
   // dev: segredo vazio ou igual ao exemplo usa o segredo fixo guardado em arquivo
-  // (aqui um arquivo temporario, para nao mexer no .segredo-dev real)
+  // (aqui um arquivo temporário, para não mexer no .segredo-dev real)
   const arquivo = path.join(os.tmpdir(), `segredo-dev-${process.pid}-${Date.now()}`);
   try {
     const doExemplo = resolverSegredo({ SESSION_SECRET: SEGREDO_DE_EXEMPLO }, avisar, arquivo);

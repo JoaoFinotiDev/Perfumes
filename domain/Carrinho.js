@@ -126,6 +126,4 @@ class Carrinho {
   }
 }
 
-Carrinho.ItemDeCarrinho = ItemDeCarrinho;
-
 module.exports = Carrinho;

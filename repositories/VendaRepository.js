@@ -30,7 +30,7 @@ class VendaRepository {
       // DEADLOCK: duas vendas ao mesmo tempo travam as linhas de estoque que baixam. Se uma travar o produto 1
       // e depois o 2, e a outra travar o 2 e depois o 1, as duas ficam esperando uma pela outra (impasse) e o
       // banco derruba uma delas. Para evitar, TODAS as vendas baixam o estoque na MESMA ordem: pelo id do
-      // produto e, no mesmo produto, pelo id da variacao. Assim uma venda sempre espera a outra, nunca se cruzam.
+      // produto e, no mesmo produto, pelo id da variação. Assim uma venda sempre espera a outra, nunca se cruzam.
       const itensEmOrdem = [...venda.itens].sort((a, b) =>
         (a.perfume.id - b.perfume.id) || ((a.variacao ? a.variacao.id : 0) - (b.variacao ? b.variacao.id : 0)));
       for (const item of itensEmOrdem) {
@@ -47,7 +47,7 @@ class VendaRepository {
           'UPDATE perfumes SET estoque = estoque - ? WHERE id = ? AND estoque >= ?',
           [quantidade, perfume.id, quantidade]);
         if (baixa.affectedRows === 0) {
-          throw new EstoqueInsuficienteError(item.nome); // o service converte para erro de validacao
+          throw new EstoqueInsuficienteError(item.nome); // o service converte para erro de validação
         }
         await conexao.query(
           'INSERT INTO venda_itens (venda_id, perfume_id, variacao_id, quantidade, preco_unitario) VALUES (?, ?, ?, ?, ?)',

@@ -7,9 +7,10 @@ const express = require('express');
 const c = require('../container');
 const ligar = require('../utils/ligar');
 const { exigirPapel } = require('../middlewares/auth');
+const { PAPEIS } = require('../domain/Usuario');
 
 const router = express.Router();
-router.use(['/vendedor', '/api'], exigirPapel('vendedor')); // vale para todas as rotas abaixo
+router.use(['/vendedor', '/api'], exigirPapel(PAPEIS.VENDEDOR)); // vale para todas as rotas abaixo
 
 router.get('/vendedor/venda', ligar(c.venda, 'tela'));
 router.post('/vendedor/venda/cliente', ligar(c.venda, 'definirCliente'));
