@@ -118,6 +118,48 @@ function conferir(nome, ok, extra = '') {
   r = await vendedor('/vendedor/venda');
   conferir('venda finalizada limpa a tela', r.texto.includes('Nenhum item ainda') && r.texto.includes('finalizada'));
 
+  // Gestão de produtos (Vendedor): ocultar da vitrine, editar, código único
+  r = await vendedor('/vendedor/produtos?q=Marca');
+  const achado = r.texto.match(/\/vendedor\/produtos\/(\d+)\/editar/);
+  conferir('vendedor abre "Gerenciar produtos" e vê o produto criado', r.status === 200 && !!achado);
+  const pid = achado && achado[1];
+  r = await cliente('/vendedor/produtos');
+  conferir('cliente NÃO gerencia produtos (403)', r.status === 403);
+  r = await cliente('/vendedor/produtos/' + pid + '/editar', { metodo: 'POST', corpo: { nome: 'hack' } });
+  conferir('cliente NÃO edita produto (403)', r.status === 403);
+  r = await visitante('/vendedor/produtos');
+  conferir('visitante vai para o login', r.status === 302 && r.local === '/login');
+  r = await vendedor('/vendedor/produtos/' + pid + '/visibilidade', { metodo: 'POST', corpo: { visivel: '0' } });
+  conferir('vendedor oculta produto (POST)', r.status === 302);
+  r = await vendedor('/vendedor/produtos/' + pid + '/visibilidade');
+  conferir('ocultar por GET não existe (404)', r.status === 404);
+  r = await visitante('/');
+  conferir('vitrine NÃO mostra produto oculto', !r.texto.includes('Perfume &lt;b&gt;Teste'));
+  r = await visitante('/itens');
+  conferir('/itens do visitante NÃO mostra produto oculto', !r.texto.includes('Perfume &lt;b&gt;Teste'));
+  r = await vendedor('/itens');
+  conferir('/itens do vendedor mostra o oculto com "Na vitrine"', r.texto.includes('Perfume &lt;b&gt;Teste') && r.texto.includes('Na vitrine'));
+  r = await cliente('/carrinho/adicionar', { metodo: 'POST', corpo: { perfumeId: pid } });
+  r = await cliente('/carrinho');
+  conferir('cliente NÃO põe produto oculto no carrinho', !r.texto.includes('Perfume &lt;b&gt;Teste'));
+  r = await vendedor('/vendedor/venda?q=Teste');
+  conferir('"Abrir venda" ainda acha produto oculto (nome)', r.texto.includes('Perfume &lt;b&gt;Teste'));
+  await vendedor('/vendedor/venda/codigo', { metodo: 'POST', corpo: { codigo: '789' + id } });
+  r = await vendedor('/vendedor/venda');
+  conferir('"Abrir venda" acha produto oculto (código de barras)', r.texto.includes('Perfume &lt;b&gt;Teste'));
+  r = await vendedor('/vendedor/produtos/' + pid + '/editar');
+  conferir('tela de edição abre preenchida', r.status === 200 && r.texto.includes('789' + id) && r.texto.includes('editar-produto.js'));
+  r = await vendedor('/vendedor/produtos/' + pid + '/editar', { metodo: 'POST', corpo: { nome: 'Outro', marca: 'Marca', preco: '5', estoque: '1', codigo_barras: '7891033000011' } });
+  conferir('editar com código de OUTRO produto -> 400', r.status === 400 && r.texto.includes('Já existe um produto'));
+  r = await vendedor('/vendedor/produtos/' + pid + '/editar', { metodo: 'POST', corpo: { nome: 'x', marca: 'Marca', preco: '-5', estoque: '1' } });
+  conferir('editar com dado inválido -> 400', r.status === 400);
+  r = await vendedor('/vendedor/produtos/' + pid + '/editar', { metodo: 'POST', corpo: { nome: 'Perfume Editado', marca: 'Marca', preco: '55,5', estoque: '7', descricao: 'nova', codigo_barras: '789' + id, foto_url: '', visivel: 'on' } });
+  conferir('editar salva e redireciona', r.status === 302 && r.local === '/vendedor/produtos');
+  r = await visitante('/');
+  conferir('produto editado e marcado visível volta à vitrine', r.texto.includes('Perfume Editado'));
+  r = await vendedor('/vendedor/produtos/99999999/editar');
+  conferir('produto inexistente -> 404', r.status === 404);
+
   console.log(falhas ? `\n${falhas} FALHA(S)` : '\nTodos os testes passaram.');
   process.exit(falhas ? 1 : 0);
 })();

@@ -48,3 +48,21 @@ npm run importar:mawwal
 Lê a lista pública `https://mawwal.com.br/products.json` (1 segundo entre páginas) e grava os produtos na tabela `perfumes`, com marca `Mawwal`. Só adiciona: quem já existe (mesmo nome e marca, ou mesmo código de barras) é pulado, então pode rodar mais de uma vez. A fonte não informa estoque, por isso cada produto entra com estoque padrão 10 e sem vendedor (`vendedor_id` fica `NULL`). Para evitar nova chamada à internet: `npm run importar:mawwal -- --salvar=mawwal.json` guarda o JSON e `-- --arquivo=mawwal.json` importa a partir dele.
 
 Os produtos importados não ficam no `script.sql` (são dados de terceiros). Fonte: dados e fotos pertencem a Mawwal Arabia Brasil; uso apenas acadêmico.
+
+## Gerenciar produtos (Vendedor)
+
+Menu **Gerenciar produtos** (`/vendedor/produtos`), para Vendedor e Admin:
+
+- Lista todos os produtos (inclusive ocultos), com busca por nome ou marca.
+- **Mostrar/Ocultar na vitrine**: botão (POST). A vitrine (`/`) só mostra produtos visíveis, e o servidor recusa colocar um produto oculto no carrinho do site. A tabela `/itens` mostra todos ao Vendedor (coluna "Na vitrine") e só os visíveis a visitante e cliente. A tela **Abrir venda** continua achando produtos ocultos (por nome, marca e código de barras): ocultar vale só para a vitrine.
+- **Editar** (`/vendedor/produtos/:id/editar`): nome, marca, preço, estoque, descrição, foto, código de barras e visibilidade, com as mesmas validações do cadastro. O código de barras é opcional e único (repetido em outro produto dá erro 400). O Enter nesse campo não envia o formulário (o leitor de código termina com Enter), e a edição não chama nenhuma API externa.
+- **Quem pode**: qualquer Vendedor (e o Admin) gerencia todos os produtos, pois a loja é uma só e os produtos importados da Mawwal não têm dono. Cliente recebe 403 e visitante vai para o login. A regra está em um lugar só, o método `podeGerenciar(produto)` em `domain/Usuario.js`; para limitar ao dono, troque a regra do Vendedor por `produto.vendedorId === this.id`.
+- A descrição aceita até 5000 caracteres (as descrições importadas passam de 1000).
+
+### Banco já existente: migração
+
+O `script.sql` novo já cria a coluna `visivel`. Quem já tem o banco criado roda uma vez (pode repetir, não apaga nada):
+
+```bash
+mysql -u root -p < migracoes/001-visivel.sql
+```
