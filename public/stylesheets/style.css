@@ -108,3 +108,8 @@ button:disabled { background: #bbb; cursor: not-allowed; }
 .vitrine-cabecalho h1 { margin: 0; }
 .vitrine-cabecalho p { margin: 4px 0 0; }
 .vitrine-logo { height: 64px; width: 64px; border-radius: 50%; object-fit: cover; border: 2px solid var(--cor-borda); }
+
+/* Tabela do catálogo: a descrição mostra uma linha só, cortada com "..." (o botão "Ver mais" abre o texto todo). */
+.descricao { max-width: 260px; }
+.desc-texto { max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.desc-texto.aberta { white-space: normal; overflow: visible; }

@@ -56,6 +56,8 @@ function conferir(nome, ok, extra = '') {
   conferir('login admin/admin', r.status === 302 && r.local === '/');
   r = await admin('/itens');
   conferir('admin vê /itens com a coluna "Na vitrine"', r.status === 200 && r.texto.includes('Malbec Tradicional') && r.texto.includes('Na vitrine'));
+  conferir('/itens: descrição em uma linha com botão "Ver mais" (escondido até o JS medir)',
+    r.texto.includes('class="desc-texto"') && /<button[^>]*desc-botao[^>]*hidden[^>]*aria-expanded="false"/.test(r.texto) && r.texto.includes('descricao-ver-mais.js'));
   r = await admin('/admin/vendedores', { metodo: 'POST', corpo: { nome: 'Vend Teste', usuario: 'vend' + id, senha: 'senha123' } });
   conferir('admin cria vendedor', r.status === 302 && r.local === '/admin');
   r = await admin('/vendedor/venda');

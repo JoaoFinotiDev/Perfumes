@@ -38,7 +38,7 @@ No cadastro de produto, o código preenche nome, marca e foto pela API Kodebar (
 ## Telas
 
 - **Vitrine (`/`)**: página inicial no estilo marketplace, com cards (foto, marca, nome, preço e botão "Adicionar ao carrinho"), busca por nome ou marca, filtro por marca e ordenação por nome ou preço. O Cliente vê o preço antigo riscado, o preço com 5% e o selo "-5%". Produto sem foto mostra uma imagem local; sem estoque mostra "Esgotado".
-- **Catálogo (tabela) (`/itens`)**: só para Vendedor e Admin (middleware `exigirPapel`). Tabela HTML com todos os registros (`GET /itens`) e, para o Vendedor, o formulário de novo anúncio (`POST /itens`).
+- **Catálogo (tabela) (`/itens`)**: só para Vendedor e Admin (middleware `exigirPapel`). A descrição aparece em uma linha, e o botão "Ver mais" / "Ver menos" só surge quando o texto não cabe. Tabela HTML com todos os registros (`GET /itens`) e, para o Vendedor, o formulário de novo anúncio (`POST /itens`).
 
 ## Importar produtos Mawwal
 
@@ -47,6 +47,8 @@ npm run importar:mawwal
 ```
 
 Lê a lista pública `https://mawwal.com.br/products.json` (1 segundo entre páginas) e grava os produtos na tabela `perfumes`, com marca `Mawwal`. Só adiciona: quem já existe (mesmo nome e marca, ou mesmo código de barras) é pulado, então pode rodar mais de uma vez. A fonte não informa estoque, por isso cada produto entra com estoque padrão 10 e sem vendedor (`vendedor_id` fica `NULL`). Para evitar nova chamada à internet: `npm run importar:mawwal -- --salvar=mawwal.json` guarda o JSON e `-- --arquivo=mawwal.json` importa a partir dele.
+
+As entidades HTML dos textos (`&ccedil;`, `&#233;`, `&amp;`...) são trocadas pelos caracteres na importação. Para consertar produtos já importados que ficaram com `&...;` na descrição, rode `npm run importar:mawwal -- --arquivo=mawwal.json --corrigir-descricoes` (só regrava a descrição desses produtos, não apaga nada e pode repetir).
 
 Os produtos importados não ficam no `script.sql` (são dados de terceiros). Fonte: dados e fotos pertencem a Mawwal Arabia Brasil; uso apenas acadêmico.
 

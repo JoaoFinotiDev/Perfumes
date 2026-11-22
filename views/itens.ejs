@@ -26,7 +26,13 @@
       </td>
       <td><%= p.estoque %></td>
       <td><%= p.codigoBarras || '-' %></td>
-      <td><%= p.descricao || '' %></td>
+      <%# Descrição: prévia de UMA linha (CSS). O botão "Ver mais" nasce escondido e o JS só o mostra se o texto não couber. %>
+      <td class="descricao">
+        <% if (p.descricao) { %>
+          <div class="desc-texto" id="desc-<%= p.id %>" title="<%= p.descricao %>"><%= p.descricao %></div>
+          <button type="button" class="link desc-botao" hidden aria-expanded="false" aria-controls="desc-<%= p.id %>">Ver mais</button>
+        <% } else { %>-<% } %>
+      </td>
       <%# Esta tela é só de Vendedor e Admin, que veem também os produtos ocultos da vitrine. %>
       <td><%= p.visivel ? 'Sim' : 'Não' %></td>
       <td>
@@ -62,4 +68,5 @@
   </form>
   <script src="/javascripts/cadastro-produto.js"></script>
 <% } %>
+<script src="/javascripts/descricao-ver-mais.js"></script>
 <%- include('partials/rodape') %>

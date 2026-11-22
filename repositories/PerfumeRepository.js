@@ -71,6 +71,11 @@ class PerfumeRepository {
       [d.nome, d.marca, d.preco, d.estoque, d.descricao, d.codigoBarras, d.fotoUrl, d.visivel ? 1 : 0, id]);
   }
 
+  /** Troca só a descrição de um produto (usado para corrigir textos importados). */
+  async atualizarDescricao(id, descricao) {
+    await this.db.query('UPDATE perfumes SET descricao = ? WHERE id = ?', [descricao, id]);
+  }
+
   /** Mostra (true) ou oculta (false) o produto na vitrine. */
   async definirVisivel(id, visivel) {
     await this.db.query('UPDATE perfumes SET visivel = ? WHERE id = ?', [visivel ? 1 : 0, id]);

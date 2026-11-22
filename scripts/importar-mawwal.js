@@ -26,6 +26,31 @@ const LIMITE_CODIGO = 14;
 const ESTOQUE_PADRAO = 10;
 const MARCA = 'Mawwal';
 
+// Entidades HTML com nome que aparecem nos textos em portugues. Nome da entidade -> caractere.
+const ENTIDADES = {
+  nbsp: ' ', amp: '&', quot: '"', apos: "'", lt: '<', gt: '>',
+  agrave: 'à', aacute: 'á', acirc: 'â', atilde: 'ã', auml: 'ä', Agrave: 'À', Aacute: 'Á', Acirc: 'Â', Atilde: 'Ã',
+  egrave: 'è', eacute: 'é', ecirc: 'ê', Eacute: 'É', Ecirc: 'Ê',
+  iacute: 'í', Iacute: 'Í', oacute: 'ó', ocirc: 'ô', otilde: 'õ', Oacute: 'Ó', Ocirc: 'Ô', Otilde: 'Õ',
+  uacute: 'ú', uuml: 'ü', Uacute: 'Ú', ccedil: 'ç', Ccedil: 'Ç', ntilde: 'ñ',
+  ordm: 'º', ordf: 'ª', ndash: '-', mdash: '-', hellip: '...', lsquo: "'", rsquo: "'", ldquo: '"', rdquo: '"'
+};
+
+/**
+ * Troca entidades HTML pelo caractere de verdade: &ccedil; (nome), &#233; (decimal) e &#xE9; (hexadecimal).
+ * Passa UMA vez pelo texto, entao "&amp;ccedil;" vira "&ccedil;" (nao decodifica duas vezes).
+ * Entidade desconhecida fica como veio.
+ */
+function decodificarEntidades(texto) {
+  return String(texto).replace(/&(#x[0-9a-f]+|#\d+|[a-z][a-z0-9]*);/gi, (inteira, corpo) => {
+    if (corpo[0] === '#') {
+      const codigo = corpo[1].toLowerCase() === 'x' ? parseInt(corpo.slice(2), 16) : parseInt(corpo.slice(1), 10);
+      return codigo > 0 && codigo <= 0x10ffff ? String.fromCodePoint(codigo) : inteira;
+    }
+    return Object.prototype.hasOwnProperty.call(ENTIDADES, corpo) ? ENTIDADES[corpo] : inteira;
+  });
+}
+
 /** Busca todas as paginas de products.json. */
 class MawwalFonte {
   constructor({ url = 'https://mawwal.com.br/products.json', pausaMs = 1000, fetchFn = fetch } = {}) {
@@ -76,14 +101,10 @@ class MawwalConversor {
     });
   }
 
-  /** Tira as tags HTML, troca entidades comuns e junta espacos repetidos. */
+  /** Tira as tags HTML, decodifica as entidades (&ccedil; vira ç) e junta espacos repetidos. */
   limparHtml(html) {
-    return String(html || '')
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-      .replace(/\s+/g, ' ')
-      .trim();
+    const semTags = String(html || '').replace(/<[^>]*>/g, ' ');
+    return decodificarEntidades(semTags).replace(/\s+/g, ' ').trim();
   }
 }
 
@@ -109,6 +130,26 @@ class ImportadorMawwal {
     }
     return resumo;
   }
+
+  /**
+   * Conserta SO a descricao de produtos ja importados que ficaram com entidades cruas ("&ccedil;").
+   * Para cada produto da fonte, acha o do banco (nome + marca) e regrava a descricao ja decodificada,
+   * mas apenas quando a do banco ainda tem "&...;". Nao mexe em mais nada e nao apaga nada.
+   * Pode rodar varias vezes: depois de corrigida, a descricao nao tem mais "&...;" e e pulada.
+   */
+  async corrigirDescricoes(produtos) {
+    let corrigidos = 0;
+    for (const bruto of produtos) {
+      const perfume = this.conversor.converter(bruto);
+      if (!perfume) continue;
+      const atual = await this.repositorio.buscarPorNomeEMarca(perfume.nome, perfume.marca);
+      if (atual && /&(#x?[0-9a-f]+|[a-z][a-z0-9]*);/i.test(atual.descricao || '') && atual.descricao !== perfume.descricao) {
+        await this.repositorio.atualizarDescricao(atual.id, perfume.descricao);
+        corrigidos++;
+      }
+    }
+    return corrigidos;
+  }
 }
 
 /** Le --nome=valor da linha de comando. */
@@ -129,7 +170,12 @@ async function main() {
   const db = require('../config/db');
   const PerfumeRepository = require('../repositories/PerfumeRepository');
   try {
-    const resumo = await new ImportadorMawwal(new PerfumeRepository(db)).importar(produtos);
+    const importador = new ImportadorMawwal(new PerfumeRepository(db));
+    if (process.argv.includes('--corrigir-descricoes')) { // so regrava descricoes com "&...;" (veja o README)
+      console.log(`Descricoes corrigidas: ${await importador.corrigirDescricoes(produtos)}`);
+      return;
+    }
+    const resumo = await importador.importar(produtos);
     console.log(`Lidos: ${produtos.length} | importados: ${resumo.importados} | pulados (ja existiam): ${resumo.pulados} | invalidos: ${resumo.invalidos}`);
   } finally {
     await db.end();
