@@ -38,14 +38,19 @@
         <% }) %>
       </select>
     <% } %>
-    <div class="quantidade">
-      <label for="<%= idp %>-qtd">Quantidade</label>
-      <%# Os botões - e + só funcionam com JS: nascem escondidos e o script os mostra. %>
-      <button type="button" class="qtd-botao" data-menos hidden aria-label="Diminuir quantidade">-</button>
-      <input type="number" name="quantidade" id="<%= idp %>-qtd" value="1" min="1" max="<%= Math.max(1, estoqueAtual) %>" step="1" inputmode="numeric" required>
-      <button type="button" class="qtd-botao" data-mais hidden aria-label="Aumentar quantidade">+</button>
+    <%# Quantidade e botão LADO A LADO, na mesma linha (veja .comprar-linha no style.css). O rótulo "Quantidade" fica
+        invisível na tela (classe so-leitor), mas continua lido pelos leitores de tela. %>
+    <div class="comprar-linha">
+      <div class="quantidade">
+        <label for="<%= idp %>-qtd" class="so-leitor">Quantidade</label>
+        <%# Os botões - e + só funcionam com JS: nascem escondidos e o script os mostra. %>
+        <button type="button" class="qtd-botao" data-menos hidden aria-label="Diminuir quantidade">-</button>
+        <input type="number" name="quantidade" id="<%= idp %>-qtd" value="1" min="1" max="<%= Math.max(1, estoqueAtual) %>" step="1" inputmode="numeric" required>
+        <button type="button" class="qtd-botao" data-mais hidden aria-label="Aumentar quantidade">+</button>
+      </div>
+      <%# No card estreito o texto é curto ("Adicionar"); o title e o aria-label guardam o texto completo. %>
+      <button type="submit" class="card-botao comprar-botao" data-enviar title="Adicionar ao carrinho"<%= estoqueAtual <= 0 ? ' disabled' : '' %>><%= ctx === 'card' ? 'Adicionar' : 'Adicionar ao carrinho' %></button>
     </div>
-    <button type="submit" class="card-botao" data-enviar<%= estoqueAtual <= 0 ? ' disabled' : '' %>>Adicionar ao carrinho</button>
   </form>
   <% } %>
 </div>
