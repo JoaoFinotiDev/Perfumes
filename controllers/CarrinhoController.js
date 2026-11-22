@@ -27,7 +27,7 @@ class CarrinhoController {
     await this._mostrar(req, res, null);
   }
 
-  /** POST /carrinho/adicionar: põe 1 unidade no carrinho. Se der erro, avisa no catálogo. */
+  /** POST /carrinho/adicionar: põe 1 unidade no carrinho. Se der erro, avisa na vitrine. */
   async adicionar(req, res) {
     try {
       await this.carrinhos.adicionar(req.session, CHAVE, Number(req.body.perfumeId));
@@ -35,7 +35,7 @@ class CarrinhoController {
     } catch (erro) {
       if (!(erro instanceof ErroDeValidacao)) throw erro; // erro inesperado vai para o app.js
       req.session.aviso = erro.message;
-      res.redirect('/itens');
+      res.redirect('/');
     }
   }
 
@@ -54,7 +54,7 @@ class CarrinhoController {
       });
       this.carrinhos.limpar(req.session, CHAVE);
       req.session.aviso = `Compra #${venda.id} confirmada (pagamento simulado).`;
-      res.redirect('/itens');
+      res.redirect('/');
     } catch (erro) {
       if (!(erro instanceof ErroDeValidacao)) throw erro;
       res.status(400);

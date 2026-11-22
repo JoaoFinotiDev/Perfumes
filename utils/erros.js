@@ -20,4 +20,12 @@ class EstoqueInsuficienteError extends Error {
   }
 }
 
-module.exports = { ErroDeValidacao, EstoqueInsuficienteError };
+/** O usuário está logado, mas a regra do domínio (Usuario.podeGerenciar) não deixa ele fazer isso. O controller responde 403. */
+class ErroDePermissao extends Error {
+  constructor(mensagem = 'Você não tem permissão para isso.') {
+    super(mensagem);
+    this.name = 'ErroDePermissao';
+  }
+}
+
+module.exports = { ErroDeValidacao, EstoqueInsuficienteError, ErroDePermissao };

@@ -1,0 +1,39 @@
+<%# Gerenciar produtos (Vendedor/Admin): lista com busca, botão Editar e mostrar/ocultar na vitrine. A view só MOSTRA. %>
+<%- include('partials/topo', { titulo: 'Gerenciar produtos' }) %>
+<h1>Gerenciar produtos</h1>
+<p class="dica">Produto oculto não aparece na vitrine nem pode ser comprado pelo site, mas continua na tela "Abrir venda".</p>
+
+<form method="get" action="/vendedor/produtos" class="busca">
+  <input name="q" value="<%= busca %>" placeholder="Buscar por nome ou marca" maxlength="80">
+  <button type="submit">Buscar</button>
+</form>
+
+<table>
+  <thead>
+    <tr><th>Foto</th><th>ID</th><th>Nome</th><th>Marca</th><th>Preço</th><th>Estoque</th><th>Na vitrine</th><th>Ações</th></tr>
+  </thead>
+  <tbody>
+  <% perfumes.forEach(function (p) { %>
+    <tr>
+      <td><% if (p.fotoUrl) { %><img src="<%= p.fotoUrl %>" alt="<%= p.nome %>" class="foto"><% } %></td>
+      <td><%= p.id %></td>
+      <td><%= p.nome %></td>
+      <td><%= p.marca %></td>
+      <td><%= moeda(p.preco) %></td>
+      <td><%= p.estoque %></td>
+      <td><%= p.visivel ? 'Sim' : 'Não' %></td>
+      <td>
+        <a href="/vendedor/produtos/<%= p.id %>/editar">Editar</a>
+        <%# Mostrar/ocultar é um POST (muda dados), com o valor novo escondido no formulário. %>
+        <form method="post" action="/vendedor/produtos/<%= p.id %>/visibilidade" class="inline">
+          <input type="hidden" name="visivel" value="<%= p.visivel ? '0' : '1' %>">
+          <input type="hidden" name="q" value="<%= busca %>">
+          <button type="submit"><%= p.visivel ? 'Ocultar da vitrine' : 'Mostrar na vitrine' %></button>
+        </form>
+      </td>
+    </tr>
+  <% }) %>
+  <% if (!perfumes.length) { %><tr><td colspan="8">Nenhum produto encontrado.</td></tr><% } %>
+  </tbody>
+</table>
+<%- include('partials/rodape') %>

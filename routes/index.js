@@ -12,7 +12,8 @@ const router = express.Router();
 
 // Vitrine (GET /) em cards e catálogo em tabela (GET /itens, exigido pelo trabalho).
 router.get('/', ligar(c.catalogo, 'vitrine')); // vitrine em cards (home)
-router.get('/itens', ligar(c.catalogo, 'listar'));
+// A tabela do catálogo é só de Vendedor e Admin; Cliente e visitante veem a vitrine (/).
+router.get('/itens', exigirPapel('vendedor', 'admin'), ligar(c.catalogo, 'listar'));
 router.post('/itens', exigirPapel('vendedor'), ligar(c.catalogo, 'criar'));
 
 // Login, cadastro de cliente e logout.

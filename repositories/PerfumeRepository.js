@@ -20,11 +20,13 @@ class PerfumeRepository {
 
   /**
    * Lista perfumes. Com `busca`, filtra por nome ou marca.
-   * Opcional: `marca` (igual exata) e `ordem` (chave de ORDENACOES; qualquer outra vira "nome").
+   * Opcional: `marca` (igual exata), `ordem` (chave de ORDENACOES; qualquer outra vira "nome")
+   * e `apenasVisiveis` (true = esconde os produtos que o Vendedor ocultou da vitrine).
    */
-  async listar(busca = '', { marca = '', ordem = 'nome' } = {}) {
+  async listar(busca = '', { marca = '', ordem = 'nome', apenasVisiveis = false } = {}) {
     const filtros = [];
     const params = [];
+    if (apenasVisiveis) filtros.push('visivel = 1'); // texto fixo, sem dado do usuário
     if (busca) {
       // Os "?" são preenchidos pelo driver, o que impede SQL injection (texto malicioso virar comando).
       filtros.push('(nome LIKE ? OR marca LIKE ?)');
@@ -43,8 +45,9 @@ class PerfumeRepository {
   }
 
   /** Marcas diferentes que existem no banco, em ordem alfabética (para o filtro da vitrine). */
-  async listarMarcas() {
-    const [linhas] = await this.db.query('SELECT DISTINCT marca FROM perfumes ORDER BY marca');
+  async listarMarcas({ apenasVisiveis = false } = {}) {
+    const where = apenasVisiveis ? ' WHERE visivel = 1' : '';
+    const [linhas] = await this.db.query(`SELECT DISTINCT marca FROM perfumes${where} ORDER BY marca`);
     return linhas.map((l) => l.marca);
   }
 
@@ -58,6 +61,24 @@ class PerfumeRepository {
   async buscarPorCodigo(codigo) {
     const [linhas] = await this.db.query('SELECT * FROM perfumes WHERE codigo_barras = ?', [codigo]);
     return linhas[0] ? new Perfume(linhas[0]) : null;
+  }
+
+  /** Atualiza todos os campos editáveis de um produto (o dono, vendedor_id, não muda). */
+  async atualizar(id, d) {
+    await this.db.query(
+      `UPDATE perfumes SET nome = ?, marca = ?, preco = ?, estoque = ?, descricao = ?,
+         codigo_barras = ?, foto_url = ?, visivel = ? WHERE id = ?`,
+      [d.nome, d.marca, d.preco, d.estoque, d.descricao, d.codigoBarras, d.fotoUrl, d.visivel ? 1 : 0, id]);
+  }
+
+  /** Troca só a descrição de um produto (usado para corrigir textos importados). */
+  async atualizarDescricao(id, descricao) {
+    await this.db.query('UPDATE perfumes SET descricao = ? WHERE id = ?', [descricao, id]);
+  }
+
+  /** Mostra (true) ou oculta (false) o produto na vitrine. */
+  async definirVisivel(id, visivel) {
+    await this.db.query('UPDATE perfumes SET visivel = ? WHERE id = ?', [visivel ? 1 : 0, id]);
   }
 
   /** Busca pelo par nome + marca (ou null). Usado pela importacao para nao duplicar produtos. */
