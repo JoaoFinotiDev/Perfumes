@@ -11,6 +11,8 @@ const session = require('express-session');
 const { carregarUsuario } = require('./middlewares/auth');
 const Perfume = require('./domain/Perfume');
 const { resolverSegredo } = require('./config/segredo');
+const { criarArmazem, COOKIE } = require('./config/sessao');
+const pool = require('./config/db'); // o mesmo pool dos repositorios
 
 // Segredo da sessao: em producao falha se estiver vazio ou for o exemplo; em desenvolvimento so avisa.
 const segredoDaSessao = resolverSegredo();
@@ -29,13 +31,14 @@ app.use(logger('dev'));
 app.use(express.urlencoded({ extended: false })); // lê formulários HTML
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Sessão em cookie httpOnly. shortcut: usa a memória do servidor (reinicia = sai de todos);
-// para produção, trocar por um store em banco (ex.: express-mysql-session).
+// Sessão em cookie httpOnly (8 horas, sameSite lax), guardada na tabela "sessoes" do MySQL:
+// reiniciar o servidor não derruba o login (veja config/sessao.js).
 app.use(session({
   secret: segredoDaSessao,
   resave: false,
   saveUninitialized: false,
-  cookie: { httpOnly: true, sameSite: 'lax' }
+  store: criarArmazem(session, pool),
+  cookie: COOKIE
 }));
 app.use(carregarUsuario);
 

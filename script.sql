@@ -77,6 +77,13 @@ CREATE TABLE IF NOT EXISTS venda_itens (
   FOREIGN KEY (variacao_id) REFERENCES variacoes(id) ON DELETE SET NULL
 );
 
+-- Sessoes (login) guardadas no MySQL: reiniciar o servidor nao derruba o login. Colunas do pacote express-mysql-session.
+CREATE TABLE IF NOT EXISTS sessoes (
+  session_id VARCHAR(128) COLLATE utf8mb4_bin NOT NULL PRIMARY KEY,
+  expires    INT UNSIGNED NOT NULL,
+  data       MEDIUMTEXT COLLATE utf8mb4_bin
+);
+
 -- Admin inicial: usuário "admin", senha "admin" (hash bcrypt).
 -- Troque a senha depois do primeiro acesso, se for usar de verdade.
 INSERT IGNORE INTO usuarios (usuario, nome, senha_hash, papel) VALUES

@@ -5,6 +5,9 @@
  */
 const test = require('node:test');
 const assert = require('node:assert');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 const v = require('../utils/validacao');
 const { resolverSegredo, SEGREDO_DE_EXEMPLO } = require('../config/segredo');
 const Perfume = require('../domain/Perfume');
@@ -28,8 +31,12 @@ test('SESSION_SECRET: em producao vazio ou de exemplo falha; em desenvolvimento 
 
   assert.strictEqual(resolverSegredo({ SESSION_SECRET: SEGREDO_DE_EXEMPLO }, avisar), SEGREDO_DE_EXEMPLO); // dev: avisa e segue
   assert.strictEqual(avisos.length, 1);
-  assert.ok(resolverSegredo({}, avisar).length >= 32); // dev vazio: segredo aleatorio so desta execucao
-  assert.strictEqual(avisos.length, 2);
+  // dev vazio: segredo fixo guardado em arquivo (aqui um arquivo temporario, para nao mexer no .segredo-dev real)
+  const arquivo = path.join(os.tmpdir(), `segredo-dev-${process.pid}-${Date.now()}`);
+  try {
+    assert.ok(resolverSegredo({}, avisar, arquivo).length >= 32);
+    assert.strictEqual(avisos.length, 3); // aviso do .env vazio + aviso de arquivo criado
+  } finally { fs.rmSync(arquivo, { force: true }); }
 });
 
 test('a venda baixa o estoque na ordem do id (produto e depois variacao), seja qual for a ordem do carrinho', async () => {
