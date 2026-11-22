@@ -61,11 +61,11 @@ test('chips: esgotada vem desativada, a primeira com estoque vem marcada, cada c
   assert.doesNotMatch(html, /<select/);
 });
 
-test('card com mais de 6 opções mostra 6 chips e o chip +N que leva à página do produto', async () => {
+test('card com mais de 4 opções mostra 4 chips e o chip +N que leva à página do produto', async () => {
   const p = cartao([1, 1, 1, 1, 1, 1, 1, 1]); // 8 opções
   const card = await renderizar(p, 'card');
-  assert.strictEqual((card.match(/type="radio"/g) || []).length, 6);
-  assert.match(card, /<a class="chip chip-mais" href="\/produto\/1"[^>]*><span>\+2<\/span>/);
+  assert.strictEqual((card.match(/type="radio"/g) || []).length, 4);
+  assert.match(card, /<a class="chip chip-mais" href="\/produto\/1"[^>]*><span>\+4<\/span>/);
   // Na página do produto aparecem todas, sem "+N".
   const pagina = await renderizar(p, 'pagina');
   assert.strictEqual((pagina.match(/type="radio"/g) || []).length, 8);
@@ -95,4 +95,12 @@ test('a vitrine compila (com card e SKU/pontos) e a página do produto compila',
   assert.match(vitrine, /card-codigos/);
   const pagina = await ejs.renderFile(path.join(raiz, 'views/produto.ejs'), { ...comum, p: { ...p, visivel: true, descricao: 'd' } });
   assert.match(pagina, /type="radio"/);
+});
+
+test('chips em ordem natural: tamanho 9 vem antes de 14, que vem antes de 23', () => {
+  const nomes = ['23', '9', '14'];
+  const variacoes = nomes.map((descricao, i) => ({ id: 200 + i, perfume_id: 1, descricao, preco: 100, estoque: 3, ativo: 1, ordem: i }));
+  const p = new Perfume({ id: 1, nome: 'Anel', marca: 'Alfa', preco: 100, estoque: 9, visivel: 1, variacoes });
+  const cartaoPronto = servico._cartao(p, null, 0);
+  assert.deepStrictEqual(cartaoPronto.variacoes.map((v) => v.descricao), ['9', '14', '23']);
 });

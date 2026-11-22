@@ -15,7 +15,12 @@ const LIMITE_LISTA = 50;
 const ORDENS_VALIDAS = ['nome', 'menor-preco', 'maior-preco'];
 
 // Quantos chips de variação cabem no card da vitrine; o resto vira o chip "+N" (leva à página do produto).
-const MAX_CHIPS_CARD = 6;
+// 4 chips + o "+N" cabem numa linha só, então o card não fica alto demais.
+const MAX_CHIPS_CARD = 4;
+
+// Ordena textos como uma pessoa ordenaria: "9" antes de "10", e sem ligar para maiúsculas.
+// Ex.: tamanhos de anel ["23", "14", "9"] viram ["9", "14", "23"].
+const ordemNatural = new Intl.Collator('pt-BR', { numeric: true, sensitivity: 'base' });
 
 // Tamanho máximo da descrição (a coluna é TEXT). 5000 cabe as descrições importadas da Mawwal (até ~2500).
 const LIMITE_DESCRICAO = 5000;
@@ -119,7 +124,9 @@ class PerfumeService {
       esgotada: x.estoque <= 0,
       // Selo de estoque desta variação ("Últimas N" / "Esgotado"); o JS só o copia ao trocar a escolha.
       aviso: Perfume.avisoDeEstoque(x.estoque)
-    }));
+    }))
+      // Chips em ordem natural pelo nome da opção (tamanho 9, 14, 23...), e não na ordem em que foram importados.
+      .sort((a, b) => ordemNatural.compare(a.descricao || '', b.descricao || ''));
     // Variação já marcada ao abrir: a PRIMEIRA com estoque (null se todas esgotaram ou se não há variações).
     const inicial = variacoes.find((x) => !x.esgotada) || null;
     // Estoque que a tela mostra de início: o da variação marcada, ou o do produto (sem variações).
