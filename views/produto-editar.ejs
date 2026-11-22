@@ -1,22 +1,22 @@
 <%# Editar produto (Vendedor/Admin). O EJS escapa todo valor mostrado, e a view só MOSTRA. %>
 <%- include('partials/topo', { titulo: 'Editar produto' }) %>
 <h1>Editar produto #<%= produto.id %></h1>
-<% if (erro) { %><p class="erro"><%= erro %></p><% } %>
+<% if (erro) { %><p class="erro" role="alert"><%= erro %></p><% } %>
 
 <form method="post" action="/vendedor/produtos/<%= produto.id %>/editar" class="form">
   <label>Nome <input name="nome" value="<%= form.nome || '' %>" required maxlength="120"></label>
   <label>Marca <input name="marca" value="<%= form.marca || '' %>" required maxlength="80"></label>
   <%# Com variações ativas, preço e estoque do produto vêm delas (menor preço e soma): aqui só leitura. %>
   <% const comVariacoes = produto.temVariacoes(); %>
-  <label>Preço (R$)<%= comVariacoes ? ' (menor preço das variações)' : '' %> <input name="preco" value="<%= form.preco || '' %>" required inputmode="decimal"<%= comVariacoes ? ' readonly' : '' %>></label>
+  <label>Preço (R$)<%= comVariacoes ? ' (menor preço das variações)' : '' %> <input name="preco" value="<%= form.preco || '' %>" required inputmode="decimal" placeholder="Ex.: 129,90" autocomplete="off"<%= comVariacoes ? ' readonly' : '' %>></label>
   <label>Estoque<%= comVariacoes ? ' (soma das variações)' : '' %> <input name="estoque" type="number" min="0" value="<%= form.estoque === undefined ? '' : form.estoque %>" required<%= comVariacoes ? ' readonly' : '' %>></label>
-  <label>SKU (opcional, único) <input name="sku" value="<%= form.sku || '' %>" maxlength="40"></label>
+  <label>SKU (opcional, único) <input name="sku" value="<%= form.sku || '' %>" maxlength="40" autocomplete="off" placeholder="Código interno da loja"></label>
   <%# Pontos: só aparece para a marca Queen Semijoias (o JS mostra/esconde ao mudar a marca; o servidor ignora nas outras e grava NULL). %>
   <label data-pontos data-marca-pontos="<%= marcaComPontos %>"<%= aceitaPontos(form.marca) ? '' : ' hidden' %>>Pontos (opcional) <input name="pontos" type="number" min="0" step="1" value="<%= form.pontos === undefined || form.pontos === null ? '' : form.pontos %>"></label>
   <label>Descrição <textarea name="descricao" maxlength="5000"><%= form.descricao || '' %></textarea></label>
   <%# O leitor de código de barras digita os números e aperta Enter. O script abaixo impede que esse Enter envie o formulário. %>
   <label>Código de barras (opcional, único) <input name="codigo_barras" id="codigo_barras" value="<%= form.codigo_barras || '' %>" maxlength="14" inputmode="numeric" autocomplete="off"></label>
-  <label>Foto (URL, opcional) <input name="foto_url" value="<%= form.foto_url || '' %>" maxlength="500"></label>
+  <label>Foto (URL, opcional) <input type="url" placeholder="https://..." autocomplete="off" name="foto_url" value="<%= form.foto_url || '' %>" maxlength="500"></label>
   <label><input type="checkbox" name="visivel"<%= form.visivel ? ' checked' : '' %>> Mostrar na vitrine</label>
   <button type="submit">Salvar</button>
   <a href="/vendedor/produtos">Cancelar</a>

@@ -295,6 +295,38 @@ a.chip span { color: var(--cor-destaque); font-weight: bold; }
   .card .botao-texto { display: none; }
 }
 
+/* ===== Acessibilidade e celular (todas as telas) ===== */
+
+/* 1. Foco do teclado SEMPRE visível. :focus-visible só aparece quando a pessoa navega pelo teclado (Tab),
+ *    não no clique do mouse. As regras mais específicas acima (rosa claro na vitrine) continuam valendo. */
+:focus-visible { outline: 3px solid var(--cor-destaque); outline-offset: 2px; }
+/* No topo o fundo é vinho escuro: lá o contorno é branco, senão não daria para ver. */
+.topo :focus-visible { outline-color: #fff; }
+
+/* 2. Tabelas largas: a CAIXA rola para o lado, a página não. Sem isto, no celular a tabela
+ *    empurrava a tela inteira para fora (rolagem horizontal da página toda). */
+.tabela-rolagem { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 15px 0; }
+.tabela-rolagem > table { margin: 0; } /* a margem passa para a caixa */
+
+/* 3. Aviso de erro já é vermelho (.erro) e o de sucesso verde (.aviso); o topo.ejs escolhe a classe. */
+
+@media (max-width: 600px) {
+  /* No celular a tabela guarda uma largura mínima e a caixa rola (em vez de espremer as colunas). */
+  .tabela-rolagem > table { min-width: 560px; }
+  /* 4. Alvos de toque de 44px (recomendação de acessibilidade para dedos). Vale para o menu, formulários
+   *    e ações das tabelas. Os cards da vitrine ficam como estão (já têm o tamanho certo para 2 colunas). */
+  .topo nav a, .topo nav button,
+  .form button, .inline-form button, .busca button,
+  .tabela-rolagem button, .tabela-rolagem a.botao-link {
+    min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .topo nav a { padding: 0 6px; }
+  /* Estoque rápido no celular: os mesmos [ − ] [campo] [ + ] [Salvar], só que com 44px. */
+  /* min-height (e não height): vence a altura de 28px do desktop, que vem mais abaixo neste arquivo. */
+  .estoque-controle .botao-pequeno, .tabela-gestao .estoque-campo { min-height: 44px; }
+  .estoque-controle .botao-passo { width: 44px; }
+}
+
 /* O atributo hidden precisa vencer regras como ".form label { display: flex }". */
 [hidden] { display: none !important; }
 .variacao-linha { display: flex; gap: var(--espaco-1, 8px); align-items: flex-end; flex-wrap: wrap; margin: 6px 0; }

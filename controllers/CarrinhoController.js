@@ -6,6 +6,7 @@
  */
 const { FORMAS_DE_PAGAMENTO } = require('../domain/Venda');
 const { ErroDeValidacao } = require('../utils/erros');
+const { avisarErro } = require('../utils/aviso');
 
 const { CARRINHOS } = require('../services/CarrinhoService');
 
@@ -42,7 +43,7 @@ class CarrinhoController {
       res.redirect('/carrinho');
     } catch (erro) {
       if (!(erro instanceof ErroDeValidacao)) throw erro; // erro inesperado vai para o app.js
-      req.session.aviso = erro.message;
+      avisarErro(req.session, erro.message); // caixa vermelha na página do produto
       const id = Number(req.body.perfumeId);
       res.redirect(Number.isInteger(id) && id > 0 ? `/produto/${id}` : '/'); // volta onde dá para corrigir
     }

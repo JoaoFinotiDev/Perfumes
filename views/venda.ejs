@@ -1,7 +1,7 @@
 <%# Tela "Abrir venda" do vendedor: cliente opcional, busca, código de barras e pagamento. %>
 <%- include('partials/topo', { titulo: 'Abrir venda' }) %>
 <h1>Abrir venda</h1>
-<% if (erro) { %><p class="erro"><%= erro %></p><% } %>
+<% if (erro) { %><p class="erro" role="alert"><%= erro %></p><% } %>
 
 <h2>1. Cliente (opcional)</h2>
 <form method="post" action="/vendedor/venda/cliente" class="inline-form">
@@ -45,6 +45,8 @@
   </div>
 </div>
 <% if (busca) { %>
+<%# Caixa com rolagem lateral: no celular a tabela rola dentro dela, sem alargar a página (style.css). %>
+<div class="tabela-rolagem">
   <table>
     <thead><tr><th>Nome</th><th>Marca</th><th>Preço</th><th>Estoque</th><th></th></tr></thead>
     <tbody>
@@ -75,6 +77,7 @@
     <% if (!resultados.length) { %><tr><td colspan="5">Nenhum produto encontrado.</td></tr><% } %>
     </tbody>
   </table>
+</div>
 <% } %>
 
 <h2>3. Itens da venda</h2>

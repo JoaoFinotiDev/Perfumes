@@ -1,12 +1,15 @@
 <%# Carrinho do site. Pagamento simulado. O desconto vem do usuário logado (contas prontas em resumo). %>
 <%- include('partials/topo', { titulo: 'Carrinho' }) %>
 <h1>Carrinho</h1>
-<% if (erro) { %><p class="erro"><%= erro %></p><% } %>
+<% if (erro) { %><p class="erro" role="alert"><%= erro %></p><% } %>
 <% if (!resumo.linhas.length) { %>
   <p>Seu carrinho está vazio. <a href="/">Ver vitrine</a></p>
 <% } else { %>
   <%# Tabela e totais: mesma partial da tela "Abrir venda". %>
   <%- include('partials/itens-carrinho', { resumo: resumo, acaoRemover: '/carrinho/remover' }) %>
+  <%# Economia = desconto já calculado em CarrinhoService.resumir (a view não faz conta). %>
+  <% if (resumo.temDesconto) { %><p class="destaque economia">Você economizou <%= moeda(resumo.desconto) %> nesta compra.</p><% } %>
+  <p><a href="/">&larr; Continuar comprando</a></p>
 
   <%# Esta tela só abre para o Cliente (a rota confere no servidor), então o botão de finalizar sempre aparece. %>
   <form method="post" action="/carrinho/finalizar" class="form">

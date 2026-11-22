@@ -1,7 +1,7 @@
 <%# Gerenciar produtos (Vendedor/Admin): lista com busca, botão Editar e mostrar/ocultar na vitrine. A view só MOSTRA. %>
 <%- include('partials/topo', { titulo: 'Gerenciar produtos' }) %>
 <h1>Gerenciar produtos</h1>
-<% if (erro) { %><p class="erro"><%= erro %></p><% } %>
+<% if (erro) { %><p class="erro" role="alert"><%= erro %></p><% } %>
 <p class="dica">Produto oculto não aparece na vitrine nem pode ser comprado pelo site, mas continua na tela "Abrir venda".
   Produto com variações: clique na seta (ou na linha) para ver e editar cada variação.</p>
 
@@ -41,7 +41,8 @@
   </div>
 <% } %>
 
-<table class="tabela-gestao">
+<%# Caixa com rolagem lateral: no celular a tabela rola dentro dela, sem alargar a página (style.css). %>
+<div class="tabela-rolagem"><table class="tabela-gestao">
   <thead>
     <tr><th class="col-foto">Foto</th><th>ID</th><th>Nome</th><th>Marca</th><th>Preço</th><th>Estoque</th><th>Na vitrine</th><th>Ações</th></tr>
   </thead>
@@ -109,5 +110,6 @@
   <% if (!perfumes.length) { %><tr><td colspan="8">Nenhum produto encontrado.</td></tr><% } %>
   </tbody>
 </table>
+</div>
 <script src="/javascripts/gestao-variacoes.js"></script>
 <%- include('partials/rodape') %>
