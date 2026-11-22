@@ -192,6 +192,28 @@ class PerfumeService {
     }));
   }
 
+  /**
+   * Variações de UM produto para a segunda busca de "Abrir venda" (JSON). Só as ativas, em ordem natural
+   * (9, 14, 23...), igual à vitrine. Esgotada vem marcada (`esgotada`): a tela a mostra desativada.
+   * O preço é o cheio: o desconto do cliente escolhido na venda já é aplicado no total da venda.
+   * Quem chama confere a permissão (veja CatalogoController.variacoesJson). Devolve null se o produto não existe.
+   * Produto oculto também vale: no balcão o Vendedor vende o que está oculto da vitrine.
+   * @param {number|string} id id do produto
+   */
+  async variacoesParaLista(id) {
+    const p = await this.buscarPorId(id);
+    if (!p) return null;
+    return p.variacoesAtivas
+      .map((x) => ({
+        id: x.id,
+        descricao: x.descricao,
+        precoTexto: moeda(p.precoPara(null, x)),
+        estoque: Math.max(0, x.estoque),
+        esgotada: x.estoque <= 0
+      }))
+      .sort((a, b) => ordemNatural.compare(a.descricao || '', b.descricao || ''));
+  }
+
   /** Busca por id (ou null). */
   buscarPorId(id) {
     const numero = Number(id);

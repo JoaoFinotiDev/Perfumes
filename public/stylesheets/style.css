@@ -171,26 +171,33 @@ button:disabled { background: #bbb; cursor: not-allowed; }
 /* Busca em lista suspensa (public/javascripts/busca-lista.js). O JS cria o <span class="busca-lista"> em volta do campo. */
 .busca-lista { position: relative; display: block; flex: 1 1 220px; }
 .busca-lista > input { width: 100%; box-sizing: border-box; }
-.campo-busca { display: flex; flex-direction: column; gap: 4px; font-size: 0.9em; }
-/* Em .campo-busca (coluna, ex.: "Abrir venda") o "flex: 1 1 220px" virava 220px de ALTURA e abria um buraco,
-   com a lista aparecendo lá embaixo. Aqui a caixa fica só do tamanho do campo (flex: none). */
-.campo-busca .busca-lista { min-width: 260px; flex: none; }
-/* Painel da lista: colado logo abaixo do campo e pelo menos 380px de largura (ou a do campo, se for maior),
-   para os nomes dos produtos não ficarem cortados ("ALI..."). Em tela estreita, nunca passa da largura da tela. */
+/* Campo grande do "Abrir venda" (produto e variação): ocupa a largura disponível do bloco, até 760px. */
+.campo-busca { display: flex; flex-direction: column; gap: 4px; font-size: 0.9em; flex: 1 1 320px; width: 100%; max-width: 760px; }
+/* Em .campo-busca (coluna) o "flex: 1 1 220px" da .busca-lista virava 220px de ALTURA e abria um buraco,
+   com a lista aparecendo lá embaixo. Aqui a caixa acompanha a largura do campo e não cresce na altura (flex: none). */
+.campo-busca .busca-lista { width: 100%; flex: none; }
+/* Painel da lista: colado logo abaixo do campo, com a MESMA largura dele e pelo menos 560px,
+   para os nomes dos produtos aparecerem inteiros. Em tela estreita, nunca passa da largura da tela. */
 .busca-painel {
   position: absolute; z-index: 20; left: 0; top: 100%; margin-top: 4px;
-  width: max(100%, 380px); max-width: calc(100vw - 24px);
+  width: max(100%, 560px); max-width: calc(100vw - 24px);
   background: #fff; border: 1px solid var(--cor-borda); border-radius: var(--raio); box-shadow: var(--sombra-forte);
 }
 .busca-painel-campo { display: block; width: 100%; box-sizing: border-box; margin: 0; border: 0; border-bottom: 1px solid var(--cor-borda); border-radius: var(--raio) var(--raio) 0 0; }
 .busca-opcoes { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow-y: auto; } /* barra de rolagem da lista */
 .busca-opcao { display: flex; align-items: center; gap: var(--espaco-1); padding: 6px 10px; cursor: pointer; }
 .busca-opcao.ativa { background: var(--cor-fundo-imagem); }
-.busca-foto { width: 32px; height: 32px; object-fit: cover; border-radius: 4px; flex: none; }
+.busca-opcao[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; } /* variação esgotada: não dá para escolher */
+.busca-foto { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; flex: none; }
 .busca-texto { display: flex; flex-direction: column; flex: 1; min-width: 0; }
-.busca-texto strong, .busca-texto small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.busca-texto small { color: #666; }
-.busca-preco { color: var(--cor-principal); font-weight: bold; white-space: nowrap; }
+/* Nome: quebra em até 2 linhas e só então vira reticências. Marca/SKU: uma linha pequena embaixo. */
+.busca-texto strong { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
+.busca-texto small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #666; }
+/* Preço à direita: nunca quebra nem encolhe. */
+.busca-preco { color: var(--cor-principal); font-weight: bold; white-space: nowrap; flex: none; }
+/* "Abrir venda": segunda busca (variação), logo abaixo da primeira, e o botão "Trocar produto". */
+.venda-variacao { margin: var(--espaco-1) 0; }
+.venda-variacao[hidden] { display: none; }
 .busca-aviso { margin: 0; padding: 10px; color: #666; }
 .busca-painel-campo:focus-visible { outline: 3px solid #f0a8d6; outline-offset: -3px; }
 
