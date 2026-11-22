@@ -1,0 +1,46 @@
+# .github/workflows/ci.yml
+# CI = "Integração Contínua": o GitHub roda este roteiro sozinho
+# a cada push e a cada Pull Request, para avisar se algo quebrou.
+# Se um passo falhar, o PR mostra um X vermelho e não deve ser mergeado.
+#
+# Importante: os testes usam buscadores falsos (stubs).
+# Nada aqui chama a API Kodebar nem o Open Beauty Facts.
+
+name: CI
+
+# Quando rodar: em todo push e em todo Pull Request.
+on:
+  push:
+  pull_request:
+
+jobs:
+  testes:
+    # Máquina Linux que o GitHub empresta para rodar os passos.
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Baixa o código do repositório para a máquina.
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      # 2. Instala o Node.js (a mesma versão maior usada no projeto).
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # 3. Instala as dependências exatamente como estão no package-lock.json.
+      - name: Instalar dependências
+        run: npm ci
+
+      # 4. Confere a sintaxe de todo arquivo .js (fora node_modules) e do bin/www.
+      #    "node --check" só lê o arquivo; não executa nada.
+      - name: Checar sintaxe
+        run: |
+          find . -name "*.js" -not -path "./node_modules/*" -print0 | xargs -0 -n1 node --check
+          node --check bin/www
+
+      # 5. Roda os testes de regra (desconto, estoque, venda, buscadores).
+      - name: Rodar testes
+        run: npm test
