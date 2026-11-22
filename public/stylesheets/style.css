@@ -85,8 +85,11 @@ main:has(.vitrine-grade) { max-width: 1200px; }
 .card:hover, .card:focus-within { transform: translateY(-3px); box-shadow: var(--sombra-forte); }
 
 /* Imagem com proporção fixa (1:1); "contain" mostra o frasco inteiro sobre fundo claro. */
-.card-imagem { position: relative; aspect-ratio: 1 / 1; background: var(--cor-fundo-imagem); }
-.card-imagem img { width: 100%; height: 100%; object-fit: contain; display: block; }
+/* Quadro da foto sempre quadrado (1:1) e com fundo BRANCO: quase todas as fotos de produto têm fundo branco,
+   então a sobra ao redor de uma foto que não é quadrada some no fundo e todos os cards parecem iguais.
+   object-fit: contain mostra o produto inteiro (não corta); o padding dá um respiro igual nas bordas. */
+.card-imagem { position: relative; aspect-ratio: 1 / 1; background: #fff; overflow: hidden; }
+.card-imagem img { width: 100%; height: 100%; object-fit: contain; display: block; padding: 6px; box-sizing: border-box; }
 .card-esgotado .card-imagem img { opacity: 0.5; }
 
 .selo {
@@ -207,7 +210,9 @@ button:disabled { background: #bbb; cursor: not-allowed; }
 /* Card e página do produto: seletor de variação e quantidade (public/javascripts/comprar.js). */
 .card-nome a, .card-imagem a { color: inherit; text-decoration: none; }
 .card-nome a:hover, .card-nome a:focus-visible { text-decoration: underline; }
-.card-imagem a { display: block; }
+/* O link em volta da foto ocupa o quadro inteiro (1:1). Sem altura definida, a foto com height: 100%
+   ficava do tamanho natural dela, e as fotos que não são quadradas deixavam uma faixa vazia embaixo. */
+.card-imagem a { display: block; width: 100%; height: 100%; }
 .comprar { display: flex; flex-direction: column; gap: 4px; margin-top: var(--espaco-1); }
 .comprar label { font-size: 0.8em; color: #555; }
 .comprar select { width: 100%; box-sizing: border-box; }
