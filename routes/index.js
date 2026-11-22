@@ -37,5 +37,7 @@ router.post('/carrinho/finalizar', ligar(c.carrinho, 'finalizar'));
 // Lista de produtos em JSON para a busca gradual do navegador. É uma rota LOCAL (lê só o nosso banco).
 // Sem login devolve só os visíveis; com ?todos=1 (tela "Abrir venda") exige Vendedor/Admin (o controller confere).
 router.get('/api/produtos', ligar(c.catalogo, 'buscarJson'));
+// Variações de um produto (JSON) para a segunda busca de "Abrir venda": só Vendedor/Admin (o controller confere).
+router.get('/api/produtos/:id/variacoes', ligar(c.catalogo, 'variacoesJson'));
 
 module.exports = router;

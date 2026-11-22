@@ -26,10 +26,24 @@
   <div class="campo-busca">
     <label for="busca-q">Buscar por nome ou marca</label>
     <input id="busca-q" name="q" value="<%= busca %>" maxlength="80" autocomplete="off"
-           data-busca-lista data-url="/api/produtos?todos=1" data-acao-post="/vendedor/venda/adicionar">
+           data-busca-lista data-url="/api/produtos?todos=1" data-acao-post="/vendedor/venda/adicionar"
+           data-variacoes-url="/api/produtos/{id}/variacoes" data-variacoes-bloco="venda-variacao">
   </div>
   <button type="submit">Buscar</button>
 </form>
+<%# Segunda busca (só com JS): aparece quando se escolhe um produto COM variações. Escondida (hidden) no começo.
+    O campo de variação e a lista funcionam como a primeira busca (public/javascripts/busca-lista.js).
+    Sem JS ela nunca aparece: vale a tabela de resultados abaixo, com o select de variação. %>
+<div id="venda-variacao" class="campo-busca venda-variacao" hidden>
+  <label for="variacao-q" data-variacao-rotulo>Variação</label>
+  <input id="variacao-q" maxlength="80" autocomplete="off" placeholder="Escolha a variação" data-busca-variacao>
+  <div class="inline-form">
+    <label>Quantidade
+      <input type="number" min="1" step="1" value="1" class="estoque-campo" data-variacao-quantidade>
+    </label>
+    <button type="button" class="link" data-trocar-produto>Trocar produto</button>
+  </div>
+</div>
 <% if (busca) { %>
   <table>
     <thead><tr><th>Nome</th><th>Marca</th><th>Preço</th><th>Estoque</th><th></th></tr></thead>
