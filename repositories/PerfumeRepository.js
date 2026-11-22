@@ -22,8 +22,9 @@ class PerfumeRepository {
    * Lista perfumes. Com `busca`, filtra por nome ou marca.
    * Opcional: `marca` (igual exata), `ordem` (chave de ORDENACOES; qualquer outra vira "nome")
    * e `apenasVisiveis` (true = esconde os produtos que o Vendedor ocultou da vitrine).
+   * `limite` (inteiro positivo) corta o número de linhas; 0 = sem limite (usado pela lista suspensa de busca).
    */
-  async listar(busca = '', { marca = '', ordem = 'nome', apenasVisiveis = false } = {}) {
+  async listar(busca = '', { marca = '', ordem = 'nome', apenasVisiveis = false, limite = 0 } = {}) {
     const filtros = [];
     const params = [];
     if (apenasVisiveis) filtros.push('visivel = 1'); // texto fixo, sem dado do usuário
@@ -40,7 +41,12 @@ class PerfumeRepository {
     const where = filtros.length ? ` WHERE ${filtros.join(' AND ')}` : '';
     // O ORDER BY não aceita "?", então só entra texto da lista fixa acima (nunca o que veio da URL).
     const orderBy = Object.prototype.hasOwnProperty.call(ORDENACOES, ordem) ? ORDENACOES[ordem] : ORDENACOES.nome;
-    const [linhas] = await this.db.query(`SELECT * FROM perfumes${where} ORDER BY ${orderBy}`, params);
+    let sql = `SELECT * FROM perfumes${where} ORDER BY ${orderBy}`;
+    if (Number.isInteger(limite) && limite > 0) {
+      sql += ' LIMIT ?'; // o limite também vai como parâmetro, nunca concatenado
+      params.push(limite);
+    }
+    const [linhas] = await this.db.query(sql, params);
     return linhas.map((l) => new Perfume(l));
   }
 
@@ -69,6 +75,11 @@ class PerfumeRepository {
       `UPDATE perfumes SET nome = ?, marca = ?, preco = ?, estoque = ?, descricao = ?,
          codigo_barras = ?, foto_url = ?, visivel = ? WHERE id = ?`,
       [d.nome, d.marca, d.preco, d.estoque, d.descricao, d.codigoBarras, d.fotoUrl, d.visivel ? 1 : 0, id]);
+  }
+
+  /** Troca só a coluna estoque de um produto (UPDATE parametrizado; nenhum outro campo é tocado). */
+  async atualizarEstoque(id, estoque) {
+    await this.db.query('UPDATE perfumes SET estoque = ? WHERE id = ?', [estoque, id]);
   }
 
   /** Troca só a descrição de um produto (usado para corrigir textos importados). */

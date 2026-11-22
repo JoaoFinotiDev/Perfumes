@@ -31,6 +31,14 @@ class Usuario {
   }
 
   /**
+   * Pode usar o carrinho do site (ver, adicionar, remover, finalizar)? Só o Cliente.
+   * Vendedor e Admin vendem pela tela "Abrir venda" e nem veem o carrinho no menu.
+   */
+  podeUsarCarrinho() {
+    return false;
+  }
+
+  /**
    * Pode editar e ocultar/mostrar este produto? É o ÚNICO lugar com essa regra.
    * Hoje: Vendedor e Admin gerenciam TODOS os produtos (a loja é uma só e os produtos
    * importados não têm dono). Sem argumento, responde "pode gerenciar produtos em geral?"
@@ -53,6 +61,7 @@ class Cliente extends Usuario {
   get papel() { return 'cliente'; }
   estrategiaDesconto() { return new DescontoCliente(); }
   podeComprar() { return true; }
+  podeUsarCarrinho() { return true; }
 }
 
 /** Vendedor: cria anúncios e abre vendas. */
