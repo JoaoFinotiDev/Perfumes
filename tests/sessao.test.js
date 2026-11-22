@@ -181,3 +181,25 @@ test('carrinho.ejs mostra o percentual que vem do resumo (nao um 5% fixo)', asyn
   const html = await ejs.renderFile(path.join(__dirname, '..', 'views', 'carrinho.ejs'), { ...base, resumo });
   assert.match(html, /Desconto de cliente \(10%\)/);
 });
+
+test('redirect so sai depois de gravar a sessao (senao o carrinho aparecia vazio)', async () => {
+  const { salvarAntesDeRedirecionar } = require('../config/sessao');
+  const ordem = [];
+  // save assincrono, como no MySQL: termina "depois".
+  const req = { session: { save: (cb) => setImmediate(() => { ordem.push('save'); cb(); }) } };
+  const res = { redirect: (u) => ordem.push(`redirect:${u}`) };
+  salvarAntesDeRedirecionar(req, res, () => {});
+  res.redirect('/carrinho');
+  await new Promise((r) => setImmediate(r));
+  assert.deepStrictEqual(ordem, ['save', 'redirect:/carrinho']);
+
+  // Sem sessao (logout): redireciona direto. Erro ao gravar: vai para o next.
+  const semSessao = []; const res2 = { redirect: (u) => semSessao.push(u) };
+  salvarAntesDeRedirecionar({}, res2, () => {}); res2.redirect('/');
+  assert.deepStrictEqual(semSessao, ['/']);
+  let erroRecebido = null; const falha = new Error('mysql caiu');
+  const res3 = { redirect: () => { throw new Error('nao devia redirecionar'); } };
+  salvarAntesDeRedirecionar({ session: { save: (cb) => cb(falha) } }, res3, (e) => { erroRecebido = e; });
+  res3.redirect('/');
+  assert.strictEqual(erroRecebido, falha);
+});
