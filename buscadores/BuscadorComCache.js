@@ -19,13 +19,13 @@ class BuscadorComCache extends BuscadorDeProduto {
     super();
     this.buscador = buscador;
     this.validadeMs = validadeMs;
-    this.cache = new Map(); // codigo -> { valor, expiraEm }
-    this.emAndamento = new Map(); // codigo -> Promise (evita duas chamadas ao mesmo tempo)
+    this.cache = new Map(); // código -> { valor, expiraEm }
+    this.emAndamento = new Map(); // código -> Promise (evita duas chamadas ao mesmo tempo)
   }
 
   /**
    * Devolve o resultado guardado (se ainda vale) ou busca de verdade e guarda.
-   * Ideia: a mesma pergunta nao vai duas vezes para a API.
+   * Ideia: a mesma pergunta não vai duas vezes para a API.
    */
   async buscar(codigo) {
     const guardado = this.cache.get(codigo);

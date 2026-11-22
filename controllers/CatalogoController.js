@@ -19,7 +19,7 @@ class CatalogoController {
   }
 
   /**
-   * GET /: vitrine em cards. Lê busca (q), marca, ordem, pagina e porPagina da URL
+   * GET /: vitrine em cards. Lê busca (q), marca, ordem, página e porPagina da URL
    * (o service valida tudo) e entrega tudo pronto para a view.
    */
   async vitrine(req, res) {

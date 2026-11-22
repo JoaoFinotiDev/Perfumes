@@ -57,10 +57,12 @@ class Paginacao {
     return Math.min(this.offset + this.porPagina, this.total);
   }
 
+  /** Existe página antes desta? (a view mostra ou desativa o link "Anterior") */
   get temAnterior() {
     return this.pagina > 1;
   }
 
+  /** Existe página depois desta? (link "Próxima") */
   get temProxima() {
     return this.pagina < this.totalPaginas;
   }

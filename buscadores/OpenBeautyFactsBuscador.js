@@ -6,7 +6,7 @@
 const BuscadorDeProduto = require('./BuscadorDeProduto');
 
 class OpenBeautyFactsBuscador extends BuscadorDeProduto {
-  /** Consulta o Open Beauty Facts. Devolve {nome, marca, descricao, foto} ou null se nao achar ou falhar. */
+  /** Consulta o Open Beauty Facts. Devolve {nome, marca, descricao, foto} ou null se não achar ou falhar. */
   async buscar(codigo) {
     try {
       const url = `https://world.openbeautyfacts.org/api/v2/product/${encodeURIComponent(codigo)}.json`;

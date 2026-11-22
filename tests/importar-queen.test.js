@@ -1,14 +1,14 @@
 /**
  * tests/importar-queen.test.js
- * Testa a conversao Queen -> Perfume (centavos, variacoes, SKU, pontos) e a regra de nao duplicar.
- * Sem rede e sem banco: JSON pequeno de exemplo e repositorio falso em memoria.
+ * Testa a conversão Queen -> Perfume (centavos, variações, SKU, pontos) e a regra de não duplicar.
+ * Sem rede e sem banco: JSON pequeno de exemplo e repositório falso em memória.
  */
 const test = require('node:test');
 const assert = require('node:assert');
 const { QueenConversor, ImportadorQueen } = require('../scripts/importar-queen');
 const Perfume = require('../domain/Perfume');
 
-// Peca simples: uma variacao so, preco em CENTAVOS (3000 = R$ 30,00), pontos na descricao.
+// Peça simples: uma variação só, preço em CENTAVOS (3000 = R$ 30,00), pontos na descrição.
 const simples = {
   produto_referencia: '42905',
   produto_nome: '  Ping   Filho MENINA  Zircônia ',
@@ -20,7 +20,7 @@ const simples = {
   produto_variacoes: [{ variacao_descricao: '', variacao_preco: 3000, variacao_estoque: 240, variacao_ativo: 1 }]
 };
 
-// Peca com 2 variacoes ativas (uma sem descricao), 1 inativa e 1 sem preco: so as 2 primeiras valem.
+// Peça com 2 variações ativas (uma sem descrição), 1 inativa e 1 sem preço: só as 2 primeiras valem.
 const comVariacoes = {
   produto_referencia: '20274 - Ouro',
   produto_nome: 'Ping Placa Letra',
@@ -39,7 +39,7 @@ const comVariacoes = {
 
 test('peca simples: preco em centavos vira reais, SKU, pontos, foto https e codigo de barras NULL', () => {
   const p = new QueenConversor().converter(simples);
-  assert.strictEqual(p.nome, 'Ping Filho MENINA Zircônia'); // espacos das pontas e duplos limpos
+  assert.strictEqual(p.nome, 'Ping Filho MENINA Zircônia'); // espaços das pontas e duplos limpos
   assert.strictEqual(p.marca, 'Queen Semijoias');
   assert.strictEqual(p.preco, 30);
   assert.strictEqual(p.estoque, 240);
@@ -47,8 +47,8 @@ test('peca simples: preco em centavos vira reais, SKU, pontos, foto https e codi
   assert.strictEqual(p.pontos, 500);
   assert.strictEqual(p.codigoBarras, null);
   assert.strictEqual(p.fotoUrl, 'https://img.exemplo.com/1.webp'); // pula a imagem http
-  assert.strictEqual(p.descricao, 'Categoria: FILHOS E MAE DE PET'); // "500 Pontos" saiu do texto; sobrou so a categoria
-  assert.strictEqual(p.variacoes.length, 0); // uma variacao so: preco e estoque ficam no produto
+  assert.strictEqual(p.descricao, 'Categoria: FILHOS E MAE DE PET'); // "500 Pontos" saiu do texto; sobrou só a categoria
+  assert.strictEqual(p.variacoes.length, 0); // uma variação só: preço e estoque ficam no produto
   assert.strictEqual(p.visivel, true);
 });
 
@@ -72,7 +72,7 @@ test('sem a palavra "pontos" fica NULL; produto sem variacao valida ou sem nome 
   assert.strictEqual(c.converter({ ...simples, produto_variacoes: [{ variacao_preco: 100, variacao_estoque: -4, variacao_ativo: 1 }] }).estoque, 0);
 });
 
-/** Repositorio falso em memoria (mesmos metodos que o importador usa). */
+/** Repositório falso em memória (mesmos métodos que o importador usa). */
 function criarRepositorioFalso() {
   const produtos = [];
   return {
@@ -96,7 +96,7 @@ test('importar duas vezes nao duplica (chave = SKU); variacoes sao gravadas e o 
   assert.strictEqual(repo.produtos.length, 2);
   assert.deepStrictEqual(repo.produtos[1].variacoesGravadas.map((v) => [v.descricao, v.preco, v.estoque]), [['B', 60, 2], ['Opção 2', 45.5, 7]]);
   assert.strictEqual(repo.produtos[1].sincronizado, true);
-  assert.strictEqual(repo.produtos[0].sincronizado, false); // sem variacao: nada a sincronizar
+  assert.strictEqual(repo.produtos[0].sincronizado, false); // sem variação: nada a sincronizar
 });
 
 test('mesmo nome com SKU diferente nao e pulado (a chave e o SKU, nao o nome)', async () => {

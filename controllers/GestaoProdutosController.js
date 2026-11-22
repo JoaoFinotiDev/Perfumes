@@ -183,6 +183,7 @@ class GestaoProdutosController {
     }
   }
 
+  /** Responde 404 com a página de erro (produto ou variação que não existe). */
   _naoEncontrado(res) {
     res.status(404).render('erro', { titulo: 'Produto não encontrado', mensagem: 'Esse produto não existe.' });
   }

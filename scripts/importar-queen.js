@@ -1,22 +1,22 @@
 /**
  * scripts/importar-queen.js
  * Importa o catalogo da Queen Semijoias (plataforma Conecta Venda) para a tabela "perfumes".
- * Uso:   npm run importar:queen -- --arquivo=queen-produtos.json   (usa o JSON ja baixado, sem rede)
+ * Uso:   npm run importar:queen -- --arquivo=queen-produtos.json   (usa o JSON já baixado, sem rede)
  *        npm run importar:queen -- --salvar=queen-produtos.json   (baixa da internet e guarda o JSON bruto)
  *        npm run importar:queen                                   (baixa da internet e importa)
  *
- * Tres classes, cada uma com UM trabalho (SOLID):
- *  - QueenFonte:      busca o JSON na internet (unica parte que usa rede).
+ * Três classes, cada uma com UM trabalho (SOLID):
+ *  - QueenFonte:      busca o JSON na internet (única parte que usa rede).
  *  - QueenConversor:  transforma um produto da Queen em um Perfume (sem rede, sem banco).
  *  - ImportadorQueen: o ImportadorDeCatalogo (comum a todas as lojas) com a chave de "ja existe" = SKU.
  *
- * Regras da conversao: UM produto por peca. Peca com 2 ou mais variacoes ativas vira produto COM variacoes
- * (cada uma com preco e estoque); com uma so, o preco e o estoque ficam no proprio produto.
- * O SKU e a referencia da Queen (codigo interno, NAO e codigo de barras: por isso codigo_barras fica NULL).
- * Os pontos existem so para esta marca e saem do texto da descricao ("500 Pontos").
+ * Regras da conversão: UM produto por peça. Peça com 2 ou mais variações ativas vira produto COM variações
+ * (cada uma com preço e estoque); com uma só, o preço e o estoque ficam no próprio produto.
+ * O SKU é a referência da Queen (código interno, NÃO é código de barras: por isso codigo_barras fica NULL).
+ * Os pontos existem só para esta marca e saem do texto da descrição ("500 Pontos").
  *
  * Fonte: catalogo Conecta Venda https://app.conectavenda.com.br/af7c4f3dcc495af4273cbc35886f253b
- * Dados e fotos pertencem a Queen Semijoias; uso apenas academico.
+ * Dados e fotos pertencem a Queen Semijoias; uso apenas acadêmico.
  */
 const fs = require('fs');
 const Perfume = require('../domain/Perfume');
@@ -49,8 +49,8 @@ class QueenFonte {
   }
 
   /**
-   * 1) POST /cliente/iniciar abre uma sessao e devolve o cabecalho "conecta-session";
-   * 2) POST /produtos/listar (com esse cabecalho) devolve a lista de produtos.
+   * 1) POST /cliente/iniciar abre uma sessão e devolve o cabeçalho "conecta-session";
+   * 2) POST /produtos/listar (com esse cabeçalho) devolve a lista de produtos.
    * shortcut: o formato exato da resposta (lista direta ou dentro de um objeto) foi tratado de forma tolerante;
    * ajuste aqui se a plataforma mudar.
    */
@@ -72,13 +72,14 @@ class QueenFonte {
   }
 }
 
-/** Converte produto da Queen -> Perfume. Devolve null se o produto nao serve (sem nome, inativo ou sem preco valido). */
+/** Converte produto da Queen -> Perfume. Devolve null se o produto não serve (sem nome, inativo ou sem preço válido). */
 class QueenConversor {
+  /** @param {object} p produto bruto da Conecta Venda @returns {Perfume|null} */
   converter(p) {
     const nome = this.limparEspacos(p.produto_nome).slice(0, LIMITE_NOME);
     if (!nome || Number(p.produto_ativo) === 0) return null;
 
-    // Variacoes que valem: ativas e com preco maior que zero (o preco vem em CENTAVOS: 3000 = R$ 30,00).
+    // Variações que valem: ativas e com preço maior que zero (o preço vem em CENTAVOS: 3000 = R$ 30,00).
     const validas = (p.produto_variacoes || []).filter((v) => Number(v.variacao_ativo) !== 0 && Number(v.variacao_preco) > 0);
     if (!validas.length) return null;
 
@@ -90,7 +91,7 @@ class QueenConversor {
       nome,
       marca: MARCA,
       descricao: this.montarDescricao(categoria, texto),
-      codigo_barras: null, // a referencia da Queen NAO e EAN
+      codigo_barras: null, // a referência da Queen NÃO é EAN
       foto_url: foto || null,
       vendedor_id: null, // sem dono, como na Mawwal
       visivel: 1,
@@ -99,13 +100,13 @@ class QueenConversor {
     };
 
     if (validas.length === 1) {
-      // Uma so opcao: sem variacao, preco e estoque ficam no proprio produto.
+      // Uma só opção: sem variação, preço e estoque ficam no próprio produto.
       const v = validas[0];
       const estoque = Number.isFinite(Number(v.variacao_estoque)) ? Number(v.variacao_estoque) : Number(p.produto_estoque_total);
       return new Perfume({ ...dados, preco: this.reais(v.variacao_preco), estoque: Math.max(0, estoque || 0) });
     }
 
-    // Duas ou mais: cada uma vira uma variacao; o produto guarda o menor preco e a soma dos estoques.
+    // Duas ou mais: cada uma vira uma variação; o produto guarda o menor preço e a soma dos estoques.
     const variacoes = validas.map((v, i) => ({
       descricao: this.limparEspacos(v.variacao_descricao).slice(0, LIMITE_VARIACAO) || `Opção ${i + 1}`,
       preco: this.reais(v.variacao_preco),
@@ -126,14 +127,14 @@ class QueenConversor {
     return Math.round(Number(centavos)) / 100;
   }
 
-  /** Tira as pontas e troca espacos repetidos por um so. */
+  /** Tira as pontas e troca espaços repetidos por um só. */
   limparEspacos(texto) {
     return String(texto === undefined || texto === null ? '' : texto).replace(/\s+/g, ' ').trim();
   }
 
   /**
-   * Da descricao em HTML tira os PONTOS ("500 Pontos" -> 500) e devolve o texto que sobrou
-   * (sem tags, com entidades decodificadas). Sem o padrao, pontos = null e o texto fica inteiro.
+   * Da descrição em HTML tira os PONTOS ("500 Pontos" -> 500) e devolve o texto que sobrou
+   * (sem tags, com entidades decodificadas). Sem o padrão, pontos = null e o texto fica inteiro.
    */
   separarPontos(html) {
     const limpo = limparHtml(html);
@@ -144,7 +145,7 @@ class QueenConversor {
     return { pontos: Number.isFinite(pontos) ? pontos : null, texto };
   }
 
-  /** "Categoria: X" sozinha, ou "Categoria: X. texto" quando ha texto. */
+  /** "Categoria: X" sozinha, ou "Categoria: X. texto" quando há texto. */
   montarDescricao(categoria, texto) {
     const prefixo = categoria ? `Categoria: ${categoria}` : '';
     if (!texto) return prefixo || null;
@@ -159,19 +160,15 @@ class ImportadorQueen extends ImportadorDeCatalogo {
     super(repositorio, conversor);
   }
 
-  /** Procura pelo SKU; sem SKU, cai na chave padrao (nome + marca). */
+  /** Procura pelo SKU; sem SKU, cai na chave padrão (nome + marca). */
   async localizar(perfume) {
     return perfume.sku ? this.repositorio.buscarPorSku(perfume.sku) : super.localizar(perfume);
   }
 }
 
-/** Le --nome=valor da linha de comando. */
-function opcao(nome) {
-  const achado = process.argv.find((a) => a.startsWith(`--${nome}=`));
-  return achado ? achado.slice(nome.length + 3) : null;
-}
-
+/** Roda a importação pela linha de comando: lê as opções, busca (ou lê do arquivo) e grava no banco. */
 async function main() {
+  const { opcao } = ImportadorDeCatalogo; // lê --nome=valor (função comum aos importadores)
   const arquivo = opcao('arquivo');
   const salvar = opcao('salvar');
   const produtos = arquivo
@@ -179,7 +176,7 @@ async function main() {
     : await new QueenFonte().buscarTodos();
   if (salvar) fs.writeFileSync(salvar, JSON.stringify(produtos));
 
-  // Carrega o banco so aqui, para os testes poderem importar as classes sem conectar.
+  // Carrega o banco só aqui, para os testes poderem importar as classes sem conectar.
   const db = require('../config/db');
   const PerfumeRepository = require('../repositories/PerfumeRepository');
   try {
@@ -190,9 +187,9 @@ async function main() {
   }
 }
 
-// Roda main() so quando o arquivo e executado direto (nao quando o teste faz require).
+// Roda main() só quando o arquivo é executado direto (não quando o teste faz require).
 if (require.main === module) {
-  main().catch((erro) => { console.error('Falha na importacao:', erro.message); process.exit(1); });
+  main().catch((erro) => { console.error('Falha na importação:', erro.message); process.exit(1); });
 }
 
 module.exports = { QueenFonte, QueenConversor, ImportadorQueen };

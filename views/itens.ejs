@@ -1,7 +1,7 @@
 <%# Catálogo: busca, tabela de perfumes e (para vendedor) formulário de novo anúncio. %>
 <%- include('partials/topo', { titulo: 'Catálogo' }) %>
 <h1>Catálogo de perfumes</h1>
-<%# temDesconto vem do controller (pergunta a estrategia de desconto de quem esta logado). %>
+<%# temDesconto vem do controller (pergunta a estratégia de desconto de quem está logado). %>
 <% if (percentualDesconto) { %><p class="destaque">Você tem <%= percentualDesconto %>% de desconto em todos os preços.</p><% } %>
 
 <form method="get" action="/itens" class="busca">
@@ -45,7 +45,7 @@
   </tbody>
 </table>
 
-<%# Formulario de anuncio (POST /itens): so aparece para o Vendedor. A rota tambem barra os outros. %>
+<%# Formulário de anúncio (POST /itens): só aparece para o Vendedor. A rota também barra os outros. %>
 <% if (usuario && usuario.ehVendedor()) { %>
   <h2>Novo anúncio</h2>
   <p class="dica">Digite ou bipe o código de barras e aperte Enter: nome, marca e foto são preenchidos se forem encontrados.</p>

@@ -13,14 +13,14 @@ const Perfume = require('./domain/Perfume');
 const { resolverSegredo } = require('./config/segredo');
 const { criarArmazemSeguro, salvarAntesDeRedirecionar, COOKIE, NOME_COOKIE } = require('./config/sessao');
 const { tratarErro } = require('./middlewares/erros');
-const pool = require('./config/db'); // o mesmo pool dos repositorios
+const pool = require('./config/db'); // o mesmo pool dos repositórios
 
-// Segredo da sessao: em producao falha se estiver vazio ou for o exemplo; em desenvolvimento so avisa.
+// Segredo da sessão: em produção falha se estiver vazio ou for o exemplo; em desenvolvimento só avisa.
 const segredoDaSessao = resolverSegredo();
 
 const app = express();
 
-// Em producao o app fica atras de um proxy HTTPS (ex.: nginx, Render): confia nele para o cookie secure funcionar.
+// Em produção o app fica atrás de um proxy HTTPS (ex.: nginx, Render): confia nele para o cookie secure funcionar.
 if (process.env.NODE_ENV === 'production') app.set('trust proxy', 1);
 
 // Motor de views: EJS (escapa o texto de <%= %> automaticamente).
@@ -42,10 +42,10 @@ app.use(session({
   secret: segredoDaSessao,
   resave: false,
   saveUninitialized: false,
-  store: criarArmazemSeguro(session, pool), // MySQL; se falhar, avisa no console e usa a memoria (so em desenvolvimento)
+  store: criarArmazemSeguro(session, pool), // MySQL; se falhar, avisa no console e usa a memória (só em desenvolvimento)
   cookie: COOKIE
 }));
-// Grava a sessao antes de cada redirect (senao a pagina seguinte podia ler o carrinho antigo; veja config/sessao.js).
+// Grava a sessão antes de cada redirect (senão a página seguinte podia ler o carrinho antigo; veja config/sessao.js).
 app.use(salvarAntesDeRedirecionar);
 app.use(carregarUsuario);
 
@@ -59,7 +59,7 @@ app.use((req, res) => {
   res.status(404).render('erro', { titulo: 'Página não encontrada', mensagem: 'Esse endereço não existe.' });
 });
 
-// Erros inesperados: loga no servidor e mostra mensagem amigavel (veja middlewares/erros.js).
+// Erros inesperados: loga no servidor e mostra mensagem amigável (veja middlewares/erros.js).
 app.use(tratarErro);
 
 module.exports = app;

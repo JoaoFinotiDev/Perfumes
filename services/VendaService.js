@@ -25,7 +25,7 @@ class VendaService {
     try {
       venda.id = await this.vendas.registrar(venda);
     } catch (erro) {
-      // Estoque acabou entre a tela e a gravacao: vira mensagem amigavel para o usuario.
+      // Estoque acabou entre a tela e a gravação: vira mensagem amigável para o usuário.
       if (erro instanceof EstoqueInsuficienteError) throw new ErroDeValidacao(erro.message);
       throw erro;
     }

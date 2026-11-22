@@ -35,6 +35,7 @@ class Venda {
     this.desconto = carrinho.desconto(estrategia);
   }
 
+  /** Itens vendidos (os mesmos do carrinho). O VendaRepository grava um por um. */
   get itens() { return this.carrinho.itens; }
 }
 

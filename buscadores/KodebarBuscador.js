@@ -14,7 +14,7 @@ class KodebarBuscador extends BuscadorDeProduto {
     this.urlBase = 'https://kodebar.korvensistemas.com.br';
   }
 
-  /** Consulta o Kodebar. Devolve {nome, marca, descricao, foto} ou null se nao achar ou falhar. */
+  /** Consulta o Kodebar. Devolve {nome, marca, descricao, foto} ou null se não achar ou falhar. */
   async buscar(codigo) {
     if (!this.token) return null; // sem token: passa a vez para o próximo buscador
     try {

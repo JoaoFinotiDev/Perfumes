@@ -5,7 +5,7 @@
  * Variações são OPCIONAIS: produto sem variação usa o preço e o estoque do próprio Perfume.
  */
 class Variacao {
-  /** @param {object} dados linha da tabela variacoes */
+  /** @param {object} dados linha da tabela variações */
   constructor({ id, perfume_id, descricao, preco, estoque, ativo, ordem }) {
     this.id = id;
     this.perfumeId = perfume_id;

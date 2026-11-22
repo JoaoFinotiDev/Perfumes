@@ -185,7 +185,7 @@ class PerfumeRepository {
     await this.db.query('UPDATE perfumes SET visivel = ? WHERE id = ?', [visivel ? 1 : 0, id]);
   }
 
-  /** Busca pelo par nome + marca (ou null). Usado pela importacao para nao duplicar produtos. */
+  /** Busca pelo par nome + marca (ou null). Usado pela importação para não duplicar produtos. */
   async buscarPorNomeEMarca(nome, marca) {
     const [linhas] = await this.db.query('SELECT * FROM perfumes WHERE nome = ? AND marca = ? LIMIT 1', [nome, marca]);
     return this._montarUm(linhas);

@@ -2,7 +2,7 @@
  * utils/html.js
  * Limpeza de texto HTML compartilhada pelos importadores (Mawwal, Queen...):
  * tira as tags e troca entidades (&ccedil; vira ç) pelos caracteres de verdade.
- * Fica em utils para o mesmo codigo nao ser copiado em cada importador.
+ * Fica em utils para o mesmo código não ser copiado em cada importador.
  */
 
 // Entidades HTML com nome que aparecem nos textos em portugues. Nome da entidade -> caractere.
@@ -17,7 +17,7 @@ const ENTIDADES = {
 
 /**
  * Troca entidades HTML pelo caractere de verdade: &ccedil; (nome), &#233; (decimal) e &#xE9; (hexadecimal).
- * Passa UMA vez pelo texto, entao "&amp;ccedil;" vira "&ccedil;" (nao decodifica duas vezes).
+ * Passa UMA vez pelo texto, então "&amp;ccedil;" vira "&ccedil;" (não decodifica duas vezes).
  * Entidade desconhecida fica como veio.
  */
 function decodificarEntidades(texto) {
@@ -30,7 +30,7 @@ function decodificarEntidades(texto) {
   });
 }
 
-/** Tira as tags HTML, decodifica as entidades (&ccedil; vira ç) e junta espacos repetidos. */
+/** Tira as tags HTML, decodifica as entidades (&ccedil; vira ç) e junta espaços repetidos. */
 function limparHtml(html) {
   const semTags = String(html || '').replace(/<[^>]*>/g, ' ');
   return decodificarEntidades(semTags).replace(/\s+/g, ' ').trim();

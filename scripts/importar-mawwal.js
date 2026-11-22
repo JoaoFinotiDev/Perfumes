@@ -5,12 +5,12 @@
  *        npm run importar:mawwal -- --salvar=mawwal.json     (baixa e guarda o JSON bruto)
  *        npm run importar:mawwal -- --arquivo=mawwal.json    (usa o JSON guardado, sem rede)
  *
- * Tres classes, cada uma com UM trabalho (SOLID):
- *  - MawwalFonte:       busca o JSON na internet (unica parte que usa rede).
+ * Três classes, cada uma com UM trabalho (SOLID):
+ *  - MawwalFonte:       busca o JSON na internet (única parte que usa rede).
  *  - MawwalConversor:   transforma um produto Shopify em um Perfume (sem rede, sem banco).
  *  - ImportadorMawwal:  o ImportadorDeCatalogo (comum a todas as lojas) com o conversor da Mawwal.
  *
- * Fonte: dados e fotos pertencem a Mawwal Arabia Brasil; uso apenas academico.
+ * Fonte: dados e fotos pertencem a Mawwal Arabia Brasil; uso apenas acadêmico.
  */
 const fs = require('fs');
 const Perfume = require('../domain/Perfume');
@@ -24,11 +24,11 @@ const LIMITE_DESCRICAO = 65535; // TEXT
 const LIMITE_FOTO = 500;
 const LIMITE_CODIGO = 14;
 
-// A fonte NAO informa estoque, entao todo produto importado nasce com este valor padrao.
+// A fonte NÃO informa estoque, então todo produto importado nasce com este valor padrão.
 const ESTOQUE_PADRAO = 10;
 const MARCA = 'Mawwal';
 
-/** Busca todas as paginas de products.json. */
+/** Busca todas as páginas de products.json. */
 class MawwalFonte {
   constructor({ url = 'https://mawwal.com.br/products.json', pausaMs = 1000, fetchFn = fetch } = {}) {
     this.url = url;
@@ -36,7 +36,7 @@ class MawwalFonte {
     this.fetchFn = fetchFn; // injetavel para testes
   }
 
-  /** Pagina com ?limit=250&page=N ate vir uma lista vazia. Devolve todos os produtos juntos. */
+  /** Página com ?limit=250&page=N até vir uma lista vazia. Devolve todos os produtos juntos. */
   async buscarTodos() {
     const todos = [];
     for (let pagina = 1; ; pagina++) {
@@ -47,14 +47,15 @@ class MawwalFonte {
       const { products = [] } = await resposta.json();
       if (!products.length) break;
       todos.push(...products);
-      await new Promise((ok) => setTimeout(ok, this.pausaMs)); // educacao com o servidor: 1 s entre paginas
+      await new Promise((ok) => setTimeout(ok, this.pausaMs)); // educação com o servidor: 1 s entre páginas
     }
     return todos;
   }
 }
 
-/** Converte produto Shopify -> Perfume. Devolve null se o produto nao serve (sem nome ou sem preco valido). */
+/** Converte produto Shopify -> Perfume. Devolve null se o produto não serve (sem nome ou sem preço válido). */
 class MawwalConversor {
+  /** @param {object} p produto bruto do products.json (formato Shopify) @returns {Perfume|null} */
   converter(p) {
     const variante = (p.variants || [])[0] || {};
     const preco = Number(variante.price);
@@ -72,13 +73,13 @@ class MawwalConversor {
       descricao: this.limparHtml(p.body_html).slice(0, LIMITE_DESCRICAO),
       // codigo_barras e UNIQUE e tem 14 posicoes: se vier vazio ou grande demais, grava NULL.
       codigo_barras: codigo && codigo.length <= LIMITE_CODIGO ? codigo : null,
-      // So aceitamos foto https e que caiba na coluna.
+      // Só aceitamos foto https e que caiba na coluna.
       foto_url: foto.startsWith('https://') && foto.length <= LIMITE_FOTO ? foto : null,
-      vendedor_id: null // sem dono: a coluna aceita NULL, entao nao precisamos criar usuario de importacao
+      vendedor_id: null // sem dono: a coluna aceita NULL, então não precisamos criar usuario de importação
     });
   }
 
-  /** Tira as tags HTML e decodifica as entidades (codigo compartilhado em utils/html.js). */
+  /** Tira as tags HTML e decodifica as entidades (código compartilhado em utils/html.js). */
   limparHtml(html) {
     return limparHtml(html);
   }
@@ -86,7 +87,7 @@ class MawwalConversor {
 
 /**
  * Importador da Mawwal: o ImportadorDeCatalogo (scripts/importador-de-catalogo.js, comum a todas as lojas)
- * com o conversor da Mawwal como padrao. Mantem o nome e o uso antigos: new ImportadorMawwal(repositorio).
+ * com o conversor da Mawwal como padrão. Mantém o nome e o uso antigos: new ImportadorMawwal(repositorio).
  */
 class ImportadorMawwal extends ImportadorDeCatalogo {
   /** @param {PerfumeRepository} repositorio  @param {MawwalConversor} conversor */
@@ -95,13 +96,9 @@ class ImportadorMawwal extends ImportadorDeCatalogo {
   }
 }
 
-/** Le --nome=valor da linha de comando. */
-function opcao(nome) {
-  const achado = process.argv.find((a) => a.startsWith(`--${nome}=`));
-  return achado ? achado.slice(nome.length + 3) : null;
-}
-
+/** Roda a importação pela linha de comando: lê as opções, busca (ou lê do arquivo) e grava no banco. */
 async function main() {
+  const { opcao } = ImportadorDeCatalogo; // lê --nome=valor (função comum aos importadores)
   const arquivo = opcao('arquivo');
   const salvar = opcao('salvar');
   const produtos = arquivo
@@ -109,12 +106,12 @@ async function main() {
     : await new MawwalFonte().buscarTodos();
   if (salvar) fs.writeFileSync(salvar, JSON.stringify(produtos));
 
-  // Carrega o banco so aqui, para os testes poderem importar as classes sem conectar.
+  // Carrega o banco só aqui, para os testes poderem importar as classes sem conectar.
   const db = require('../config/db');
   const PerfumeRepository = require('../repositories/PerfumeRepository');
   try {
     const importador = new ImportadorMawwal(new PerfumeRepository(db));
-    if (process.argv.includes('--corrigir-descricoes')) { // so regrava descricoes com "&...;" (veja o README)
+    if (process.argv.includes('--corrigir-descricoes')) { // só regrava descrições com "&...;" (veja o README)
       console.log(`Descricoes corrigidas: ${await importador.corrigirDescricoes(produtos)}`);
       return;
     }
@@ -125,9 +122,9 @@ async function main() {
   }
 }
 
-// Roda main() so quando o arquivo e executado direto (nao quando o teste faz require).
+// Roda main() só quando o arquivo é executado direto (não quando o teste faz require).
 if (require.main === module) {
-  main().catch((erro) => { console.error('Falha na importacao:', erro.message); process.exit(1); });
+  main().catch((erro) => { console.error('Falha na importação:', erro.message); process.exit(1); });
 }
 
 module.exports = { MawwalFonte, MawwalConversor, ImportadorMawwal };

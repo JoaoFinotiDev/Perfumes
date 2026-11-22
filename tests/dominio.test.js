@@ -28,14 +28,14 @@ test('arredondar sobe o meio centavo corretamente', () => {
   assert.strictEqual(arredondar(123.405), 123.41);
 });
 
-// Id que nao e inteiro positivo nao vai ao banco: devolve null.
+// Id que não é inteiro positivo não vai ao banco: devolve null.
 test('PerfumeService.buscarPorId devolve null para id invalido', () => {
   const PerfumeService = require('../services/PerfumeService');
   const servico = new PerfumeService({ buscarPorId: () => { throw new Error('nao devia consultar'); } });
   ['abc', '', 0, -3, 1.5, NaN].forEach((id) => assert.strictEqual(servico.buscarPorId(id), null));
 });
 
-// O repositorio lanca erro proprio; o service troca por ErroDeValidacao (mensagem para o usuario).
+// O repositório lança erro próprio; o service troca por ErroDeValidacao (mensagem para o usuário).
 test('VendaService converte EstoqueInsuficienteError em ErroDeValidacao', async () => {
   const VendaService = require('../services/VendaService');
   const { ErroDeValidacao, EstoqueInsuficienteError } = require('../utils/erros');

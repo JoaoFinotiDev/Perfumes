@@ -48,7 +48,7 @@ class AuthController {
 
   /** POST /logout */
   logout(req, res) {
-    // Apaga a sessao no servidor E o cookie no navegador (senao ele guardaria um id morto).
+    // Apaga a sessão no servidor E o cookie no navegador (senão ele guardaria um id morto).
     req.session.destroy(() => {
       res.clearCookie(NOME_COOKIE);
       res.redirect('/');
