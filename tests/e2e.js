@@ -36,10 +36,10 @@ function conferir(nome, ok, extra = '') {
 
   // Catálogo público e busca
   let r = await visitante('/');
-  conferir('GET / (vitrine) lista perfumes (público)', r.status === 200 && r.texto.includes('Malbec Tradicional'));
-  conferir('acentos corretos (UTF-8)', r.texto.includes('O Boticário'));
-  r = await visitante('/?q=natura');
-  conferir('busca por marca', r.texto.includes('Kaiak') && !r.texto.includes('Malbec'));
+  conferir('GET / (vitrine) lista perfumes (público)', r.status === 200 && r.texto.includes('Âmbar Noturno'));
+  conferir('acentos corretos (UTF-8)', r.texto.includes('Colônia Brisa do Mar'));
+  r = await visitante('/?q=essence');
+  conferir('busca por marca', r.texto.includes('Brisa do Mar') && !r.texto.includes('Âmbar Noturno'));
   r = await visitante('/itens');
   conferir('visitante NÃO vê /itens (vai para o login)', r.status === 302 && r.local === '/login');
 
@@ -55,7 +55,7 @@ function conferir(nome, ok, extra = '') {
   r = await admin('/login', { metodo: 'POST', corpo: { usuario: 'admin', senha: 'admin' } });
   conferir('login admin/admin', r.status === 302 && r.local === '/');
   r = await admin('/itens');
-  conferir('admin vê /itens com a coluna "Na vitrine"', r.status === 200 && r.texto.includes('Malbec Tradicional') && r.texto.includes('Na vitrine'));
+  conferir('admin vê /itens com a coluna "Na vitrine"', r.status === 200 && r.texto.includes('Âmbar Noturno') && r.texto.includes('Na vitrine'));
   conferir('/itens: descrição em uma linha com botão "Ver mais" (escondido até o JS medir)',
     r.texto.includes('class="desc-texto"') && /<button[^>]*desc-botao[^>]*hidden[^>]*aria-expanded="false"/.test(r.texto) && r.texto.includes('descricao-ver-mais.js'));
   r = await admin('/admin/vendedores', { metodo: 'POST', corpo: { nome: 'Vend Teste', usuario: 'vend' + id, senha: 'senha123' } });
@@ -113,11 +113,11 @@ function conferir(nome, ok, extra = '') {
   r = await vendedor('/vendedor/venda/codigo', { metodo: 'POST', corpo: { codigo: '1234567890123' } });
   r = await vendedor('/vendedor/venda');
   conferir('código inexistente mostra "Produto não encontrado"', r.texto.includes('Produto não encontrado'));
-  await vendedor('/vendedor/venda/codigo', { metodo: 'POST', corpo: { codigo: '7891033000011' } });
+  await vendedor('/vendedor/venda/codigo', { metodo: 'POST', corpo: { codigo: '2000000000011' } });
   r = await vendedor('/vendedor/venda');
   conferir('bipar código existente adiciona (sem cliente = 189,90)', r.texto.includes('Total: R$') && r.texto.includes('189,90'));
-  r = await vendedor('/vendedor/venda?q=floratta');
-  conferir('busca por nome na venda', r.texto.includes('Floratta Rose'));
+  r = await vendedor('/vendedor/venda?q=rosa%20chic');
+  conferir('busca por nome na venda', r.texto.includes('Body Splash Rosa Chic'));
   const listaClientes = r.texto.match(/<option value="(\d+)"[^>]*>Cli Teste/);
   conferir('cliente cadastrado aparece na lista', !!listaClientes);
   await vendedor('/vendedor/venda/cliente', { metodo: 'POST', corpo: { clienteId: listaClientes[1] } });
@@ -159,7 +159,7 @@ function conferir(nome, ok, extra = '') {
   conferir('"Abrir venda" acha produto oculto (código de barras)', r.texto.includes('Perfume &lt;b&gt;Teste'));
   r = await vendedor('/vendedor/produtos/' + pid + '/editar');
   conferir('tela de edição abre preenchida', r.status === 200 && r.texto.includes('789' + id) && r.texto.includes('editar-produto.js'));
-  r = await vendedor('/vendedor/produtos/' + pid + '/editar', { metodo: 'POST', corpo: { nome: 'Outro', marca: 'Marca', preco: '5', estoque: '1', codigo_barras: '7891033000011' } });
+  r = await vendedor('/vendedor/produtos/' + pid + '/editar', { metodo: 'POST', corpo: { nome: 'Outro', marca: 'Marca', preco: '5', estoque: '1', codigo_barras: '2000000000011' } });
   conferir('editar com código de OUTRO produto -> 400', r.status === 400 && r.texto.includes('Já existe um produto'));
   r = await vendedor('/vendedor/produtos/' + pid + '/editar', { metodo: 'POST', corpo: { nome: 'x', marca: 'Marca', preco: '-5', estoque: '1' } });
   conferir('editar com dado inválido -> 400', r.status === 400);
