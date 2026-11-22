@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS venda_itens (
 -- Admin inicial: usuário "admin", senha "admin" (hash bcrypt).
 -- Troque a senha depois do primeiro acesso, se for usar de verdade.
 INSERT IGNORE INTO usuarios (usuario, nome, senha_hash, papel) VALUES
-  ('admin', 'Administrador', '$2b$10$mWW3Q5fUBmThjPQyw/lClu9OCvJtY1tRSLKckf33JaWGXXoUmplIa', 'admin');
+  ('admin', 'Administrador', '$2b$10$v2/tXCbr7N5xPqRuavrKRO23E4diMnY9Cr26EHDyULwTbgvsglHQe', 'admin');
 
 -- Perfumes de exemplo (INSERT IGNORE evita duplicar se o script rodar de novo).
 INSERT IGNORE INTO perfumes (nome, marca, preco, estoque, descricao, codigo_barras, foto_url) VALUES

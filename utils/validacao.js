@@ -4,6 +4,7 @@
  * Cada função devolve o valor já limpo ou lança ErroDeValidacao.
  */
 const { ErroDeValidacao } = require('./erros');
+const { arredondar } = require('../domain/Desconto');
 
 /** Texto obrigatório (ou opcional) com tamanho mínimo e máximo. */
 function texto(valor, campo, { min = 1, max = 255, opcional = false } = {}) {
@@ -21,7 +22,9 @@ function preco(valor, campo) {
   if (!Number.isFinite(n) || n <= 0 || n > 99999.99) {
     throw new ErroDeValidacao(`${campo}: informe um valor maior que zero.`);
   }
-  return Math.round(n * 100) / 100;
+  // `arredondar` (de domain/Desconto.js) acerta casos como 1,005, que Math.round(n * 100) / 100 arredondava para baixo
+  // (1.005 * 100 vale 100.49999999999999 no computador). Assim o preco digitado e o preco com desconto usam a MESMA regra.
+  return arredondar(n);
 }
 
 /** Número inteiro entre 0 e um máximo (estoque, quantidade). */

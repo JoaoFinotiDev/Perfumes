@@ -10,10 +10,10 @@ const logger = require('morgan');
 const session = require('express-session');
 const { carregarUsuario } = require('./middlewares/auth');
 const Perfume = require('./domain/Perfume');
+const { resolverSegredo } = require('./config/segredo');
 
-if (!process.env.SESSION_SECRET) {
-  throw new Error('Defina SESSION_SECRET no arquivo .env (veja o .env.example).');
-}
+// Segredo da sessao: em producao falha se estiver vazio ou for o exemplo; em desenvolvimento so avisa.
+const segredoDaSessao = resolverSegredo();
 
 const app = express();
 
@@ -32,7 +32,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Sessão em cookie httpOnly. shortcut: usa a memória do servidor (reinicia = sai de todos);
 // para produção, trocar por um store em banco (ex.: express-mysql-session).
 app.use(session({
-  secret: process.env.SESSION_SECRET,
+  secret: segredoDaSessao,
   resave: false,
   saveUninitialized: false,
   cookie: { httpOnly: true, sameSite: 'lax' }
