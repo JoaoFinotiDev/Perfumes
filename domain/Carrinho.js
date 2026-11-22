@@ -96,6 +96,20 @@ class Carrinho {
     this._itens.set(chave, item);
   }
 
+  /**
+   * TROCA a quantidade de uma linha que já está no carrinho (não soma). Nunca passa do estoque.
+   * @param {string} chave a linha (veja Carrinho.chave)
+   * @param {number} quantidade inteiro de 1 em diante (já validado pelo service)
+   */
+  definirQuantidade(chave, quantidade) {
+    const item = this._itens.get(String(chave));
+    if (!item) throw new ErroDeValidacao('Esse item não está mais no carrinho.');
+    if (quantidade > item.estoque) {
+      throw new ErroDeValidacao(`Só temos ${item.estoque} em estoque de "${item.nome}".`);
+    }
+    item.quantidade = quantidade;
+  }
+
   /** Tira a linha do carrinho (pela chave: veja Carrinho.chave). */
   remover(chave) {
     this._itens.delete(String(chave));

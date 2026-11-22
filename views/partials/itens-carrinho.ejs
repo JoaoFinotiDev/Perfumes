@@ -1,7 +1,8 @@
 <%#
   Tabela de itens + totais, IGUAL no carrinho do site e na tela "Abrir venda".
   Entrada: resumo (pronto em CarrinhoService.resumir: linhas, subtotal, desconto, total) e
-  acaoRemover (endereço do POST do botão "Remover").
+  acaoRemover (endereço do POST do botão "Remover") e, opcional, acaoQuantidade (POST que troca a quantidade:
+  só o carrinho do site usa; na tela "Abrir venda" a quantidade fica só como texto).
   A view só MOSTRA: preço unitário, subtotal de cada linha e os totais já vêm calculados.
 %>
 <%# Caixa com rolagem lateral: no celular a tabela rola dentro dela, sem alargar a página (style.css). %>
@@ -11,7 +12,17 @@
   <% resumo.linhas.forEach(function (linha) { %>
     <tr>
       <td><%= linha.nome %> - <%= linha.marca %></td>
-      <td><%= linha.quantidade %></td>
+      <td>
+        <% if (locals.acaoQuantidade) { %>
+          <%# Campo + "Atualizar": max é só conforto; o servidor limita ao estoque de novo. %>
+          <form method="post" action="<%= acaoQuantidade %>" class="inline qtd-carrinho">
+            <input type="hidden" name="perfumeId" value="<%= linha.perfumeId %>">
+            <input type="hidden" name="variacaoId" value="<%= linha.variacaoId %>">
+            <input type="number" name="quantidade" value="<%= linha.quantidade %>" min="1" max="<%= linha.estoque %>" step="1" required class="estoque-campo" aria-label="Quantidade de <%= linha.nome %>">
+            <button type="submit" class="botao-pequeno">Atualizar</button>
+          </form>
+        <% } else { %><%= linha.quantidade %><% } %>
+      </td>
       <td><%= moeda(linha.unitario) %></td>
       <td><%= moeda(linha.subtotal) %></td>
       <td>

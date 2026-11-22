@@ -88,7 +88,8 @@
   <%- include('partials/itens-carrinho', { resumo: resumo, acaoRemover: '/vendedor/venda/remover' }) %>
 
   <h2>4. Pagamento (simulado)</h2>
-  <form method="post" action="/vendedor/venda/finalizar" class="inline-form">
+  <%# Trava o botão depois do clique (evita venda em dobro). %>
+  <form method="post" action="/vendedor/venda/finalizar" class="inline-form" data-enviar-uma-vez>
     <select name="forma" required>
       <% Object.keys(formas).forEach(function (k) { %><option value="<%= k %>"><%= formas[k] %></option><% }) %>
     </select>
@@ -96,4 +97,5 @@
   </form>
 <% } %>
 <script src="/javascripts/busca-lista.js"></script>
+<script src="/javascripts/enviar-uma-vez.js"></script>
 <%- include('partials/rodape') %>

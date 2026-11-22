@@ -1,0 +1,27 @@
+<%# Comprovante da compra (GET /compras/:id). Só o dono chega aqui (o VendaService confere).
+    A view só MOSTRA: preços, subtotais e totais vêm prontos de VendaService.comprovante. %>
+<%- include('partials/topo', { titulo: 'Compra #' + compra.id }) %>
+<h1>Compra #<%= compra.id %></h1>
+<p class="dica">Feita em <%= compra.data.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) %>
+  - pagamento: <strong><%= compra.forma %></strong> (simulado).</p>
+
+<div class="tabela-rolagem">
+<table>
+  <thead><tr><th scope="col">Produto</th><th scope="col">Qtd</th><th scope="col">Preço unit.</th><th scope="col">Subtotal</th></tr></thead>
+  <tbody>
+  <% compra.linhas.forEach(function (linha) { %>
+    <tr>
+      <td><%= linha.nome %> - <%= linha.marca %></td>
+      <td><%= linha.quantidade %></td>
+      <td><%= moeda(linha.unitario) %></td>
+      <td><%= moeda(linha.subtotal) %></td>
+    </tr>
+  <% }) %>
+  </tbody>
+</table>
+</div>
+<p>Subtotal: <%= moeda(compra.subtotal) %></p>
+<% if (compra.desconto > 0) { %><p>Desconto: -<%= moeda(compra.desconto) %></p><% } %>
+<p class="total">Total: <%= moeda(compra.total) %></p>
+<p><a href="/">&larr; Continuar comprando</a></p>
+<%- include('partials/rodape') %>

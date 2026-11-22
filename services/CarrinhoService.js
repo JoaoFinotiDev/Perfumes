@@ -80,6 +80,17 @@ class CarrinhoService {
     return Number(texto);
   }
 
+  /**
+   * Troca a quantidade de uma linha (produto + variação opcional em `opcoes.variacaoId`).
+   * O limite é o estoque do BANCO (o carrinho é recarregado agora), não o "max" do navegador.
+   */
+  async definirQuantidade(sessao, chave, perfumeId, opcoes = {}) {
+    const quantidade = this._quantidade(opcoes.quantidade);
+    const carrinho = await this.carregar(sessao, chave, opcoes);
+    carrinho.definirQuantidade(Carrinho.chave(Number(perfumeId), Number(opcoes.variacaoId) || null), quantidade);
+    sessao[chave] = carrinho.paraSessao();
+  }
+
   /** Remove uma linha do carrinho (produto + variação opcional em `opcoes.variacaoId`). */
   async remover(sessao, chave, perfumeId, opcoes = {}) {
     const carrinho = await this.carregar(sessao, chave, opcoes);
@@ -104,6 +115,7 @@ class CarrinhoService {
         nome: item.nome,
         marca: item.perfume.marca,
         quantidade: item.quantidade,
+        estoque: item.estoque, // limite do campo de quantidade no carrinho (o servidor confere de novo)
         unitario,
         subtotal: arredondar(unitario * item.quantidade),
         // Os dois campos que o botão "Remover" envia (veja CarrinhoService.remover).

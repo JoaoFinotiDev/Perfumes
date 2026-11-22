@@ -49,6 +49,34 @@ class CarrinhoController {
     }
   }
 
+  /**
+   * POST /carrinho/quantidade: troca a quantidade de uma linha (campo do carrinho).
+   * O servidor confere: inteiro de 1 em diante e no máximo o estoque. Erro volta ao carrinho em vermelho.
+   */
+  async quantidade(req, res) {
+    try {
+      await this.carrinhos.definirQuantidade(req.session, CHAVE, req.body.perfumeId, {
+        variacaoId: req.body.variacaoId, quantidade: req.body.quantidade
+      });
+      req.session.aviso = 'Quantidade atualizada.';
+    } catch (erro) {
+      if (!(erro instanceof ErroDeValidacao)) throw erro;
+      avisarErro(req.session, erro.message);
+    }
+    res.redirect('/carrinho');
+  }
+
+  /**
+   * GET /compras/:id: comprovante da compra. Só o DONO vê; para os outros (ou compra que não existe) é 404.
+   */
+  async comprovante(req, res) {
+    const compra = await this.vendas.comprovante(req.params.id, req.usuario);
+    if (!compra) {
+      return res.status(404).render('erro', { titulo: 'Compra não encontrada', mensagem: 'Essa compra não existe.' });
+    }
+    res.render('compra', { compra });
+  }
+
   /** POST /carrinho/remover: tira a linha (produto + variação) do carrinho. */
   async remover(req, res) {
     await this.carrinhos.remover(req.session, CHAVE, req.body.perfumeId, { variacaoId: req.body.variacaoId });
@@ -64,7 +92,7 @@ class CarrinhoController {
       });
       this.carrinhos.limpar(req.session, CHAVE);
       req.session.aviso = `Compra #${venda.id} confirmada (pagamento simulado).`;
-      res.redirect('/');
+      res.redirect(`/compras/${venda.id}`); // abre o comprovante da compra
     } catch (erro) {
       if (!(erro instanceof ErroDeValidacao)) throw erro;
       res.status(400);
