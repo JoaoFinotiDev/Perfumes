@@ -114,10 +114,19 @@ main:has(.vitrine-grade) { max-width: 1200px; }
 /* No CARD o selo sempre guarda o seu espaço, mesmo escondido (estoque acima de 5).
    Assim todos os cards da linha têm a mesma altura e os botões ficam alinhados.
    visibility: hidden esconde o selo da tela e do leitor de tela, mas mantém o lugar dele. */
-.card .aviso-estoque { min-height: 1.4em; box-sizing: content-box; }
-/* "!important" aqui é necessário: no fim deste arquivo existe a regra geral "[hidden] { display: none !important }",
-   que esconderia o selo de vez e tiraria o espaço dele. Só no card trocamos por "invisível, mas ocupando lugar". */
-.card .aviso-estoque[hidden] { display: block !important; visibility: hidden; }
+/*
+ * No CARD o selo de estoque ("Últimas N" / "Esgotado") fica no CANTO SUPERIOR DIREITO, por cima da foto.
+ * Como funciona: o .card vira a "referência" (position: relative) e o selo usa position: absolute,
+ * então ele sai do meio do texto e não empurra mais o preço nem os botões (o card fica alinhado sozinho).
+ * O selo "-5%" continua no canto ESQUERDO da foto, então os dois não se encostam.
+ * Quando não há aviso, o atributo hidden esconde o selo (regra geral [hidden] no fim deste arquivo).
+ * Na página do produto nada muda: lá o selo continua abaixo do preço.
+ */
+.card { position: relative; }
+.card .aviso-estoque {
+  position: absolute; top: var(--espaco-1); right: var(--espaco-1); z-index: 1;
+  margin: 0; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
 /* O bloco de compra (preço, selo, chips, quantidade e botão) fica preso ao FUNDO do card.
    O .card-corpo é uma coluna flex; margin-top: auto empurra este bloco para baixo,
    então os botões de todos os cards da mesma linha terminam na mesma altura. */
